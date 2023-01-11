@@ -1,0 +1,11 @@
+*migrations/* 
+*migrations/ 
+*env/ 
+env/* 
+*.directory 
+*/.directory
+#app/core/reports/jasperbase.py
+app/deploy/start_bascula.bat
+*.pdf
+*.xls
+*.xlsx

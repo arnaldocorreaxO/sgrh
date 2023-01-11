@@ -1,0 +1,54 @@
+{% extends 'list.html' %}
+{% load static %}
+{% block head_list %}
+    <!-- DateRangerPicker Libs -->
+    <script src="{% static 'lib/bootstrap-daterangepicker-3.0.5/spanish.js' %}"></script>
+    <script src="{% static 'lib/bootstrap-daterangepicker-3.0.5/daterangepicker.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'lib/bootstrap-daterangepicker-3.0.5/daterangepicker.css' %}"/>
+    <!--Block head report-->
+    {% block head_report %}{% endblock %}
+{% endblock %}
+{% load widget_tweaks %}
+{% block content %}
+    <div class="card {{ dshboard.card }}">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-chart-bar"></i>
+                {{ title }}
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="container-fluid">
+                <!-- Block Parameters Reports -->
+                {% block params_report %}
+                    
+                {% endblock %}
+                <!-- Block Buttons Reports -->
+                {% block buttons_report %}
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="input-group mb-3">
+                                <div class="input-group-append">
+                                    <button class="btn btn-success btnSearchReport" type="button">
+                                        <i class="far fa-file-alt"></i> Vizualizar
+                                    </button>
+                                    <button class="btn btn-warning btnSearchAll" type="button">
+                                        <i class="far fa-file"></i></i> Ver todas
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endblock %}
+                <!--Block content report-->
+                {% block content_report %}                   
+
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+    <!--Block report_javascript-->
+    {% block javascript_report %}
+
+    {% endblock %}
+{% endblock %}

@@ -1,0 +1,273 @@
+{% extends 'form.html' %}
+{% load widget_tweaks %}
+{% load static %}
+{% block head_form %}
+    <script src="{% static 'movimiento/js/form_ent_sal.js' %}"></script>
+    <script src="{% static 'movimiento/js/search_select2.js' %}"></script>    
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center ">
+        <div class="col-md-8 mt-5">
+            <form method="post"  enctype="multipart/form-data" id="frmMovimiento">
+                {% csrf_token %}
+                        {% if action == 'add' %}
+                            <div class="card card-success">
+                        {% else %}
+                            <div class="card card-warning">
+                            {{form.peso_entrada}} <!-- hidden del lado del form -->
+                        {% endif %}
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                {% if action == 'add' %}
+                                <i class="fas fa-plus"></i>
+                                {% else %}
+                                <i class="fas fa-edit"></i>
+                                {% endif %}
+
+                                {{ title }}
+                            </h3>
+                        </div>
+                        <div class="card-body">
+
+                            <input type="hidden" id="action" name="action" value="{{ action }}">
+                            <input type="hidden" id="suc_usuario" name="suc_usuario" value="{{ suc_usuario }}">                           
+                            
+                            <!-- Este utilizamos para el form del UpdateView -->
+                            <input type="hidden" id="id_sucursal" name="sucursal" value="{{ suc_usuario }}"> 
+                            <input type="hidden" id="tipo_salida_id" name="tipo_salida" value="{{ tipo_salida }}">
+                            
+                            {% if form.errors %}
+                            <div class="alert alert-danger alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                <h5><i class="icon fas fa-ban"></i> Ha ocurrido un error al querer guardar el registro
+                                </h5>
+                                <ul>
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
+                            <div class="form-row">
+                                <div class="form-group col-md-3 mb-0">
+                                    <label for="{{ form.fecha.id_for_label }}">{{form.fecha.label}}*</label>
+                                    {{ form.fecha|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-3 mb-0">
+                                    <label for="{{ form.nro_ticket.id_for_label }}">{{form.nro_ticket.label}}*</label>
+                                    {{ form.nro_ticket|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-6 mb-0">
+                                    {% if action == 'add' %}                                    
+                                        <label for="{{ form.peso_entrada.id_for_label }}">{{form.peso_entrada.label}}*</label>                                   
+                                    {% else %}
+                                        <label for="{{ form.peso_salida.id_for_label }}">{{form.peso_salida.label}}*</label>                                   
+                                    {% endif %} 
+                                    <div class="input-group">                                    
+                                        {% if action == 'add' %}                                        
+                                            {{ form.peso_entrada|add_class:'form-control'|attr:'autocomplete:off'}}
+                                        {% else %}                                        
+                                            {{ form.peso_salida|add_class:'form-control'|attr:'autocomplete:off'}}
+                                        {% endif %} 
+                                        <div class="input-group-append">
+                                            {% if puerto_bascula1 %}
+                                            <button class="btn btn-info btn-flat btn-xs btnBascula mx-1" type="button" value="{{puerto_bascula1}}">
+                                                <i class="fas fa-download"></i> Bascula 1                                                
+                                            </button>
+                                            {% endif %}
+                                            {% if puerto_bascula2 %}
+                                            <button class="btn btn-dark btn-xs btnBascula" type="button" value="{{puerto_bascula2}}">
+                                                <i class="fas fa-download"></i> Bascula 2                                                
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>                                  
+                                </div>
+                                <div class="form-group col-md-2 mb-0">
+                                   
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-12 mb-0">
+                                    <label for="{{ form.movimiento_padre.id_for_label }}">{{form.movimiento_padre.label}}</label>
+                                    <div class="input-group">
+                                        {{ form.movimiento_padre}}
+                                    </div>
+                                </div>
+                            </div>                            
+                            <div class="form-row">  
+                                <div class="form-group col-md-6 mb-0">
+                                    <label for="{{ form.vehiculo.id_for_label }}">{{form.vehiculo.label}}*</label>
+                                    <div class="input-group">
+                                        {{ form.vehiculo}}
+                                        {% if action == 'add' %}
+                                        <div class="input-group-append">
+                                            <button class="btn btn-success btn-flat btn-xs btnAddVehiculo" type="button">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                        
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-6 mb-0">
+                                    <label for="{{ form.chofer.id_for_label }}">{{form.chofer.label}}*</label>
+                                    <div class="input-group">
+                                        {{ form.chofer}}
+                                        {% if action == 'add' %}
+                                        <div class="input-group-append">
+                                            <button class="btn btn-success btn-flat btn-xs btnAddChofer" type="button">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">                            
+                                <div class="form-group col-md-12 mb-0">
+                                    <label for="{{ form.transporte.id_for_label }}">{{form.transporte.label}}*</label>
+                                    <div class="input-group">
+                                        {{ form.transporte}}
+                                    </div>
+                                </div>
+                            </div>                         
+                                
+                            <div class="form-row">
+                                <div class="form-group col-md-6 mb-0">
+                                    <label for="{{ form.cliente.id_for_label }}">{{form.cliente.label}} (Remitente)*</label>
+                                    {{ form.cliente}}
+                                </div>
+                                <div class="form-group col-md-6 mb-0">
+                                    <label for="{{ form.destino.id_for_label }}">{{form.destino.label}}*</label>
+                                    {{ form.destino}}
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-12 mb-0">
+                                    <label for="{{ form.producto.id_for_label }}">{{form.producto.label}}*</label>
+                                    {{ form.producto}}
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-3 mb-0">
+                                    <label for="{{ form.nro_mic.id_for_label }}">{{form.nro_mic.label}}</label>
+                                    {{ form.nro_mic|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-3 mb-0">
+                                    <label for="{{ form.nro_remision.id_for_label }}">{{form.nro_remision.label}}</label>
+                                    {{ form.nro_remision|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-3 mb-0">
+                                    <label for="{{ form.referencia.id_for_label }}">{{form.referencia.label}}</label>
+                                    {{ form.referencia|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-3 mb-0">
+                                    <label for="{{ form.peso_embarque.id_for_label }}">{{form.peso_embarque.label}}</label>
+                                    {{ form.peso_embarque|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary btn-flat" id="btnGuardar">
+                                <i class="fas fa-save"></i> Guardar registro
+                            </button>
+                            <a href="{{ list_url }}" class="btn btn-danger btn-flat">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Vehiculo-->
+<div class="modal fade" id="modalVehiculo" role="dialog" aria-labelledby="exampleModalLabel"
+aria-hidden="true">
+<form id="frmVehiculo" enctype="multipart/form-data" method="post">
+   <div class="modal-dialog" role="document">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h5 class="modal-title" id="exampleModalLabel">
+                   <b><i class="fas fa-user-plus"></i> Nuevo registro de Vehículo</b>
+               </h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                   <span aria-hidden="true">&times;</span>
+               </button>
+           </div>
+           <div class="modal-body">
+               {% for field in frmVehiculo.visible_fields %}
+                   <div class="form-group">
+                       <label>{{ field.label }}:</label>
+                       {{ field|add_class:'form-control text-uppercase'|attr:'autocomplete:off' }}
+                   </div>
+               {% endfor %}
+           </div>
+           <div class="modal-footer">
+               <button type="submit" class="btn btn-primary btn-block btn-flat">
+                   <i class="fas fa-save"></i> Guardar Vehiculo
+               </button>
+           </div>
+       </div>
+   </div>
+</form>
+</div>
+
+<!-- Modal Chofer-->
+<div class="modal fade" id="modalChofer" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+aria-hidden="true">
+<form id="frmChofer" enctype="multipart/form-data" method="post">
+   <div class="modal-dialog" role="document">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h5 class="modal-title" id="exampleModalLabel">
+                   <b><i class="fas fa-user-plus"></i> Nuevo registro de Chofer</b>
+               </h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                   <span aria-hidden="true">&times;</span>
+               </button>
+           </div>
+           <div class="modal-body">
+               {% for field in frmChofer.visible_fields %}
+                   <div class="form-group">
+                       <label>{{ field.label }}:</label>
+                       {{ field|add_class:'form-control text-uppercase'|attr:'autocomplete:off' }}
+                   </div>
+               {% endfor %}
+           </div>
+           <div class="modal-footer">
+               <button type="submit" class="btn btn-primary btn-block btn-flat">
+                   <i class="fas fa-save"></i> Guardar Chofer
+               </button>
+           </div>
+       </div>
+   </div>
+</form>
+</div>
+
+        <!-- Habilita Peso Manual -->
+        <!-- {#{perms.bascula.habilita_peso_manual}} -->
+        {% if perms.bascula.habilita_peso_manual %}
+            {% if action == 'add' %}
+                <script>
+                    input_peso_entrada = document.getElementById("id_peso_entrada")
+                    input_peso_entrada.removeAttribute('readonly')
+                </script>
+            {% else %}
+                <script>
+                    input_peso_salida = document.getElementById("id_peso_salida")
+                    input_peso_salida.removeAttribute('readonly')
+                </script>
+            {% endif %}
+        {% endif %}
+
+{% endblock %}

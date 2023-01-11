@@ -1,0 +1,33 @@
+{% extends 'list.html' %}
+
+{% block columns %}
+    <th>ID</th>
+     <th>Cod.</th>
+     <th>Denominación</th>
+     <th>Denominación Corta</th>    
+     <th>Denominación Puesto</th>    
+    <th class="text-center">Opciones</th>
+{% endblock %}
+
+{% block rows %}
+    {% for i in object_list %}
+        <tr>
+            <td>{{ i.id }}</td>
+             <td>{{ i.cod }}</td>
+             <td>{{ i.denominacion }}</td>
+             <td>{{ i.denominacion_corta }}</td>
+             <td>{{ i.denominacion_puesto }}</td>
+            <td class="text-center">
+                <a href="{% url 'sucursal_update' i.id %}" data-toggle="tooltip" title="Editar registro"
+                   class="btn btn-warning btn-xs btn-flat">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'sucursal_delete' i.id %}" rel="delete" data-toggle="tooltip" title="Eliminar registro"
+                   class="btn btn-danger btn-xs btn-flat">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+

@@ -1,0 +1,98 @@
+{% extends 'report2.html' %}
+{% load widget_tweaks %}
+{% load security_extras %}
+{% load static %}
+{% block head_report %}
+<link rel="stylesheet" href="{% static 'lib/bootstrap-daterangepicker-3.0.5/daterangepicker.css' %}" />
+<script src="{% static 'lib/bootstrap-daterangepicker-3.0.5/spanish.js' %}"></script>
+<script src="{% static 'lib/bootstrap-daterangepicker-3.0.5/daterangepicker.js' %}"></script>
+<script src="{% static '/movimiento/js/search_select2.js' %}"></script>
+<script src="{% static '/bascula/js/rpt_bascula001.js' %}"></script>
+{% endblock %}
+
+{% block params_report %}
+<div class="row">
+    <div class="col-lg-4">
+        <div class="form-group">
+            <label>Por Sucursal</label>
+            <div class="input-group mb-3">
+                {{ form.sucursal }}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-4">
+        <div class="form-group">
+            <label>Por Cliente (Remitente)</label>
+            <div class="input-group mb-3">
+                {{ form.cliente }}
+            </div>
+        </div>
+    </div>    
+    <div class="col-lg-4">
+        <div class="form-group">
+            <label>Por Destino</label>
+            <div class="input-group mb-3">
+                {{ form.destino }}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="form-group">
+            <label>Por Producto</label>
+            <div class="input-group mb-3">
+                {{ form.producto }}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-4">
+        <div class="form-group">
+            <label>Por Transporte</label>
+            <div class="input-group mb-3">
+                {{ form.transporte }}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="form-group">
+            <label>Por Vehiculo</label>
+            <div class="input-group mb-3">
+                {{ form.vehiculo }}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="form-group">
+            <label>Por Chofer</label>
+            <div class="input-group mb-3">
+                {{ form.chofer }}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-4">
+        <div class="form-group">
+            <label>Rangos de fechas:</label>
+            <div class="input-group mb-3">
+                {{ form.date_range }}
+
+            </div>
+        </div>
+    </div>    
+    <div class="col-lg-4">
+        <div class="form-group">
+            <label>Situación</label>
+            <div class="input-group mb-3">
+                {{ form.situacion }}
+
+            </div>
+        </div>
+    </div>    
+    
+</div>
+
+{% endblock %}
