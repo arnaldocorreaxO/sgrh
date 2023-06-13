@@ -1,0 +1,149 @@
+{% extends 'form.html' %}
+{% load widget_tweaks %}
+{% load static %}
+{% block head_form %}
+<script src="{% static 'lib/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'lib/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.min.css' %}" />
+<script src="{% static 'persona/js/form.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center ">
+        <div class="col-md-12 mt-3">
+            <form method="post" enctype="multipart/form-data" id="frmForm" data-url="{{ list_url }}">
+                {% csrf_token %}
+                {% if action == 'add' %}
+                <div class="card card-success">
+                    {% else %}
+                    <div class="card card-warning">
+                        {% endif %}
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                {% if action == 'add' %}
+                                <i class="fas fa-plus"></i>
+                                {% else %}
+                                <i class="fas fa-edit"></i>
+                                {% endif %}
+                                {{ title }}
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <input type="hidden" id="action" name="action" value="{{ action }}">
+                            {% if form.errors %}
+                            <div class="alert alert-danger alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                <h5><i class="icon fas fa-ban"></i> Ha ocurrido un error al querer guardar el registro
+                                </h5>
+                                <ul>
+                                    {% for field in form %}
+                                    {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                    {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                            <div class="form-row">
+                                <div class="form-group col-md-6 mb-0">
+                                    <label for="{{ form.activo.id_for_label }}">{{form.activo.label}}*</label>
+                                    {{ form.activo}}
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6 mb-0">
+                                    <label for="{{ form.ci.id_for_label }}">{{form.ci.label}}*</label>
+                                    <div class="input-group">
+                                        {{ form.ci|add_class:'form-control'|attr:'autocomplete:off'}}
+                                        <span class="input-group-btn">
+                                            <button id="btnVerificar" class="btn btn-secondary" type="button"
+                                                onclick="">
+                                                Verificar
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-6 mb-0">
+                                    <label for="{{ form.ruc.id_for_label }}">{{form.ruc.label}}</label>
+                                    {{ form.ruc|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6 mb-0">
+                                    <label for="{{ form.nombre.id_for_label }}">{{form.nombre.label}}*</label>
+                                    {{ form.nombre|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-6 mb-0">
+                                    <label for="{{ form.apellido.id_for_label }}">{{form.apellido.label}}*</label>
+                                    {{ form.apellido|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-4 mb-0">
+                                    <label
+                                        for="{{ form.nacionalidad.id_for_label }}">{{form.nacionalidad.label}}*</label>
+                                    {{ form.nacionalidad|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-4 mb-0">
+                                    <label for="{{ form.ciudad.id_for_label }}">{{form.ciudad.label}}</label>
+                                    {{ form.ciudad|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-4 mb-0">
+                                    <label for="{{ form.barrio.id_for_label }}">{{form.barrio.label}}</label>
+                                    {{ form.barrio|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-12 mb-0">
+                                    <label for="{{ form.direccion.id_for_label }}">{{form.direccion.label}}</label>
+                                    {{ form.direccion|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-4 mb-0">
+                                    <label for="{{ form.celular.id_for_label }}">{{form.celular.label}}</label>
+                                    {{ form.celular|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-4 mb-0">
+                                    <label for="{{ form.telefono.id_for_label }}">{{form.telefono.label}}</label>
+                                    {{ form.telefono|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-4 mb-0">
+                                    <label for="{{ form.email.id_for_label }}">{{form.email.label}}</label>
+                                    {{ form.email|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-4 mb-0">
+                                    <label
+                                        for="{{ form.fec_nacimiento.id_for_label }}">{{form.fec_nacimiento.label}}*</label>
+                                    {{ form.fec_nacimiento|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-4 mb-0">
+                                    <label for="{{ form.sexo.id_for_label }}">{{form.sexo.label}}</label>
+                                    {{ form.sexo|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-4 mb-0">
+                                    <label
+                                        for="{{ form.estado_civil.id_for_label }}">{{form.estado_civil.label}}*</label>
+                                    {{ form.estado_civil|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary btn-flat" id="btnGuardar">
+                                <i class="fas fa-save"></i> Guardar registro
+                            </button>
+                            <a href="{{ list_url }}" class="btn btn-danger btn-flat">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

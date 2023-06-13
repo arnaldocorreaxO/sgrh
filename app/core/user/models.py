@@ -16,10 +16,10 @@ class User(AbstractUser):
     dni = models.CharField(max_length=13, unique=True, verbose_name='Cédula o RUC')
     image = models.ImageField(upload_to='users/%Y/%m/%d', verbose_name='Imagen', null=True, blank=True)
     is_change_password = models.BooleanField(default=False)
-    token = models.UUIDField(primary_key=False, editable=False, null=True, blank=True, default=uuid.uuid4, unique=True)
-    codigo = models.CharField('Codigo',max_length=4)
+    # token = models.UUIDField(primary_key=False, editable=False, null=True, blank=True, default=uuid.uuid4, unique=True)
+    cod_usuario = models.CharField('Codigo Usuario',max_length=4,null=True,blank=True,unique=True)
     caja = models.ForeignKey(Caja, verbose_name='Caja', db_column='nro_caja', on_delete=models.CASCADE, related_name='%(app_label)s_%(class)s_caja',blank=True,null=True)
-    sucursal = models.ForeignKey(Sucursal, verbose_name='Sucursal', on_delete=models.CASCADE, related_name='%(app_label)s_%(class)s_sucursal',blank=True,null=True)
+    sucursal = models.ForeignKey(Sucursal, verbose_name='Sucursal', on_delete=models.CASCADE, related_name='%(app_label)s_%(class)s_sucursal')
     sector_operativo = models.ForeignKey(SectorOperativo, verbose_name='Sector Operativo', on_delete=models.CASCADE, related_name='%(app_label)s_%(class)s_sector_operativo',blank=True,null=True)
     feriado = models.BooleanField(default=False)
 

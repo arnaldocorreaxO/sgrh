@@ -1,3 +1,4 @@
+from config.sqlserver_copy import get_ruc
 from core.bascula.views.bascula.movimiento.views import *
 from core.bascula.views.bascula.transporte.views import *
 from core.bascula.views.bascula.cliente.views import *
@@ -14,6 +15,7 @@ urlpatterns = [
     # URL para lectura de Puerto COM
 	path('ajax_puerto_serial/<str:puerto>/',leer_puerto_serial,name='leer_puerto_serial'),
 	path('ajax_peso_bascula/',leer_peso_bascula,name='leer_peso_bascula'),
+	path('test_sp/',get_ruc,name='get_ruc'),
 
     # MOVIMIENTO BASCULA
     path('movimiento', MovimientoList.as_view(), name='movimiento_list'),

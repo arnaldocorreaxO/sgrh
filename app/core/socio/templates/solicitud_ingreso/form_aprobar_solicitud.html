@@ -1,0 +1,131 @@
+{% extends 'form.html' %}
+{% load widget_tweaks %}
+{% load static %}
+{% block head_form %}
+<script src="{% static 'lib/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'lib/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.min.css' %}" />
+<script src="{% static 'solicitud_ingreso/js/form_aprobar_solicitud.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center ">
+        <div class="col-md-12 mt-3">
+            <form method="post" enctype="multipart/form-data" id="frmForm" data-url="{{ list_url }}">
+                {% csrf_token %}
+                {% if action == 'add' %}
+                <div class="card card-success">
+                    {% else %}
+                    <div class="card card bg-light mb-3">
+                        {% endif %}
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                {% if action == 'add' %}
+                                <i class="fas fa-plus"></i>
+                                {% else %}
+                                <i class="fas fa-edit"></i>
+                                {% endif %}
+                                {{ title }}
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <input type="hidden" id="action" name="action" value="{{ action }}">
+                            {% if form.errors %}
+                            <div class="alert alert-danger alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                <h5><i class="icon fas fa-ban"></i> Ha ocurrido un error al querer guardar el registro
+                                </h5>
+                                <ul>
+                                    {% for field in form %}
+                                    {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                    {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6 mb-0">
+                                    <label for="{{ form.activo.id_for_label }}">{{form.activo.label}}*</label>
+                                    {{ form.activo}}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6 mb-0">
+                                    <label
+                                        for="{{ form.nro_solicitud.id_for_label }}">{{form.nro_solicitud.label}}*</label>
+                                    {{ form.nro_solicitud|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-6 mb-0">
+                                    <label
+                                        for="{{ form.fec_solicitud.id_for_label }}">{{form.fec_solicitud.label}}</label>
+                                    {{ form.fec_solicitud|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6 mb-0">
+                                    <label for="{{ form.ci.id_for_label }}">{{form.ci.label}}*</label>
+                                    {{ form.ci|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-6 mb-0">
+                                    <label for="{{ form.fec_charla.id_for_label }}">{{form.fec_charla.label}}</label>
+                                    {{ form.fec_charla|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-12 mb-0">
+                                    <label for="{{ form.persona.id_for_label }}">{{form.persona.label}}*</label>
+                                    {{ form.persona|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-4 mb-0">
+                                    <label
+                                        for="{{ form.fec_resolucion.id_for_label }}">{{form.fec_resolucion.label}}*</label>
+                                    {{ form.fec_resolucion|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-4 mb-0">
+                                    <label for="{{ form.nro_acta.id_for_label }}">{{form.nro_acta.label}}</label>
+                                    {{ form.nro_acta|add_class:'form-control'}}
+                                </div>
+                                <div class="form-group col-md-4 mb-0">
+                                    <label for="{{ form.nro_socio.id_for_label }}">{{form.nro_socio.label}}</label>
+                                    {{ form.nro_socio|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-4 mb-0">
+                                    <label for="{{ form.aprobado.id_for_label }}">{{form.aprobado.label}}*</label>
+                                    {{ form.aprobado|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                                <div class="form-group col-md-8 mb-0">
+                                    <label
+                                        for="{{ form.autorizado_por.id_for_label }}">{{form.autorizado_por.label}}*</label>
+                                    {{ form.autorizado_por|add_class:'form-control'}}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-12 mb-0">
+                                    <hr>
+                                    <!-- <label for="{#{ form.motivo_rechazo.id_for_label }}">{{form.motivo_rechazo.label}}*</label> -->
+                                    {{ form.motivo_rechazo|add_class:'form-control'|attr:'autocomplete:off'}}
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-success btn-flat" id="btnGuardar">
+                                    <i class="fas fa-sync-alt"></i> Procesar
+                                </button>
+                                <a href="{{ list_url }}" class="btn btn-secondary btn-flat">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </a>
+                            </div>
+                        </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

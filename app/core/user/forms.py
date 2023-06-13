@@ -13,13 +13,14 @@ class UserForm(ModelForm):
 
     class Meta:
         model = User
-        fields = 'first_name', 'last_name', 'username', 'password', 'dni', 'email', 'groups', 'image','sucursal','is_active', 'is_staff','is_superuser'
+        fields = 'first_name', 'last_name', 'username', 'password', 'dni', 'email', 'groups', 'image','sucursal','caja','is_active', 'is_staff','is_superuser'
         widgets = {
             'first_name': forms.TextInput(attrs={'placeholder': 'Ingrese sus nombres'}),
             'last_name': forms.TextInput(attrs={'placeholder': 'Ingrese sus apellidos'}),
             'username': forms.TextInput(attrs={'placeholder': 'Ingrese un nombre de usuario'}),
             'dni': forms.TextInput(attrs={'placeholder': 'Ingrese su número de cedula'}),
             'sucursal': forms.Select(attrs={'class': 'select2', 'style': 'width:100%'}),
+            'caja': forms.Select(attrs={'class': 'select2', 'style': 'width:100%'}),
             'email': forms.TextInput(attrs={'placeholder': 'Ingrese su correo electrónico'}),
             'password': forms.PasswordInput(render_value=True, attrs={'placeholder': 'Ingrese una contraseña'}),
             'groups': forms.SelectMultiple(attrs={'class': 'select2', 'multiple': 'multiple', 'style': 'width:100%'}),

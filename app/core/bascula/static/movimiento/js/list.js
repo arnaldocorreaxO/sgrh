@@ -6,7 +6,7 @@ movimiento = {
     list: function (all) {
         /*Cuando el objecto select es multiple retorna un array []
         Si utilizamos select_cliente.val()            retorna la variable cliente[]=[''] Ej. cadena vacía
-        Utilizamos    select_cliente.val().join(", ") retorna la variable cliente  =[''] Ej. cadena vacía      
+        Si utilizamos select_cliente.val().join(", ") retorna la variable cliente  =[''] Ej. cadena vacía      
         */
 
         var parameters = {

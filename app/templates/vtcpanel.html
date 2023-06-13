@@ -138,36 +138,33 @@
 
             <div class="row">
                 <div class="col-12 justify-content-end d-flex">
-                    <div class="form-group">
-                        <!-- <label>Año:</label> -->
+                    <!-- <div class="form-group">
                         <div class="input-group mb-3">
-                        <b class="p-1">Producto: </b> {{ form.producto }}
+                            <b class="p-1">Producto: </b> {{ form.producto }}
+                        </div>
+                    </div> -->
+                    <div class="form-group">
+                        <div class="input-group mb-3">
+                            <b class="p-1">Sucursal: </b> {{ form.sucursal }}
                         </div>
                     </div>
                     <div class="form-group">
-                        <!-- <label>Año:</label> -->
                         <div class="input-group mb-3">
-                        <b class="p-1">Sucursal: </b> {{ form.sucursal }}
+                            <b class="p-1">Fecha: </b> {{ form.fecha }}
                         </div>
                     </div>
-                    <div class="form-group">
-                        <!-- <label>Año:</label> -->
-                        <div class="input-group mb-3">
-                        <b class="p-1">Fecha: </b> {{ form.fecha }}
-                        </div>
-                    </div>
-                </div>                    
+                </div>
             </div>
 
             <div class="row">
                 <div class="col-md-3 col-sm-6 col-12">
-                    <a href="{% url 'cliente_list' %}" class="small-box-footer">
+                    <a href="{% url 'persona_list' %}" class="small-box-footer">
                         <div class="info-box">
                             <span class="info-box-icon bg-info"><i class="fas fa-user-friends"></i></span>
                             <div class="info-box-content">
-                                <span class="info-box-text">Clientes</span>
+                                <span class="info-box-text">Personas</span>
                                 <span class="info-box-number">
-                                    {{ clientes }}
+                                    {{ personas }}
                                 </span>
                             </div>
                         </div>
@@ -175,13 +172,13 @@
                     </a>
                 </div>
                 <div class="col-md-3 col-sm-6 col-12">
-                    <a href="{% url 'cliente_list' %}" class="small-box-footer">
+                    <a href="{% url 'socio_list' %}" class="small-box-footer">
                         <div class="info-box">
-                            <span class="info-box-icon bg-success"><i class="fas fa-truck"></i></span>
+                            <span class="info-box-icon bg-success"><i class="fas fa-handshake"></i></span>
                             <div class="info-box-content">
-                                <span class="info-box-text">Destinos</span>
+                                <span class="info-box-text">Socios</span>
                                 <span class="info-box-number">
-                                    {{ destinos }}
+                                    {{ socios }}
                                 </span>
                             </div>
                         </div>
@@ -190,11 +187,11 @@
                 <div class="col-md-3 col-sm-6 col-12">
                     <a href="{% url 'categoria_list' %}" class="small-box-footer">
                         <div class="info-box">
-                            <span class="info-box-icon bg-warning"><i class="fas fa-truck-loading"></i></span>
+                            <span class="info-box-icon bg-warning"><i class="fas fa-money-bill"></i></span>
                             <div class="info-box-content">
-                                <span class="info-box-text">Categorías</span>
+                                <span class="info-box-text">Prestamos</span>
                                 <span class="info-box-number">
-                                    {{ categorias }}
+                                    {{ prestamos }}
                                 </span>
                             </div>
                         </div>
@@ -218,7 +215,7 @@
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header border-transparent">
-                            <h3 class="card-title"><i class="fas fa-truck"></i> Los últimos 10 Movimientos</h3>
+                            <h3 class="card-title"><i class="fas fa-truck"></i> Los últimos 10 Préstamos</h3>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -226,10 +223,10 @@
                                     <thead>
                                     <tr>
                                         <th scope="col" style="width: 5%;"class="text-center">Fecha</th>
-                                        <th scope="col" style="width: 25%;">Vehiculo</th>
-                                        <th scope="col" style="width: 30%;">Chofer</th>
-                                        <th scope="col" style="width: 25%;">Producto</th>
-                                        <th scope="col" style="width: 15%;" class="text-right">Neto</th>
+                                        <th scope="col" style="width: 25%;">Socio</th>
+                                        <th scope="col" style="width: 30%;">Tipo</th>
+                                        <th scope="col" style="width: 25%;">Destino</th>
+                                        <th scope="col" style="width: 15%;" class="text-right">Monto</th>
                                     </tr>
                                     </thead>
                                     <tbody>

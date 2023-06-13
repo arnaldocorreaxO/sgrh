@@ -1,3 +1,20 @@
+// {
+//     "python.pythonPath": "C:\\Users\\arnaldo\\proyectos\\electoral\\.env\\Scripts\\python.exe"
+// }
 {
-    "python.pythonPath": "C:\\Users\\arnaldo\\proyectos\\electoral\\.env\\Scripts\\python.exe"
+    "editor.formatOnSave": true,
+    "python.formatting.provider": "black",
+    "python.formatting.blackArgs": [
+        "--line-length",
+        "88"
+    ],
+    // "[sql]": {
+    //     "editor.formatOnSave": true,
+    //     "editor.defaultFormatter": "mtxr.sqltools"
+    // },
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        }
+    }
 }

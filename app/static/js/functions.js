@@ -67,7 +67,7 @@ function loading_message(text) {
 }
 
 function alert_sweetalert(type, title, message, callback, timer, html) {
-    
+
     Swal.fire({
         icon: type,
         title: title,
@@ -76,7 +76,8 @@ function alert_sweetalert(type, title, message, callback, timer, html) {
         grow: true,
         showCloseButton: true,
         allowOutsideClick: true,
-        timer: timer
+        timer: timer,
+        backdrop: true
     }).then((result) => {
         callback();
     });
@@ -133,7 +134,7 @@ function message_info(message) {
         });
         errors += '</ul>';
         message = errors;
-       
+
     }
     if (type) {
         alert_sweetalert('success', 'OK', "", function () {
@@ -430,7 +431,7 @@ function validate_dni_ruc(dni) {
         modulo = 10;
     }
 
-        /* Solo para sociedades publicas (modulo 11) */
+    /* Solo para sociedades publicas (modulo 11) */
     /* Aqui el digito verficador esta en la posicion 9, en las otras 2 en la pos. 10 */
     else if (d3 == 6) {
         pub = true;
@@ -530,12 +531,18 @@ function dialog_action(title, content, callback, cancel) {
 }
 
 
-function obtenerNombreMes (numero) {
+function obtenerNombreMes(numero) {
     let miFecha = new Date();
     if (0 < numero && numero <= 12) {
-      miFecha.setMonth(numero - 1);
-      return new Intl.DateTimeFormat('es-ES', { month: 'long'}).format(miFecha);
+        miFecha.setMonth(numero - 1);
+        return new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(miFecha);
     } else {
-      return null;
+        return null;
     }
-  }
+}
+
+
+
+function formatoNumero(numero, decimales = 0) {
+    return new Intl.NumberFormat("es-PY").format(parseFloat(numero).toFixed(decimales))
+}

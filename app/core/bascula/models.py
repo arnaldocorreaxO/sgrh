@@ -255,7 +255,7 @@ class Movimiento(ModeloBase):
 	porc_humedad = models.DecimalField(max_digits=5,decimal_places=2,default=0.00)	
 	vehiculo = models.ForeignKey(Vehiculo,on_delete=models.PROTECT)
 	chofer = models.ForeignKey(Chofer,on_delete=models.PROTECT)
-	sucursal = models.ForeignKey(Sucursal,on_delete=models.PROTECT)
+	sucursal = models.ForeignKey(Sucursal,on_delete=models.PROTECT,related_name='sucursales')
 	cliente = models.ForeignKey(Cliente,on_delete=models.PROTECT)
 	producto = models.ForeignKey(Producto,on_delete=models.PROTECT)
 	peso_embarque = models.IntegerField(default=0)

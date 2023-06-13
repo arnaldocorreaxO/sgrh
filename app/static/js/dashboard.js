@@ -15,8 +15,8 @@ function load() {
     v_anho_actual         = $('input[name="anho_actual"]').val();
 
     // PRODUCTO
-    v_producto        = $('select[name="producto"]').val();    
-    v_producto_texto  = $('select[name="producto"] option:selected').text();    
+    // v_producto        = $('select[name="producto"]').val();    
+    // v_producto_texto  = $('select[name="producto"] option:selected').text();    
 
     // SUCURSAL
     v_sucursal        = $('select[name="sucursal"]').val();    
@@ -41,8 +41,8 @@ function load() {
     args.push(v_mes);
     args.push(v_anho); 
     args.push(v_sucursal);     
-    args.push(v_producto_texto); 
-    args.push(v_producto); 
+    // args.push(v_producto_texto); 
+    // args.push(v_producto); 
     
     // console.log(anho_actual);
 
@@ -79,7 +79,7 @@ $(function () {
     // anho_actual = $('input[name="anho_actual"]').val(); 
     input_sucursal = $('input[name="usu_sucursal"]');
     select_sucursal = $('select[name="sucursal"]');
-    select_producto = $('select[name="producto"]');
+    // select_producto = $('select[name="producto"]');
 
     /*AL CAMBIAR LA SUCURSAL*/
     select_sucursal.on('change', function () {
