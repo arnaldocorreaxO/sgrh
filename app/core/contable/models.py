@@ -1,4 +1,3 @@
-from django.core.validators import MinLengthValidator
 from django.db import models
 from django.forms import model_to_dict
 
@@ -10,7 +9,8 @@ from core.base.choices import (
 )
 from core.base.models import *
 from core.base.utils import *
-from core.socio.models import Socio
+from core.general.models import Cliente, TipoMovimiento
+from core.user.models import User
 
 
 class PlanDeCuenta(ModeloBase):
@@ -112,6 +112,7 @@ class EsquemaContable(ModeloBase):
         db_column="rubro_contable",
         on_delete=models.PROTECT,
         related_name="esquema_contable",
+        limit_choices_to={"asentable": 1},
     )
     concepto = models.CharField(verbose_name="Concepto", max_length=100)
     tip_comprobante = models.ForeignKey(
@@ -132,27 +133,6 @@ class EsquemaContable(ModeloBase):
         verbose_name_plural = "Esquemas Contables"
 
 
-# TIPO MOVIMIENTO
-class TipoMovimiento(ModeloBase):
-    tip_movimiento = models.CharField(
-        verbose_name="Código", max_length=1, primary_key=True
-    )
-    denominacion = models.CharField(
-        verbose_name="Tipo Movimiento", max_length=100, unique=True
-    )
-
-    def __str__(self):
-        return "{} - {}".format(self.tip_movimiento, self.denominacion)
-
-    class Meta:
-        ordering = [
-            "tip_movimiento",
-        ]
-        db_table = "cb_tipo_movimiento"
-        verbose_name = "Tipo Movimiento"
-        verbose_name_plural = "Tipos Movimientos"
-
-
 # MOVIMIENTO ABSTRACT
 class MovimientoBase(ModeloBase):
     fec_movimiento = models.DateField(verbose_name="Fecha Movimiento")
@@ -164,6 +144,7 @@ class MovimientoBase(ModeloBase):
         on_delete=models.PROTECT,
         blank=True,
         null=True,
+        default="A",
     )
     modulo = models.ForeignKey(
         Modulo,
@@ -189,8 +170,14 @@ class MovimientoBase(ModeloBase):
         blank=True,
         null=True,
     )
-    socio = models.ForeignKey(
-        Socio, verbose_name="Socio", on_delete=models.PROTECT, blank=True, null=True
+    cliente = models.ForeignKey(
+        Cliente,
+        db_column="cod_cliente",
+        verbose_name="Cliente",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="%(app_label)s_%(class)s_cliente",
     )
     moneda = models.ForeignKey(
         Moneda, verbose_name="Moneda", on_delete=models.PROTECT, blank=True, null=True
@@ -264,6 +251,23 @@ class MovimientoBase(ModeloBase):
         max_length=1,
         default=0,
     )
+    tip_comprobante = models.ForeignKey(
+        TipoComprobante,
+        verbose_name="Tipo Comprobante",
+        db_column="tip_comprobante",
+        to_field="tip_comprobante",
+        on_delete=models.PROTECT,
+    )
+    cod_usuario = models.ForeignKey(
+        User,
+        verbose_name="Usuario Movimiento",
+        to_field="cod_usuario",
+        db_column="cod_usuario",
+        on_delete=models.PROTECT,
+        related_name="%(app_label)s_%(class)s_usuario_movimiento",
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         abstract = True
@@ -275,9 +279,20 @@ class MovimientoBase(ModeloBase):
 class Movimiento(MovimientoBase):
     def toJSON(self):
         item = model_to_dict(self)
+        # item = {}
         item["placta"] = {"rubro_contable": str(self.rubro_contable)}
         item["debito"] = format(self.debito, ".2f")
         item["credito"] = format(self.credito, ".2f")
+        item["fec_movimiento"] = (
+            self.fec_movimiento.strftime("%d/%m/%Y") if self.fec_movimiento else None
+        )
+        item["credito"] = format(self.credito, ".2f")
+        item["credito"] = format(self.credito, ".2f")
+        item["nro_socio"] = self.cliente.nro_socio
+        item["cod_cliente"] = self.cliente.cod_cliente
+        item["socio"] = self.cliente.get_nro_socio_nombre()
+        item["cod_usuario"] = self.usu_insercion.cod_usuario
+
         return item
 
     class Meta:

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body {
+            font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
+            padding: 0;
+            margin: 0;
+            color: black;
+        }
+
+        .salto-recibo {
+
+            /* padding: 0; */
+            margin-bottom: 115px;
+
+        }
+
+        .name-company {
+            font-size: 20px;
+            padding: 0;
+            margin: 0;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        table thead tr th {
+            border: 1px solid black !important;
+            padding: 1px;
+        }
+
+        table tbody tr td {
+            border: 1px solid black;
+            padding: 1px;
+        }
+
+        .img-logo {
+            margin-top: 1px;
+            width: 175px;
+            height: 175px;
+            margin-bottom: 1px;
+        }
+
+        .borde-vertical td {
+            border: 0;
+            border-right: 1px solid #000;
+            border-left: 1px solid #000
+        }
+    </style>
+</head>
+
+<body>
+    {% block body %}
+    {% include 'movimiento/print/recibo_body.html' %}
+    {% include 'movimiento/print/recibo_body.html' %}
+    {% endblock%}
+</body>
+
+</html>

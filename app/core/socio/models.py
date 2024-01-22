@@ -5,6 +5,7 @@ from django.db import models
 from django.forms import model_to_dict
 
 from core.base.models import ModeloBase, Persona, Sucursal
+from core.general.models import Cliente
 
 
 # PROMOCION INGRESO
@@ -66,94 +67,6 @@ class PromocionIngreso(ModeloBase):
         verbose_name_plural = "Promociones Ingreso"
 
 
-# CALIFICACION SOCIO
-class CalificacionSocio(ModeloBase):
-    cod = models.CharField(verbose_name="Código", max_length=1, unique=True)
-    denominacion = models.CharField(
-        verbose_name="Denominación", max_length=25, unique=True
-    )
-    promedio_atraso = models.IntegerField(verbose_name="Promedio Atraso")
-
-    def __str__(self):
-        return "{} - {}".format(self.cod, self.denominacion)
-
-    class Meta:
-        db_table = "sc_calificacion"
-        verbose_name = "Calificacion Socio"
-        verbose_name_plural = "Calificacion Socios"
-
-
-# ESTADO SOCIO
-class EstadoSocio(ModeloBase):
-    cod = models.CharField(verbose_name="Código", max_length=4, unique=True)
-    denominacion = models.CharField(
-        verbose_name="Denominación", max_length=25, unique=True
-    )
-
-    def __str__(self):
-        return "{} - {}".format(self.cod, self.denominacion)
-
-    class Meta:
-        db_table = "sc_estado_socio"
-        verbose_name = "Estado Socio"
-        verbose_name_plural = "Estado Socios"
-
-
-# SOCIO
-class Socio(ModeloBase):
-    sucursal = models.ForeignKey(
-        Sucursal,
-        verbose_name="Sucursal",
-        on_delete=models.RESTRICT,
-        related_name="socio",
-    )
-    nro_socio = models.IntegerField(verbose_name="Nro. Socio", unique=True)
-    persona = models.ForeignKey(
-        Persona,
-        verbose_name="Persona",
-        on_delete=models.RESTRICT,
-        related_name="persona",
-    )
-    fec_ingreso = models.DateField(verbose_name="Fecha Ingreso")
-    fec_retiro = models.DateField(verbose_name="Fecha Retiro", null=True, blank=True)
-    estado_socio = models.ForeignKey(
-        EstadoSocio,
-        verbose_name="Estado Socio",
-        on_delete=models.RESTRICT,
-        related_name="socio",
-    )
-    calificacion = models.ForeignKey(
-        CalificacionSocio,
-        verbose_name="Calificacion",
-        on_delete=models.RESTRICT,
-        related_name="socio",
-    )
-    comentario = models.CharField(
-        verbose_name="Comentario", max_length=100, null=True, blank=True
-    )
-
-    def __str__(self):
-        return "{} - {}".format(self.nro_socio, self.persona)
-
-    def toJSON(self):
-        item = model_to_dict(self)
-        item["persona"] = str(self.persona)
-        item["ci"] = self.persona.ci
-        item["telefono"] = self.persona.telefono
-        item["fec_ingreso"] = (
-            self.fec_ingreso.strftime("%d/%m/%Y") if self.fec_ingreso else None
-        )
-        item["fec_retiro"] = (
-            self.fec_retiro.strftime("%d/%m/%Y") if self.fec_retiro else None
-        )
-        return item
-
-    class Meta:
-        db_table = "sc_socio"
-        verbose_name = "Socio"
-        verbose_name_plural = "Socios"
-
-
 # SOLICITUD INGRESO
 class SolicitudIngreso(ModeloBase):
     nro_solicitud = models.CharField(
@@ -183,7 +96,7 @@ class SolicitudIngreso(ModeloBase):
     fec_solicitud = models.DateField(verbose_name="Fecha Solicitud")
     fec_charla = models.DateField(verbose_name="Fecha Charla", null=True, blank=True)
     socio_proponente = models.ForeignKey(
-        Socio,
+        Cliente,
         verbose_name="Socio Proponente",
         on_delete=models.RESTRICT,
         related_name="solicitud_proponente2",
@@ -202,11 +115,12 @@ class SolicitudIngreso(ModeloBase):
     autorizado_por = models.CharField(
         verbose_name="Autorizado por", max_length=100, null=True, blank=True
     )
-    socio = models.ForeignKey(
-        Socio,
-        verbose_name="Socio",
+    cliente = models.ForeignKey(
+        Cliente,
+        db_column="cod_cliente",
+        verbose_name="Cliente",
         on_delete=models.RESTRICT,
-        related_name="solicitud",
+        related_name="solicitud_cliente",
         null=True,
         blank=True,
     )
@@ -227,6 +141,13 @@ class SolicitudIngreso(ModeloBase):
         item = model_to_dict(self)
         item["ci"] = self.persona.ci
         item["persona"] = str(self.persona)
+        item["telefono"] = (
+            self.telefono
+            if self.telefono
+            else self.persona.telefono
+            if self.persona.telefono
+            else self.persona.celular
+        )
         item["fec_solicitud"] = (
             self.fec_solicitud.strftime("%d/%m/%Y") if self.fec_solicitud else None
         )
@@ -286,11 +207,13 @@ class ObligacionCuenta(ModeloBase):
 class CuentaAporte(ModeloBase):
     # Monto Aporte Ingreso se refiere a los aportes de los socios en la constituccion de la sociedad (Nuevos Socios)
     # Monto Aporte Social se refiere a los aportes sociales
-    socio = models.ForeignKey(
-        Socio,
-        verbose_name="Socio",
+    cliente = models.ForeignKey(
+        Cliente,
+        db_column="cod_cliente",
+        verbose_name="Cliente",
         on_delete=models.RESTRICT,
-        related_name="cuenta_aporte",
+        related_name="cuenta_aporte_cliente",
+        null=True,
     )
     mto_deuda_aporte_ingreso = models.DecimalField(
         max_digits=14,

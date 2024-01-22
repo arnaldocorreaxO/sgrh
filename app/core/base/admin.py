@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from core.base.models import *
 
 # Register your models here.
@@ -68,7 +69,7 @@ admin.site.register(SectorOperativo, ModeloAdminBase)
 admin.site.register(Caja, ModeloAdminBase)
 admin.site.register(CajaComprobante, ModeloAdminBase)
 admin.site.register(Pais, ModeloAdminBase)
+admin.site.register(Departamento, ModeloAdminBase)
 admin.site.register(Ciudad, ModeloAdminBase)
 admin.site.register(Barrio, ModeloAdminBase)
 admin.site.register(Persona, ModeloAdminBase)
-admin.site.register(Plazo, ModeloAdminBase)

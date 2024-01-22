@@ -12,13 +12,13 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from core.base.models import Persona
 from core.base.utils import YYYY_MM_DD
+from core.general.models import Cliente
 from core.security.mixins import PermissionMixin
 from core.socio.forms import (
     AprobarSolicitudIngresoForm,
     SolicitudIngreso,
     SolicitudIngresoForm,
 )
-from core.socio.models import Socio
 from core.socio.procedures import (
     sp_aprobar_solicitud_ingreso,
     sp_validar_solicitud_ingreso,
@@ -151,12 +151,12 @@ class SolicitudIngresoCreate(PermissionMixin, CreateView):
                 ):
                     data["valid"] = False
 
-                if Socio.objects.filter(
+                if Cliente.objects.filter(
                     persona__id__iexact=obj, fec_retiro__isnull=True
                 ):
                     data["valid"] = False
-        except:
-            pass
+        except Exception as e:
+            print(e)
         return JsonResponse(data)
 
     def post(self, request, *args, **kwargs):
@@ -198,6 +198,7 @@ class SolicitudIngresoCreate(PermissionMixin, CreateView):
         return context
 
 
+# TODO: Permitir modificar solo si aun no está aprobado la solicitud
 class SolicitudIngresoUpdate(PermissionMixin, UpdateView):
     model = SolicitudIngreso
     template_name = "solicitud_ingreso/create.html"
@@ -216,13 +217,14 @@ class SolicitudIngresoUpdate(PermissionMixin, UpdateView):
             type = self.request.POST["type"]
             obj = self.request.POST["obj"].strip()
             id = self.get_object().id
-            if type == "denominacion":
-                if SolicitudIngreso.objects.filter(denominacion__iexact=obj).exclude(
+
+            if type == "persona":
+                if SolicitudIngreso.objects.filter(persona__id__iexact=obj).exclude(
                     id=id
                 ):
                     data["valid"] = False
-        except:
-            pass
+        except Exception as e:
+            print(e)
         return JsonResponse(data)
 
     def post(self, request, *args, **kwargs):
@@ -230,7 +232,12 @@ class SolicitudIngresoUpdate(PermissionMixin, UpdateView):
         action = request.POST["action"]
         try:
             if action == "edit":
-                data = self.get_form().save()
+                if self.get_object().aprobado:
+                    data["rtn"] = 100
+                    data["msg"] = "La solicitud ya ha sido aprobada"
+                else:
+                    data = self.get_form().save()
+                    data["rtn"] = 0
             elif action == "validate_data":
                 return self.validate_data()
             else:
@@ -265,11 +272,16 @@ class AprobarSolicitudIngresoUpdate(PermissionMixin, UpdateView):
             type = self.request.POST["type"]
             obj = self.request.POST["obj"].strip()
             id = self.get_object().id
+            print(type)
+            print(obj)
             if type == "nro_socio":
-                if Socio.objects.filter(nro_socio__iexact=obj).exclude(id=id):
+                if Cliente.objects.filter(
+                    nro_socio__iexact=obj, fec_retiro__isnull=True
+                ).exclude(cod_cliente=id):
                     data["valid"] = False
-        except:
-            pass
+
+        except Exception as e:
+            print(e)
         return JsonResponse(data)
 
     def post(self, request, *args, **kwargs):

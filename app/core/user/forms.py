@@ -1,33 +1,69 @@
+from crum import get_current_request
+from django import forms
 from django.contrib.auth import update_session_auth_hash
 from django.forms import ModelForm
-from django import forms
-from crum import get_current_request
+
 from .models import User
 
 
 class UserForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['groups'].required = True
-        self.fields['first_name'].widget.attrs['autofocus'] = True
+        self.fields["groups"].required = True
+        self.fields["first_name"].widget.attrs["autofocus"] = True
 
     class Meta:
         model = User
-        fields = 'first_name', 'last_name', 'username', 'password', 'dni', 'email', 'groups', 'image','sucursal','caja','is_active', 'is_staff','is_superuser'
+        fields = (
+            "first_name",
+            "last_name",
+            "username",
+            "password",
+            "dni",
+            "email",
+            "groups",
+            "image",
+            "sucursal",
+            "caja",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+            "cod_usuario",
+        )
         widgets = {
-            'first_name': forms.TextInput(attrs={'placeholder': 'Ingrese sus nombres'}),
-            'last_name': forms.TextInput(attrs={'placeholder': 'Ingrese sus apellidos'}),
-            'username': forms.TextInput(attrs={'placeholder': 'Ingrese un nombre de usuario'}),
-            'dni': forms.TextInput(attrs={'placeholder': 'Ingrese su número de cedula'}),
-            'sucursal': forms.Select(attrs={'class': 'select2', 'style': 'width:100%'}),
-            'caja': forms.Select(attrs={'class': 'select2', 'style': 'width:100%'}),
-            'email': forms.TextInput(attrs={'placeholder': 'Ingrese su correo electrónico'}),
-            'password': forms.PasswordInput(render_value=True, attrs={'placeholder': 'Ingrese una contraseña'}),
-            'groups': forms.SelectMultiple(attrs={'class': 'select2', 'multiple': 'multiple', 'style': 'width:100%'}),
-            
+            "first_name": forms.TextInput(attrs={"placeholder": "Ingrese sus nombres"}),
+            "last_name": forms.TextInput(
+                attrs={"placeholder": "Ingrese sus apellidos"}
+            ),
+            "username": forms.TextInput(
+                attrs={"placeholder": "Ingrese un nombre de usuario"}
+            ),
+            "dni": forms.TextInput(
+                attrs={"placeholder": "Ingrese su número de cedula"}
+            ),
+            "sucursal": forms.Select(attrs={"class": "select2", "style": "width:100%"}),
+            "caja": forms.Select(attrs={"class": "select2", "style": "width:100%"}),
+            "email": forms.TextInput(
+                attrs={"placeholder": "Ingrese su correo electrónico"}
+            ),
+            "password": forms.PasswordInput(
+                render_value=True, attrs={"placeholder": "Ingrese una contraseña"}
+            ),
+            "groups": forms.SelectMultiple(
+                attrs={
+                    "class": "select2",
+                    "multiple": "multiple",
+                    "style": "width:100%",
+                }
+            ),
         }
-        exclude = ['is_change_password',  'user_permissions', 'date_joined',
-                   'last_login',  'token']
+        exclude = [
+            "is_change_password",
+            "user_permissions",
+            "date_joined",
+            "last_login",
+            "token",
+        ]
 
     def update_session(self, user):
         request = get_current_request()
@@ -39,7 +75,7 @@ class UserForm(ModelForm):
         form = super()
         try:
             if form.is_valid():
-                pwd = self.cleaned_data['password']
+                pwd = self.cleaned_data["password"]
                 u = form.save(commit=False)
                 if u.pk is None:
                     u.set_password(pwd)
@@ -50,34 +86,52 @@ class UserForm(ModelForm):
                 u.save()
 
                 u.groups.clear()
-                for g in self.cleaned_data['groups']:
+                for g in self.cleaned_data["groups"]:
                     u.groups.add(g)
 
                 self.update_session(u)
             else:
-                data['error'] = form.errors
+                data["error"] = form.errors
         except Exception as e:
-            data['error'] = str(e)
+            data["error"] = str(e)
         return data
 
 
 class ProfileForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['first_name'].widget.attrs['autofocus'] = True
+        self.fields["first_name"].widget.attrs["autofocus"] = True
 
     class Meta:
         model = User
-        fields = 'first_name', 'last_name', 'username', 'dni', 'email', 'image'
+        fields = "first_name", "last_name", "username", "dni", "email", "image"
         widgets = {
-            'first_name': forms.TextInput(attrs={'placeholder': 'Ingrese sus nombres'}),
-            'last_name': forms.TextInput(attrs={'placeholder': 'Ingrese sus apellidos'}),
-            'username': forms.TextInput(attrs={'placeholder': 'Ingrese un nombre de usuario'}),
-            'dni': forms.TextInput(attrs={'placeholder': 'Ingrese su número de cedula'}),
-            'email': forms.TextInput(attrs={'placeholder': 'Ingrese su correo electrónico'}),
+            "first_name": forms.TextInput(attrs={"placeholder": "Ingrese sus nombres"}),
+            "last_name": forms.TextInput(
+                attrs={"placeholder": "Ingrese sus apellidos"}
+            ),
+            "username": forms.TextInput(
+                attrs={"placeholder": "Ingrese un nombre de usuario"}
+            ),
+            "dni": forms.TextInput(
+                attrs={"placeholder": "Ingrese su número de cedula"}
+            ),
+            "email": forms.TextInput(
+                attrs={"placeholder": "Ingrese su correo electrónico"}
+            ),
         }
-        exclude = ['is_change_password', 'is_active', 'is_staff', 'user_permissions', 'password', 'date_joined',
-                   'last_login', 'is_superuser', 'groups', 'token']
+        exclude = [
+            "is_change_password",
+            "is_active",
+            "is_staff",
+            "user_permissions",
+            "password",
+            "date_joined",
+            "last_login",
+            "is_superuser",
+            "groups",
+            "token",
+        ]
 
     def save(self, commit=True):
         data = {}
@@ -85,7 +139,7 @@ class ProfileForm(ModelForm):
             if self.is_valid():
                 super().save()
             else:
-                data['error'] = self.errors
+                data["error"] = self.errors
         except Exception as e:
-            data['error'] = str(e)
+            data["error"] = str(e)
         return data

@@ -137,13 +137,59 @@ function message_info(message) {
 
     }
     if (type) {
-        alert_sweetalert('success', 'OK', "", function () {
+        alert_sweetalert('info', 'INFO!', "", function () {
 
         }, null, message);
     } else {
-        alert_sweetalert('success', 'OK!', "X", function () {
+        alert_sweetalert('info', 'INFO!', "X", function () {
 
         }, null, message);
+    }
+}
+function message_success(message) {
+    var type = typeof (message) === "object";
+    if (typeof (message) === "object") {
+        var errors = '<ul style="list-style: square; text-align: left;">';
+        $.each(message, function (index, item) {
+            errors += '<li><b style="text-transform:capitalize;">' + index + "</b>.- " + item + '</li>';
+        });
+        errors += '</ul>';
+        message = errors;
+
+    }
+    if (type) {
+        alert_sweetalert('success', 'LISTO!', "", function () {
+
+        }, null, message);
+    } else {
+        // alert_sweetalert('success', 'LISTO!', "X", function () {
+
+        // }, null, mensajeOK(message));
+        alert_sweetalert('success', 'LISTO!', "X", function () {
+
+        }, null, mensajeOK(message));
+    }
+}
+
+function message_success_to_url(message, url) {
+    var type = typeof (message) === "object";
+    if (typeof (message) === "object") {
+        var errors = '<ul style="list-style: square; text-align: left;">';
+        $.each(message, function (index, item) {
+            errors += '<li><b style="text-transform:capitalize;">' + index + "</b>.- " + item + '</li>';
+        });
+        errors += '</ul>';
+        message = errors;
+
+    }
+    if (type) {
+        alert_sweetalert('success', 'LISTO!', "", function () {
+
+        }, null, message);
+    } else {
+        alert_sweetalert('success', 'LISTO!', "X", function () {
+            location.href = url
+        }, null, mensajeOK(message));
     }
 }
 
@@ -532,17 +578,51 @@ function dialog_action(title, content, callback, cancel) {
 
 
 function obtenerNombreMes(numero) {
-    let miFecha = new Date();
+    let fecha = new Date();
     if (0 < numero && numero <= 12) {
-        miFecha.setMonth(numero - 1);
-        return new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(miFecha);
+        fecha.setMonth(numero - 1);
+        return new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(fecha);
     } else {
         return null;
     }
-}
-
-
+};
 
 function formatoNumero(numero, decimales = 0) {
+    // FORMATO 999.999.999,99
     return new Intl.NumberFormat("es-PY").format(parseFloat(numero).toFixed(decimales))
+}
+;
+function formatoNumeroUS(numero, decimales = 0) {
+    // FORMATO 999,999,999.99
+    return new Intl.NumberFormat("us-US").format(parseFloat(numero).toFixed(decimales))
+};
+
+function formatoFecha(yyyymmdd, separador = '/') {
+    // FORMATO DD/MM/YYYY
+    return yyyymmdd.split("-").reverse().join(separador);
+};
+
+function diasDiferencia(fecha1, fecha2) {
+    // DIFERENCIA DE FECHAS EN DIAS
+    // Formato de fecha parametro DD/MM/YYYY y se convierte a YYYY-MM-DD
+    const f1 = new Date(fecha1.split("/").reverse().join("-"));
+    const f2 = new Date(fecha2.split("/").reverse().join("-"));
+
+    return (f1.getTime() - f2.getTime()) / (1000 * 3600 * 24);
+
+
+};
+// Reemplaza NULL con el valor de reemplazo especificado.
+function isNULL(expression, replacement) {
+    return (expression ? expression : replacement);
+}
+
+function mensajeOK(mensaje = '') {
+    return '¡La operación ha finalizado con éxito!\n' + isNULL('<br>' + mensaje, '')
+}
+function mensajeWARNING(mensaje = '') {
+    return '¡La operación ha finalizado con éxito!\n' + isNULL('<br>' + mensaje, '')
+}
+function mensajeERROR() {
+    return 'HUBO ERRORES DURANTE LA OPERACIÓN'
 }

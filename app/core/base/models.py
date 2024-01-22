@@ -8,6 +8,7 @@ from django.forms import model_to_dict
 
 from config import settings
 from core.base.choices import *
+from core.base.utils import calculate_age
 
 # Create your models here.
 
@@ -188,6 +189,9 @@ class Transaccion(ModeloBase):
     transaccion_por_defecto = models.BooleanField(
         verbose_name="Transacción Por Defecto", null=True, blank=True, default=False
     )
+    url = models.CharField(
+        max_length=100, verbose_name="Url", unique=True, null=True, blank=True
+    )
 
     # Si la transaccion es por defecto, automaticamente es la opcion disponible para los movimientos, si no se elige otra opcion
     def __str__(self):
@@ -251,8 +255,8 @@ class Pais(ModeloBase):
         verbose_name_plural = "Paises"
 
 
-# CIUDAD
-class Ciudad(ModeloBase):
+# DEPARTAMENTO
+class Departamento(ModeloBase):
     # ID
     pais = models.ForeignKey(
         Pais, verbose_name="Pais", on_delete=models.RESTRICT, related_name="paises"
@@ -262,6 +266,38 @@ class Ciudad(ModeloBase):
     def __str__(self):
         return "{} - {}".format(self.pk, self.denominacion)
 
+    def toJSON(self):
+        item = model_to_dict(self)
+        return item
+
+    class Meta:
+        ordering = [
+            "pk",
+        ]
+        db_table = "bs_departamento"
+        verbose_name = "Departamento"
+        verbose_name_plural = "Departamentos"
+        unique_together = ["pais", "denominacion"]
+
+
+# CIUDAD
+class Ciudad(ModeloBase):
+    # ID
+    departamento = models.ForeignKey(
+        Departamento,
+        verbose_name="Departamento",
+        on_delete=models.RESTRICT,
+        related_name="departamento",
+    )
+    denominacion = models.CharField(verbose_name="Denominación", max_length=100)
+
+    def __str__(self):
+        return "{} - {}".format(self.pk, self.denominacion)
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        return item
+
     class Meta:
         ordering = [
             "pk",
@@ -269,7 +305,7 @@ class Ciudad(ModeloBase):
         db_table = "bs_ciudad"
         verbose_name = "Ciudad"
         verbose_name_plural = "Ciudades"
-        unique_together = ["pais", "denominacion"]
+        # unique_together = ["departamento", "denominacion"]
 
 
 # BARRIO
@@ -287,6 +323,9 @@ class Barrio(ModeloBase):
 
     def __str__(self):
         return "{} - {}".format(self.pk, self.denominacion)
+
+    def toJSON(self):
+        return model_to_dict(self)
 
     class Meta:
         ordering = [
@@ -318,8 +357,8 @@ class Empresa(ModeloBase):
     website = models.CharField(
         max_length=250, verbose_name="Página web", null=True, blank=True
     )
-    desc = models.CharField(
-        max_length=500, null=True, blank=True, verbose_name="Descripción"
+    descripcion = models.CharField(
+        max_length=200, null=True, blank=True, verbose_name="Descripción"
     )
     imagen = models.ImageField(
         null=True, blank=True, upload_to="empresa/%Y/%m/%d", verbose_name="Logo"
@@ -473,7 +512,7 @@ class TipoComprobante(ModeloBase):
         null=True,
         choices=choiceSiNo(),
     )
-    nro_de_lineas = models.IntegerField(verbose_name="Nro. de Lineas Pre-Impreso")
+    cant_lineas = models.IntegerField(verbose_name="Cantidad de Lineas Pre-Impreso")
 
     def __str__(self):
         return "{} - {}".format(self.tip_comprobante, self.descripcion)
@@ -611,6 +650,7 @@ class Persona(ModeloBase):
         RefDet,
         to_field="cod",
         verbose_name="Genero",
+        db_column="sexo",
         on_delete=models.RESTRICT,
         related_name="sexo",
         max_length=1,
@@ -621,6 +661,7 @@ class Persona(ModeloBase):
         RefDet,
         to_field="cod",
         verbose_name="Estado Civil",
+        db_column="estado_civil",
         on_delete=models.RESTRICT,
         related_name="estado_civil",
         max_length=2,
@@ -628,39 +669,21 @@ class Persona(ModeloBase):
         null=True,
     )
 
+    def get_full_name(self):
+        return "{}, {}".format(self.nombre, self.apellido)
+
     def __str__(self):
         return "{}, {}".format(self.nombre, self.apellido)
+
+    def get_edad(self):
+        return calculate_age(self.fec_nacimiento)
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item["edad"] = self.get_edad()
+        return item
 
     class Meta:
         db_table = "bs_persona"
         verbose_name = "Persona"
         verbose_name_plural = "Personas"
-
-
-"""PLAZOS EN DIAS"""
-
-
-class Plazo(ModeloBase):
-    denominacion = models.CharField(verbose_name="Denominacion", max_length=50)
-    plazo = models.ForeignKey(
-        RefDet,
-        to_field="cod",
-        limit_choices_to={"refcab_id": 5},
-        db_column="plazo",
-        on_delete=models.RESTRICT,
-        related_name="plazo_dias",
-        max_length=1,
-    )
-    rango_inferior = models.IntegerField(default=0)
-    rango_superior = models.IntegerField(default=0)
-    contrato_inferior = models.IntegerField(default=0)
-    contrato_superior = models.IntegerField(default=0)
-
-    def __str__(self):
-        return f"{self.denominacion} - {self.plazo} "
-
-    class Meta:
-        ordering = ["id"]
-        db_table = "bs_plazo"
-        verbose_name = "Plazos en Dias"
-        verbose_name_plural = "Plazos en Dias"

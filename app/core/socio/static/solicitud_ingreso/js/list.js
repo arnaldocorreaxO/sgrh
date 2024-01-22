@@ -27,11 +27,11 @@ var solicitud_ingreso = {
             },
             order: [[0, 'asc']],
             columns: [
-                {"data": "nro_solicitud"},
-                {"data": "fec_solicitud"},                
-                {"data": "persona"},
-                {"data": "telefono"},
-                {"data": "id"},
+                { "data": "nro_solicitud" },
+                { "data": "fec_solicitud" },
+                { "data": "persona" },
+                { "data": "telefono" },
+                { "data": "id" },
             ],
             columnDefs: [
                 {
@@ -40,12 +40,12 @@ var solicitud_ingreso = {
                     orderable: false,
                     render: function (data, type, row) {
                         var btnClass = "btn btn-secondary btn btn-flat disabled_aprobar";
-                        if(!row.aprobado){
-                            btnClass +='btn btn-success btn btn-flat';
+                        if (!row.aprobado) {
+                            btnClass += 'btn btn-success btn btn-flat';
                         };
-                        console.log(btnClass)
+                        // console.log(btnClass)
                         var buttons = '<a href="' + pathname + '/update/' + row.id + '/" class= "btn btn-warning btn btn-flat" data-toggle="tooltip" title="Editar"><i class="fas fa-edit"></i></a> ';
-                        buttons += '<a href="' + pathname + '/aprobar/' + row.id + '/" class="'+ btnClass+ '" data-toggle="tooltip" title="Aprobar"><i class="fas fa-user-check"></i></a> ';
+                        buttons += '<a href="' + pathname + '/aprobar/' + row.id + '/" class="' + btnClass + '" data-toggle="tooltip" title="Aprobar"><i class="fas fa-user-check"></i></a> ';
                         buttons += '<a href="' + pathname + '/delete/' + row.id + '/" type="button" class="btn btn-danger btn btn-flat" data-toggle="tooltip" title="Eliminar"><i class="fas fa-trash-alt"></i></a>';
                         return buttons;
                     }

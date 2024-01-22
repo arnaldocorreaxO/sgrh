@@ -3,25 +3,26 @@ from django.forms import ModelForm
 
 from core.base.forms import readonly_fields
 from core.base.models import RefDet
+from core.base.utils import get_fecha_actual_ymd
 
 from .models import *
 
 
-class SocioForm(ModelForm):
+class ClienteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["nro_socio"].widget.attrs["autofocus"] = True
-        # super(MovimientoEntradaForm, self).__init__(*args, **kwargs)
-        estado_socio = forms.ModelChoiceField(
-            queryset=RefDet.objects.filter(refcab__cod__exact="ESTADO_SOCIO"),
-            to_field_name="cod",
-            empty_label="(Ninguno)",
-        )
-        estado_socio.widget.attrs.update({"class": "form-control select2"})
-        self.fields["estado_socio"] = estado_socio
+        # # super(MovimientoEntradaForm, self).__init__(*args, **kwargs)
+        # estado_socio = forms.ModelChoiceField(
+        #     queryset=RefDet.objects.filter(refcab__cod__exact="ESTADO_SOCIO"),
+        #     to_field_name="cod",
+        #     empty_label="(Ninguno)",
+        # )
+        # estado_socio.widget.attrs.update({"class": "form-control select2"})
+        # self.fields["estado_socio"] = estado_socio
 
     class Meta:
-        model = Socio
+        model = Cliente
         fields = "__all__"
         exclude = readonly_fields
         widgets = {
@@ -39,6 +40,9 @@ class SocioForm(ModelForm):
                 attrs={"placeholder": "Ingrese Fecha de Charla"}
             ),
             "calificacion": forms.Select(
+                attrs={"class": "form-control select2", "style": "width: 100%;"}
+            ),
+            "estado": forms.Select(
                 attrs={"class": "form-control select2", "style": "width: 100%;"}
             ),
         }
@@ -59,6 +63,7 @@ class SolicitudIngresoForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["fec_solicitud"].widget.attrs["autofocus"] = True
+        self.fields["sucursal"].queryset = Sucursal.objects.filter(activo__iexact=True)
 
     class Meta:
         model = SolicitudIngreso
@@ -73,7 +78,7 @@ class SolicitudIngresoForm(ModelForm):
                 attrs={
                     "class": "form-control datetimepicker-input",
                     "id": "fec_solicitud",
-                    "value": datetime.now().strftime("%Y-%m-%d"),
+                    "value": get_fecha_actual_ymd,
                     "data-toggle": "datetimepicker",
                     "data-target": "#fec_solicitud",
                 },
@@ -83,7 +88,7 @@ class SolicitudIngresoForm(ModelForm):
                 attrs={
                     "class": "form-control datetimepicker-input",
                     "id": "fec_charla",
-                    "value": datetime.now().strftime("%Y-%m-%d"),
+                    "value": get_fecha_actual_ymd,
                     "data-toggle": "datetimepicker",
                     "data-target": "#fec_charla",
                 },
@@ -94,9 +99,7 @@ class SolicitudIngresoForm(ModelForm):
             "persona": forms.Select(
                 attrs={"class": "form-control select2", "style": "width: 100%;"}
             ),
-            "telefono": forms.TextInput(
-                attrs={"placeholder": "Indique un Nro. de Telefono para Contacto"}
-            ),
+            "telefono": forms.TextInput(attrs={"placeholder": "Telefono de contacto"}),
             "socio_proponente": forms.Select(
                 attrs={"class": "form-control select2", "style": "width: 100%;"}
             ),
@@ -121,16 +124,17 @@ class AprobarSolicitudIngresoForm(ModelForm):
     fec_resolucion = forms.DateField(
         label="Fecha de Resolución/Ingreso",
         widget=forms.DateInput(
-            format="%Y-%m-%d",
+            # format="%d/%m/%Y",
             attrs={
                 "class": "form-control datetimepicker-input",
                 "id": "fec_resolucion",
-                "value": datetime.now().strftime("%Y-%m-%d"),
+                "value": datetime.now().strftime("%d/%m/%Y"),
                 "data-toggle": "datetimepicker",
                 "data-target": "#fec_resolucion",
             },
         ),
     )
+
     ci = forms.CharField(label="CI")
 
     def __init__(self, *args, **kwargs):
@@ -166,23 +170,28 @@ class AprobarSolicitudIngresoForm(ModelForm):
                     "readonly": True,
                 }
             ),
-            "fec_solicitud": forms.TextInput(
+            "fec_solicitud": forms.DateInput(
+                format="%d/%m/%Y",
                 attrs={
+                    "class": "form-control datetimepicker-input",
+                    "id": "fec_solicitud",
+                    # "value": get_fecha_actual_ymd,
+                    "data-toggle": "datetimepicker",
+                    "data-target": "#fec_solicitud",
                     "readonly": True,
-                }
+                },
             ),
-            "fec_charla": forms.TextInput(
+            "fec_charla": forms.DateInput(
+                format="%d/%m/%Y",
                 attrs={
+                    "class": "form-control datetimepicker-input",
+                    "id": "fec_charla",
+                    # "value": get_fecha_actual_ymd,
+                    "data-toggle": "datetimepicker",
+                    "data-target": "#fec_charla",
                     "readonly": True,
-                }
+                },
             ),
-            # 'fec_resolucion': forms.DateInput(format='%d-%m-%Y', attrs={
-            #     'class': 'form-control datetimepicker-input',
-            #     'id': 'fec_resolucion',
-            #     'value': datetime.now().strftime('%Y-%m-%d'),
-            #     'data-toggle': 'datetimepicker',
-            #     'data-target': '#fec_resolucion'
-            # }),
             "sucursal": forms.Select(
                 attrs={
                     "class": "form-control select2",

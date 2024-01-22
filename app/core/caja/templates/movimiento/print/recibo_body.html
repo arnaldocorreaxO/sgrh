@@ -1,0 +1,78 @@
+<div class="container-fluid salto-recibo">
+    <table class="table" style="width: 100%;">
+        <thead>
+            <tr style="border: 0px">
+                <th style="width: 20%;"></th>
+                <th style="width: 50%;"></th>
+                <th style="width: 30%;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- FILA 1 -->
+            <tr>
+                <td class="text-right"><img src="{{ empresa.get_image }}" class="img-fluid d-block mx-auto img-logo">
+                </td>
+                <td class="text-center">
+                    <b>{{ recibo.sucursal}}</b><br>
+                    {{ empresa.descripcion }}<br>
+                    {{ empresa.direccion }}<br>
+                    Teléfono: {{ empresa.telefono }}
+                    <!-- Web: {#{ empresa.website }}<br> -->
+                </td>
+                <td class="text-center">
+                    <b>RECIBO DE DINERO</b><br>
+                    {{ empresa.ruc }} <br>
+                    <b>N°</b> {{ recibo.nro_comprobante }} <br>
+                    <b>FECHA:</b> {{ recibo.fecha_movimiento }}<br>
+                    <b>CAJERO:</b> {{recibo.usuario}}
+                </td>
+                <!-- <td class="text-right">FILA1</td> -->
+            </tr>
+
+            <!-- FILA 2 -->
+            <tr>
+                <td colspan="3" class="text-left"><b>Recibimos de: </b> {{ recibo.nombre }}</td>
+            </tr>
+            <!-- FILA 3 -->
+            <tr>
+                <td class="text-left"><b>CI N°: </b> {{ recibo.nro_documento|floatformat:0 }}</td>
+                <td class="text-left"><b>N° Socio: </b>{{recibo.cod_cliente}}</td>
+                <td class="text-right"><b></b>{{recibo.cod_movimiento}}</td>
+            </tr>
+
+        </tbody>
+    </table>
+
+    <table class="table mb-5" style="width: 100%;">
+        <thead>
+            <tr style="border: 1px solid black;">
+                <th style="width: 70%;">CONCEPTO</th>
+                <th style="width: 30%;" class="text-right">IMPORTE</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for det in recibo_detalle %}
+            <tr class="borde-vertical">
+                <td class="text-left">{{ det.descripcion }}</td>
+                {% if det.exentas > 0 %}
+                <td class="text-right">{{ det.exentas|floatformat:0 }}</td>
+                {% else %}
+                <td class="text-right">&nbsp</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="1" class="text-left"><b>TOTAL</b></td>
+                <td class="text-right"><b>{{ recibo.total_general|floatformat:0 }}</b></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <p class="text-uppercase text-left mb-0 pb-0">
+                        <b>SON GUARANIES:</b> {{recibo.total_letras}}
+                    </p>
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

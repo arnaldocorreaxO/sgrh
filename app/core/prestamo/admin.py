@@ -11,7 +11,7 @@ class EsquemaContableAdmin(ModeloAdminBase):
     list_filter = (
         "plazo",
         "vencimiento",
-        "estado_socio",
+        "estado_cliente",
         "situacion_prestamo",
         "vinculado",
     )
@@ -20,11 +20,12 @@ class EsquemaContableAdmin(ModeloAdminBase):
 
 
 # Register your models here.
+admin.site.register(Plazo, ModeloAdminBase)
 admin.site.register(SituacionPrestamo, ModeloAdminBase)
 admin.site.register(EsquemaContable, EsquemaContableAdmin)
 admin.site.register(TipoPrestamo, ModeloAdminBase)
 admin.site.register(ClasificacionPorDestino, ModeloAdminBase)
 admin.site.register(DestinoPrestamo, ModeloAdminBase)
-# admin.site.register(SolicitudPrestamo,ModeloAdminBase)
+admin.site.register(EstadoDesembolso, ModeloAdminBase)
 admin.site.register(SituacionSolicitud, ModeloAdminBase)
 admin.site.register(NivelAprobacion, ModeloAdminBase)

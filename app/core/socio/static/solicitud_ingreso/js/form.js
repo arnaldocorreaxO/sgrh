@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                                 type: 'persona',
                                 action: 'validate_data'
                             };
+
                         },
                         message: 'La persona ya posee una solicitud de ingreso o ya fue aprobado como socio',
                         method: 'POST'
@@ -102,15 +103,13 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 parameters,
                 function (data) {
                     if (!data.hasOwnProperty('error')) {
-                        console.log(data.val)
+                        console.log(data)
                         if (data.rtn != 0) {
                             message_warning(data.msg);
                             return false;
                         }
                         else {
-                            alert_sweetalert('success', 'OK', "", function () {
-                                location.href = form.getAttribute('data-url');
-                            }, null, data.msg);
+                            message_success_to_url('', form.getAttribute('data-url'))
                         };
                         return false;
                     };
@@ -134,14 +133,14 @@ $(function () {
         format: 'DD/MM/YYYY',
         locale: 'es',
         keepOpen: false,
-        date: new moment().format("YYYY-MM-DD")
+        date: input_fec_solicitud.val()
     });
     input_fec_charla = $('input[name="fec_charla"]');
     input_fec_charla.datetimepicker({
         format: 'DD/MM/YYYY',
         locale: 'es',
         keepOpen: false,
-        date: new moment().format("YYYY-MM-DD")
+        date: input_fec_charla.val()
     });
 
     input_fec_solicitud.on('change.datetimepicker', function () {

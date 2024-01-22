@@ -8,28 +8,53 @@ from django.db import models
 from django.forms.models import model_to_dict
 
 from config import settings
-
 from core.base.models import *
 
 
 class User(AbstractUser):
-    dni = models.CharField(max_length=13, unique=True, verbose_name='Cédula o RUC')
-    image = models.ImageField(upload_to='users/%Y/%m/%d', verbose_name='Imagen', null=True, blank=True)
+    dni = models.CharField(max_length=13, unique=True, verbose_name="Cédula o RUC")
+    image = models.ImageField(
+        upload_to="users/%Y/%m/%d", verbose_name="Imagen", null=True, blank=True
+    )
     is_change_password = models.BooleanField(default=False)
     # token = models.UUIDField(primary_key=False, editable=False, null=True, blank=True, default=uuid.uuid4, unique=True)
-    cod_usuario = models.CharField('Codigo Usuario',max_length=4,null=True,blank=True,unique=True)
-    caja = models.ForeignKey(Caja, verbose_name='Caja', db_column='nro_caja', on_delete=models.CASCADE, related_name='%(app_label)s_%(class)s_caja',blank=True,null=True)
-    sucursal = models.ForeignKey(Sucursal, verbose_name='Sucursal', on_delete=models.CASCADE, related_name='%(app_label)s_%(class)s_sucursal')
-    sector_operativo = models.ForeignKey(SectorOperativo, verbose_name='Sector Operativo', on_delete=models.CASCADE, related_name='%(app_label)s_%(class)s_sector_operativo',blank=True,null=True)
+    cod_usuario = models.CharField("Codigo Usuario", max_length=4, unique=True)
+    caja = models.ForeignKey(
+        Caja,
+        verbose_name="Caja",
+        db_column="nro_caja",
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_caja",
+        blank=True,
+        null=True,
+    )
+    sucursal = models.ForeignKey(
+        Sucursal,
+        verbose_name="Sucursal",
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_sucursal",
+    )
+    sector_operativo = models.ForeignKey(
+        SectorOperativo,
+        verbose_name="Sector Operativo",
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_sector_operativo",
+        blank=True,
+        null=True,
+    )
     feriado = models.BooleanField(default=False)
 
     def toJSON(self):
-        item = model_to_dict(self, exclude=['last_login', 'token', 'password', 'user_permissions'])
-        item['image'] = self.get_image()
-        item['full_name'] = self.get_full_name()
-        item['date_joined'] = self.date_joined.strftime('%Y-%m-%d')
-        item['groups'] = self.get_groups()
-        item['last_login'] = None if self.last_login is None else self.last_login.strftime('%Y-%m-%d')
+        item = model_to_dict(
+            self, exclude=["last_login", "token", "password", "user_permissions"]
+        )
+        item["image"] = self.get_image()
+        item["full_name"] = self.get_full_name()
+        item["date_joined"] = self.date_joined.strftime("%Y-%m-%d")
+        item["groups"] = self.get_groups()
+        item["last_login"] = (
+            None if self.last_login is None else self.last_login.strftime("%Y-%m-%d")
+        )
         return item
 
     def generate_token(self):
@@ -37,8 +62,8 @@ class User(AbstractUser):
 
     def get_image(self):
         if self.image:
-            return '{}{}'.format(settings.MEDIA_URL, self.image)
-        return '{}{}'.format(settings.STATIC_URL, 'img/default/empty.png')
+            return "{}{}".format(settings.MEDIA_URL, self.image)
+        return "{}{}".format(settings.STATIC_URL, "img/default/empty.png")
 
     def remove_image(self):
         try:
@@ -59,13 +84,13 @@ class User(AbstractUser):
     def get_groups(self):
         data = []
         for i in self.groups.all():
-            data.append({'id': i.id, 'name': i.name})
+            data.append({"id": i.id, "name": i.name})
         return data
 
     def get_group_id_session(self):
         try:
             request = get_current_request()
-            return int(request.session['group'].id)
+            return int(request.session["group"].id)
         except:
             return 0
 
@@ -74,8 +99,8 @@ class User(AbstractUser):
             request = get_current_request()
             groups = request.user.groups.all()
             if groups:
-                if 'group' not in request.session:
-                    request.session['group'] = groups[0]
+                if "group" not in request.session:
+                    request.session["group"] = groups[0]
         except:
             pass
 
@@ -92,7 +117,7 @@ class User(AbstractUser):
 
     def is_client(self):
         try:
-            if hasattr(self, 'client'):
+            if hasattr(self, "client"):
                 return True
         except Exception as e:
             print(e)

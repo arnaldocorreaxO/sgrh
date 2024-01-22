@@ -83,11 +83,11 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
             celular: {
                 validators: {
-                    notEmpty: {},
+                    // notEmpty: {},
                     stringLength: {
                         min: 10,
                     },
-                    digits: {},
+                    // digits: {},
                 }
             },
             // telefono: {
@@ -207,7 +207,6 @@ $(document).ready(function () {
                 'ci': vCi
             },
             success: function (data) {
-
                 $('#id_ruc').val(data[0].per_ruc);
                 $('#id_nombre').val(data[0].per_nombres);
                 $('#id_apellido').val(data[0].per_apynom);
@@ -215,9 +214,6 @@ $(document).ready(function () {
                 $('#id_nacionalidad').val(data[0].per_codpais).trigger('change');
                 $('#fec_nacimiento').val(data[0].per_fchnaci.split("-").reverse().join("/"));
                 $('#id_estado_civil').val(data[0].civ_codeciv).trigger('change');
-                // $('#id_nacionalidad').trigger('change.select2');
-                // $('#id_estado_civil').trigger('change.select2');
-
             }
         });
 
@@ -229,10 +225,11 @@ $(document).ready(function () {
         format: 'DD/MM/YYYY',
         locale: 'es',
         keepOpen: false,
-        date: new moment().format("YYYY-MM-DD")
+        date: input_fec_nacimiento.val()
     });
 
     input_fec_nacimiento.on('change.datetimepicker', function () {
         fv.revalidateField('fec_nacimiento');
     });
+
 });

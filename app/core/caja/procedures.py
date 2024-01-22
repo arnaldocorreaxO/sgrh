@@ -70,7 +70,7 @@ def sp_trx700(request, *args, **kwargs):
     params = {}
     params["fec_movimiento"] = TEXTO(request.POST["fec_movimiento"])
     params["cod_movimiento"] = TEXTO(request.POST["cod_movimiento"])
-    params["socio_id"] = request.POST["socio"]
+    params["cod_cliente"] = request.POST["cliente"]
     params["nro_documento"] = request.POST["nro_documento"]  # NRO_RECIBO
     params["aporte_ingreso"] = request.POST["aporte_ingreso"]
     params["aporte"] = request.POST["aporte"]
@@ -83,7 +83,7 @@ def sp_trx700(request, *args, **kwargs):
                         DECLARE @RC int
                         DECLARE @COD_MOVIMIENTO CHAR(8)
                         DECLARE @FEC_MOVIMIENTO DATE
-                        DECLARE @SOCIO_ID INT
+                        DECLARE @cod_cliente INT
                         DECLARE @NRO_DOCUMENTO NUMERIC(13,0)
                         DECLARE @APORTE_INGRESO NUMERIC(14,2)
                         DECLARE @APORTE NUMERIC(14,2)
@@ -99,7 +99,7 @@ def sp_trx700(request, *args, **kwargs):
                         EXECUTE @RC = [dbo].[PTRX_700] 
                         @COD_MOVIMIENTO={params['cod_movimiento']}
                         ,@FEC_MOVIMIENTO={params['fec_movimiento']}
-                        ,@SOCIO_ID ={params['socio_id']}
+                        ,@cod_cliente ={params['cod_cliente']}
                         ,@NRO_DOCUMENTO={params['nro_documento']}
                         ,@APORTE_INGRESO = {params['aporte_ingreso']}
                         ,@APORTE ={params['aporte']}
@@ -151,7 +151,7 @@ def sp_trx701(request, *args, **kwargs):
     params = {}
     params["fec_movimiento"] = TEXTO(request.POST["fec_movimiento"])
     params["cod_movimiento"] = TEXTO(request.POST["cod_movimiento"])
-    params["socio_id"] = request.POST["socio"]
+    params["cod_cliente"] = request.POST["cliente"]
     params["nro_documento"] = request.POST["nro_documento"]  # NRO_RECIBO
     params["aporte_efectivo"] = request.POST["aporte_efectivo"]
 
@@ -161,7 +161,7 @@ def sp_trx701(request, *args, **kwargs):
                         DECLARE @RC int
                         DECLARE @COD_MOVIMIENTO CHAR(8)
                         DECLARE @FEC_MOVIMIENTO DATE
-                        DECLARE @SOCIO_ID INT
+                        DECLARE @cod_cliente INT
                         DECLARE @NRO_DOCUMENTO NUMERIC(13,0)                       
                         DECLARE @APORTE_EFECTIVO NUMERIC(14,2)                       
                         DECLARE @APORTE_CHEQUE NUMERIC(14,2)                       
@@ -173,7 +173,7 @@ def sp_trx701(request, *args, **kwargs):
                         EXECUTE @RC = [dbo].[PTRX_701] 
                         @COD_MOVIMIENTO={params['cod_movimiento']}
                         ,@FEC_MOVIMIENTO={params['fec_movimiento']}
-                        ,@SOCIO_ID ={params['socio_id']}
+                        ,@cod_cliente ={params['cod_cliente']}
                         ,@NRO_DOCUMENTO={params['nro_documento']}                     
                         ,@APORTE_EFECTIVO ={params['aporte_efectivo']}                      
                         ,@APORTE_CHEQUE =0
@@ -193,7 +193,7 @@ def sp_trx702(request, *args, **kwargs):
     params = {}
     params["fec_movimiento"] = TEXTO(request.POST["fec_movimiento"])
     params["cod_movimiento"] = TEXTO(request.POST["cod_movimiento"])
-    params["socio_id"] = request.POST["socio"]
+    params["cod_cliente"] = request.POST["cliente"]
     params["nro_documento"] = request.POST["nro_documento"]  # NRO_RECIBO
     params["solidaridad_efectivo"] = request.POST["solidaridad_efectivo"]
 
@@ -203,7 +203,7 @@ def sp_trx702(request, *args, **kwargs):
                         DECLARE @RC int
                         DECLARE @COD_MOVIMIENTO CHAR(8)
                         DECLARE @FEC_MOVIMIENTO DATE
-                        DECLARE @SOCIO_ID INT
+                        DECLARE @cod_cliente INT
                         DECLARE @NRO_DOCUMENTO NUMERIC(13,0)                       
                         DECLARE @APORTE_EFECTIVO NUMERIC(14,2)                       
                         DECLARE @APORTE_CHEQUE NUMERIC(14,2)                       
@@ -215,7 +215,7 @@ def sp_trx702(request, *args, **kwargs):
                         EXECUTE @RC = [dbo].[PTRX_702] 
                         @COD_MOVIMIENTO={params['cod_movimiento']}
                         ,@FEC_MOVIMIENTO={params['fec_movimiento']}
-                        ,@SOCIO_ID ={params['socio_id']}
+                        ,@cod_cliente ={params['cod_cliente']}
                         ,@NRO_DOCUMENTO={params['nro_documento']}                     
                         ,@SOLIDARIDAD_EFECTIVO ={params['solidaridad_efectivo']}                      
                         ,@SOLIDARIDAD_CHEQUE =0
@@ -257,3 +257,38 @@ def sp_PTRX_GRABAR_CAJA(request, *args, **kwargs):
                     """
 
     return SP_EXECUTE(storedProc)
+
+
+# PRINT RECIBO
+def sp_rptcaj012(request, **kwargs):
+    # Define variables
+    try:
+        params = {}
+        params["fec_movimiento"] = TEXTO(kwargs["fec_movimiento"]).replace("-", "/")
+        params["cod_movimiento"] = TEXTO(kwargs["cod_movimiento"])
+        params["cod_cliente"] = kwargs["cod_cliente"]
+        params["cod_usuario"] = TEXTO(kwargs["cod_usuario"])
+        # Prepare the stored procedure execution script and parameter values
+        storedProc = f"""   DECLARE @RC int
+                            DECLARE @COD_CLIENTE numeric(7,0)
+                            DECLARE @COD_MOVIMIENTO char(8)
+                            DECLARE @FEC_MOVIMIENTO char(10)
+                            DECLARE @COD_USUARIO char(4)
+                            DECLARE @TIP_COMPROBANTE char(3)
+                            
+                            -- TODO: Establezca los valores de los parámetros aquí.
+
+                            EXECUTE @RC = [dbo].[RPT_CAJ012] 
+                            @COD_CLIENTE = {params['cod_cliente']}
+                            ,@COD_MOVIMIENTO = {params['cod_movimiento']}
+                            ,@FEC_MOVIMIENTO ={params["fec_movimiento"]}
+                            ,@COD_USUARIO ={params["cod_usuario"]}
+                            ,@TIP_COMPROBANTE = 'RCB';
+
+                            --SELECT @RC;
+                        
+                        """
+
+        return SP_EXECUTE(storedProc, all=True)
+    except Exception as e:
+        print(e)

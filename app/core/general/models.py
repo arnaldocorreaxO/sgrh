@@ -1,12 +1,139 @@
 from django.db import models
 from django.forms import model_to_dict
 
-from core.base.models import ModeloBase, Modulo, Moneda, Sucursal, Transaccion
-from core.contable.models import PlanDeCuenta, TipoMovimiento
-from core.socio.models import Socio
+from core.base.models import (
+    ModeloBase,
+    Modulo,
+    Moneda,
+    Persona,
+    RefDet,
+    Sucursal,
+    Transaccion,
+)
 
 
-# MOVIMIENTO ABSTRACT
+# CALIFICACION CLIENTE
+class CalificacionCliente(ModeloBase):
+    cod = models.CharField(verbose_name="Código", max_length=1, unique=True)
+    denominacion = models.CharField(
+        verbose_name="Denominación", max_length=25, unique=True
+    )
+    promedio_atraso = models.IntegerField(verbose_name="Promedio Atraso")
+
+    def __str__(self):
+        return "{} - {}".format(self.cod, self.denominacion)
+
+    class Meta:
+        db_table = "ge_calificacion_cliente"
+        verbose_name = "Calificacion Cliente"
+        verbose_name_plural = "Calificacion Clientes"
+
+
+# ESTADO CLIENTE
+class EstadoCliente(ModeloBase):
+    cod = models.CharField(verbose_name="Código", max_length=4, unique=True)
+    denominacion = models.CharField(
+        verbose_name="Denominación", max_length=25, unique=True
+    )
+
+    def __str__(self):
+        return "{} - {}".format(self.cod, self.denominacion)
+
+    class Meta:
+        db_table = "ge_estado_cliente"
+        verbose_name = "Estado Cliente"
+        verbose_name_plural = "Estado Clientes"
+
+
+# SOCIO
+class Cliente(ModeloBase):
+    cod_cliente = models.IntegerField(verbose_name="Cod. Cliente", primary_key=True)
+    sucursal = models.ForeignKey(
+        Sucursal,
+        verbose_name="Sucursal",
+        on_delete=models.RESTRICT,
+        related_name="cliente_sucursal",
+    )
+    nro_socio = models.IntegerField(verbose_name="Nro. Socio", unique=True)
+    persona = models.ForeignKey(
+        Persona,
+        verbose_name="Persona",
+        on_delete=models.RESTRICT,
+        related_name="cliente_persona",
+    )
+    fec_ingreso = models.DateField(verbose_name="Fecha Ingreso")
+    fec_retiro = models.DateField(verbose_name="Fecha Retiro", null=True, blank=True)
+    estado = models.ForeignKey(
+        EstadoCliente,
+        to_field="cod",
+        db_column="estado",
+        verbose_name="Estado Cliente",
+        on_delete=models.RESTRICT,
+        related_name="cliente_estado",
+    )
+    calificacion = models.ForeignKey(
+        CalificacionCliente,
+        to_field="cod",
+        db_column="calificacion",
+        verbose_name="Calificacion Cliente",
+        on_delete=models.RESTRICT,
+        related_name="cliente_calificacion",
+    )
+    comentario = models.CharField(
+        verbose_name="Comentario", max_length=100, null=True, blank=True
+    )
+
+    def __str__(self):
+        return "{} - {}".format(self.nro_socio, self.persona)
+
+    def get_nro_socio_nombre(self):
+        return "{} - {}".format(self.nro_socio, self.persona)
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item["persona"] = str(self.persona)
+        item["ci"] = self.persona.ci
+        item["telefono"] = (
+            self.persona.telefono if self.persona.telefono else self.persona.celular
+        )
+        item["fec_ingreso"] = (
+            self.fec_ingreso.strftime("%d/%m/%Y") if self.fec_ingreso else None
+        )
+        item["fec_retiro"] = (
+            self.fec_retiro.strftime("%d/%m/%Y") if self.fec_retiro else None
+        )
+        return item
+
+    class Meta:
+        db_table = "ge_cliente"
+        verbose_name = "Cliente"
+        verbose_name_plural = "Clientes"
+
+
+# TIPO MOVIMIENTO
+class TipoMovimiento(ModeloBase):
+    tip_movimiento = models.CharField(
+        verbose_name="Código", max_length=1, primary_key=True
+    )
+    denominacion = models.CharField(
+        verbose_name="Tipo Movimiento", max_length=100, unique=True
+    )
+
+    def __str__(self):
+        return "{} - {}".format(self.tip_movimiento, self.denominacion)
+
+    class Meta:
+        ordering = [
+            "tip_movimiento",
+        ]
+        db_table = "ge_tipo_movimiento"
+        verbose_name = "Tipo Movimiento"
+        verbose_name_plural = "Tipos Movimientos"
+
+
+"""MOVIMIENTO GENERAL BASE ABSTRACT"""
+
+
 class MovimientoBase(ModeloBase):
     fec_movimiento = models.DateField(verbose_name="Fecha Movimiento")
     cod_movimiento = models.CharField(verbose_name="Codigo Movimiento", max_length=8)
@@ -46,13 +173,14 @@ class MovimientoBase(ModeloBase):
         null=True,
         related_name="%(app_label)s_%(class)s_sucursal",
     )
-    socio = models.ForeignKey(
-        Socio,
-        verbose_name="Socio",
+    cliente = models.ForeignKey(
+        Cliente,
+        db_column="cod_cliente",
+        verbose_name="Cliente",
         on_delete=models.PROTECT,
         blank=True,
         null=True,
-        related_name="%(app_label)s_%(class)s_socio",
+        related_name="%(app_label)s_%(class)s_cliente",
     )
     moneda = models.ForeignKey(
         Moneda,
@@ -61,16 +189,6 @@ class MovimientoBase(ModeloBase):
         blank=True,
         null=True,
         related_name="%(app_label)s_%(class)s_moneda",
-    )
-
-    rubro_contable = models.ForeignKey(
-        PlanDeCuenta,
-        verbose_name="Rubro Contable",
-        db_column="rubro_contable",
-        on_delete=models.PROTECT,
-        related_name="%(app_label)s_%(class)s_rubro_contable",
-        blank=True,
-        null=True,
     )
     cuenta_operativa = models.CharField(
         verbose_name="Cuenta Operativa", max_length=50, null=True, blank=True
@@ -162,3 +280,31 @@ class MovimientosAnuales(MovimientoBase):
         db_table = "ge_movimientos_anuales"
         verbose_name = "Movimientos Anuales"
         verbose_name_plural = "Movimientos Anuales"
+
+
+"""PLAZOS EN DIAS"""
+
+
+class Plazo(ModeloBase):
+    denominacion = models.CharField(verbose_name="Denominacion", max_length=50)
+    plazo = models.ForeignKey(
+        RefDet,
+        to_field="cod",
+        limit_choices_to={"refcab_id": 5},
+        db_column="plazo",
+        on_delete=models.RESTRICT,
+        max_length=1,
+    )
+    rango_inferior = models.IntegerField(default=0)
+    rango_superior = models.IntegerField(default=0)
+    contrato_inferior = models.IntegerField(default=0)
+    contrato_superior = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.denominacion} - {self.plazo} "
+
+    class Meta:
+        ordering = ["id"]
+        db_table = "ge_plazo"
+        verbose_name = "Plazos en Dias"
+        verbose_name_plural = "Plazos en Dias"

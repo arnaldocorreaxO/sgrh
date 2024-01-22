@@ -1,6 +1,9 @@
 from django.urls import path
 
+from core.base.views.transaccion.views import TransaccionFormView
 from core.prestamo.views.prestamo.views import *
+
+# from core.prestamo.views.prestamo.views import *
 from core.prestamo.views.solicitud_prestamo.views import *
 
 urlpatterns = [
@@ -30,9 +33,19 @@ urlpatterns = [
         SolicitudPrestamoDelete.as_view(),
         name="solicitud_prestamo_delete",
     ),
-    # SOCIO
-    # path("socio", SocioList.as_view(), name="socio_list"),
-    # path("socio/add/", SocioCreate.as_view(), name="socio_create"),
-    # path("socio/update/<int:pk>/", SocioUpdate.as_view(), name="socio_update"),
-    # path("socio/delete/<int:pk>/", SocioDelete.as_view(), name="socio_delete"),
+    path(
+        "transaccion/",
+        TransaccionPrestamoFormView.as_view(),
+        name="trx_prestamo_create",
+    ),
+    path(
+        "trx503/",
+        Trx503.as_view(),
+        name="trx503_create",
+    ),
+    path(
+        "trx504/",
+        Trx504.as_view(),
+        name="trx504_create",
+    ),
 ]

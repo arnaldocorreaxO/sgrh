@@ -1,59 +1,64 @@
 
 function get_graph_1_2(args) {
-
-    var graph_1 = Highcharts.chart('graph_1_2', {
-        chart: {
-            type: 'pie',
-            options3d: {
-                enabled: true,
-                alpha: 45,
-                beta: 0
-            }
-        },
-        exporting: {
-            enabled: true,
-        },
-        title: {
-            text: '</i><span style="font-size:20px; font-weight: bold;">Movimiento del Día ' + args[2] + '</span>'
-        },
-        subtitle: {
-            text: args[0] + '<br> Fecha Hora Actualización: '+ args[1]
-        },
-        accessibility: {
-            point: {
-                valueSuffix: '%'
-            }
-        },
-        tooltip: {
-            pointFormat: 'Stock: <b>{point.y:.2f} TON</b>'
-        },
-        plotOptions: {
-            pie: {
-                allowPointSelect: true,
-                cursor: 'pointer',
-                depth: 35,
-                dataLabels: {
-                    enabled: true,
-                    format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-                }
-            }
-        },
-    });
-
-
     $.ajax({
         url: window.location.pathname,
         type: 'POST',
         data: {
-            'producto'  : args[7],
-            'sucursal'  : args[5],
-            'fecha'     : args[2],
-            'action'    : 'get_graph_1_2'
+            'producto': args[7],
+            'sucursal': args[5],
+            'fecha': args[2],
+            'action': 'get_graph_1_2'
         },
         dataType: 'json',
     }).done(function (request) {
         if (!request.hasOwnProperty('error')) {
-            graph_1.addSeries(request);
+            Highcharts.chart('graph_1_2', {
+                chart: {
+                    type: 'column'
+                },
+                title: {
+                    text: '</i><span style="font-size:20px; font-weight: bold;">Vehiculos en Tránsito ' + args[2] + '</span>'
+                },
+                subtitle: {
+                    text: args[0] + '<br> Fecha Hora Actualización: ' + args[1]
+                },
+                exporting: {
+                    enabled: true
+                },
+                xAxis: {
+                    categories: request.categories,
+                    crosshair: true
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'TOTALES'
+                    }
+                },
+                tooltip: {
+                    headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                        '<td style="padding:0"><b>{point.y:.0f}</b></td></tr>',
+                    footerFormat: '</table>',
+                    shared: true,
+                    useHTML: true
+                },
+                plotOptions: {
+                    column: {
+                        pointPadding: 0.2,
+                        borderWidth: 0
+                    },
+                    series: {
+                        dataLabels: {
+                            enabled: true,
+                            style: {
+                                fontSize: 12 + 'px'
+                            }
+                        }
+                    }
+                },
+                series: request.series
+            });
             return false;
         }
         message_error(request.error);
@@ -62,4 +67,4 @@ function get_graph_1_2(args) {
     }).always(function (data) {
 
     });
-}
+};

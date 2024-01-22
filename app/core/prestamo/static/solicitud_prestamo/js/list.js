@@ -21,15 +21,16 @@ var solicitud_prestamo = {
                     'action': 'search'
                 },
                 // dataSrc: "",
-                headers: {
-                    'X-CSRFToken': csrftoken
-                },
+                // headers: {
+                //     'X-CSRFToken': csrftoken
+                // },
             },
             order: [[0, 'asc']],
             columns: [
                 { "data": "nro_solicitud" },
                 { "data": "fec_solicitud" },
-                { "data": "socio" },
+                { "data": "monto_solicitado" },
+                { "data": "cliente" },
                 { "data": "telefono" },
                 { "data": "fec_acta" },
                 { "data": "estado" },
@@ -37,10 +38,29 @@ var solicitud_prestamo = {
             ],
             columnDefs: [
                 {
+                    targets: [1],
+                    class: 'text-center',
+                    // orderable: false,
+                    render: function (data, type, row) {
+                        return data
+
+                    }
+                },
+                {
+                    targets: [2],
+                    class: 'text-right',
+                    // orderable: false,
+                    render: function (data, type, row) {
+                        return data
+
+                    }
+                },
+                {
                     targets: [-1],
                     class: 'text-center',
                     orderable: false,
                     render: function (data, type, row) {
+                        console.log(row)
                         var btnClass = "btn btn-secondary btn btn-flat disabled_aprobar";
                         if (!row.aprobado) {
                             btnClass += 'btn btn-success btn btn-flat';

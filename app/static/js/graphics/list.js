@@ -2,7 +2,7 @@
 
 function get_list(args) {
 
-    var movimiento = {
+    var solicitud_prestamo = {
 
         list: function () {
             $('#data').DataTable({
@@ -10,8 +10,8 @@ function get_list(args) {
                 autoWidth: false,
                 destroy: true,
                 deferRender: true,
-                info:false,
-                ordering:false,
+                info: false,
+                ordering: false,
                 // processing: true,
                 // serverSide: true,
                 paging: false,
@@ -25,10 +25,10 @@ function get_list(args) {
                     url: pathname,
                     type: 'POST',
                     data: {
-                            'producto'  : args[7],
-                            'sucursal'  : args[5],                            
-                            'fecha'     : args[2],
-                            'action'    : 'search'
+                        // 'producto': args[7],
+                        'sucursal': args[5],
+                        'fecha': args[2],
+                        'action': 'list'
                     },
                     dataSrc: "",
                     headers: {
@@ -37,18 +37,42 @@ function get_list(args) {
                 },
                 order: [[0, 'asc']],
                 columns: [
-                    { "data": "fecha" },
-                    { "data": "vehiculo" },
-                    { "data": "chofer" },
-                    { "data": "producto" },
-                    { "data": "peso_neto" },
+                    { "data": "fec_solicitud" },
+                    { "data": "cliente" },
+                    { "data": "tipo_prestamo" },
+                    { "data": "monto_solicitado" },
+                    { "data": "estado" },
                 ],
                 columnDefs: [
                     {
-                        targets: [0,-1],
-                        class: 'text-center',                        
+                        targets: [0, -2],
+                        class: 'text-center',
                         render: function (data, type, row) {
-                           return data;
+                            return data;
+                        }
+                    },
+                    {
+                        targets: [-1],
+                        class: 'text-center',
+                        render: function (data, type, row) {
+                            switch (data) {
+                                case 'PENDIENTE':
+                                    badge_class = 'warning';
+                                    break;
+                                case 'APROBADO':
+                                    badge_class = 'success';
+                                    break;
+                                case 'RECHAZADO':
+                                    badge_class = 'danger';
+                                    break;
+                                default:
+                                    badge_class = 'light'
+                                    break;
+
+                            };
+                            badge = `<span class="badge badge-${badge_class}">  ${data} </span>`
+                            return badge;
+
                         }
                     },
                 ],
@@ -59,9 +83,11 @@ function get_list(args) {
         }
     };
 
+    // <span class="badge badge-success">Success</span>
+
     $(function () {
         $(document).ready(function () {
-            movimiento.list();
+            solicitud_prestamo.list();
         });
     });
 };

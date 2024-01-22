@@ -1,85 +1,80 @@
-import json
-
-from django.http import JsonResponse
-
-from core.base.models import Persona, Sucursal
 from core.base.procedures import SP_EXECUTE
-from core.base.utils import TEXTO, YYYY_MM_DD
-from core.socio.models import Socio
+from core.base.utils import RESET_FORMATO, TEXTO, isNULL
 
 
 def sp_alta_solicitud_prestamo(request):
     cod_usuario = request.user.cod_usuario
     params = {}
     params["sucursal"] = request.POST["sucursal"]
-    params["socio"] = request.POST["socio"]
+    params["cod_cliente"] = request.POST["cliente"]
     params["tipo_prestamo"] = request.POST["tipo_prestamo"]
-    params["fec_solicitud"] = TEXTO(YYYY_MM_DD(request.POST["fec_solicitud"]))
+    params["fec_solicitud"] = TEXTO(request.POST["fec_solicitud"])
     params["destino_prestamo"] = request.POST["destino_prestamo"]
     params["monto_solicitado"] = request.POST["monto_solicitado"]
     params["monto_prestamo"] = request.POST["monto_prestamo"]
-    params["plazo_mes"] = request.POST["plazo_mes"]
+    params["plazo_meses"] = request.POST["plazo_meses"]
     params["moneda"] = request.POST["moneda"]
     params["tasa_interes"] = request.POST["tasa_interes"]
     params["cant_cuota"] = request.POST["cant_cuota"]
     params["monto_cuota_inicial"] = request.POST["monto_cuota_inicial"]
-    params["fec_desembolso"] = TEXTO(YYYY_MM_DD(request.POST["fec_desembolso"]))
-    params["fec_primer_vto"] = TEXTO(YYYY_MM_DD(request.POST["fec_primer_vto"]))
+    params["fec_desembolso"] = TEXTO(request.POST["fec_desembolso"])
+    params["fec_1er_vencimiento"] = TEXTO(request.POST["fec_1er_vencimiento"])
     params["total_interes"] = request.POST["total_interes"]
     params["monto_neto"] = request.POST["monto_neto"]
     params["usu_actual"] = request.user.id
-    params["cod_forma_desembolso"] = TEXTO(request.POST["cod_forma_desembolso"])
+    params["forma_desembolso"] = TEXTO(request.POST["forma_desembolso"])
     params["monto_refinanciado"] = request.POST["monto_refinanciado"]
 
     print(params)
     storedProc = f"""  
-                    SET NOCOUNT ON;
-                    DECLARE @RC int
-                    DECLARE @SUCURSAL_ID numeric(5,0)
-                    DECLARE @SOCIO_ID numeric(6,0)
-                    DECLARE @NRO_SOLICITUD char(10)
-                    DECLARE @TIPO_PRESTAMO_ID numeric(5,0)
-                    DECLARE @FEC_SOLICITUD datetime
-                    DECLARE @DESTINO_PRESTAMO_ID numeric(5,0)
-                    DECLARE @MONTO_SOLICITADO numeric(14,2)
-                    DECLARE @MONTO_PRESTAMO numeric(14,2)
-                    DECLARE @PLAZO_MES numeric(5,0)
-                    DECLARE @MONEDA_ID numeric(5,0)
-                    DECLARE @TASA_INTERES numeric(7,2)
-                    DECLARE @CANT_CUOTA numeric(5,0)
-                    DECLARE @MONTO_CUOTA_INICIAL numeric(14,2)
-                    DECLARE @FEC_DESEMBOLSO datetime
-                    DECLARE @FEC_PRIMER_VTO datetime
-                    DECLARE @TOTAL_INTERES numeric(12,2)
-                    DECLARE @COD_TIPO_DCTO numeric(5,0)
-                    DECLARE @TOTAL_GASTOS numeric(14,2)
-                    DECLARE @TOTAL_DESCUENTOS numeric(14,2)
-                    DECLARE @MONTO_NETO numeric(14,2)
-                    DECLARE @CANT_CUOTA_EXTRAORDINARIO numeric(5,0)
-                    DECLARE @MONTO_AMORTIZACION numeric(12,2)
-                    DECLARE @FEC_1RA_AMORTIZACION char(10)
-                    DECLARE @PERIODO_AMORTIZACION numeric(5,0)
-                    DECLARE @COND_LIQUIDACION numeric(5,0)
-                    DECLARE @USU_INSERCION numeric(4,0)
-                    DECLARE @INGRESO_FAMILIAR numeric(12,2)
-                    DECLARE @COD_GRUPO_PRESTAMO numeric(5,0)
-                    DECLARE @COD_TIPO_LINEA_CREDITO numeric(8,0)
-                    DECLARE @COD_FORMA_DESEMBOLSO numeric(5,0)
-                    DECLARE @COD_CTA_AHORRO numeric(10,0)
-                    DECLARE @MONTO_REFINANCIADO numeric(14,2)
-                    DECLARE @SUSCRIPCION_ADESCONTAR numeric(14,2)
-                    DECLARE @CUO_GRACIA_INT_REF numeric(3,0)
-                    DECLARE @CNT_CUO_INT_REF numeric(3,0)
-                    DECLARE @COD_COMERCIO int
-                    DECLARE @MENSAJE varchar(100)
-                    DECLARE @MSG varchar(100)
-                    DECLARE @NRO_SOL_GEN varchar(10) --NRO. SOLICITUD GENERADA
+                    DECLARE @RC INT
+                    DECLARE @SUCURSAL_ID INT
+                    DECLARE @COD_CLIENTE INT
+                    DECLARE @NRO_SOLICITUD CHAR(10)
+                    DECLARE @TIPO_PRESTAMO_ID INT
+                    DECLARE @FEC_SOLICITUD DATETIME
+                    DECLARE @DESTINO_PRESTAMO_ID INT
+                    DECLARE @MONTO_SOLICITADO NUMERIC(14,2)
+                    DECLARE @MONTO_PRESTAMO NUMERIC(14,2)
+                    DECLARE @PLAZO_MESES INT
+                    DECLARE @MONEDA_ID INT
+                    DECLARE @TASA_INTERES NUMERIC(7,2)
+                    DECLARE @CANT_CUOTA INT
+                    DECLARE @MONTO_CUOTA_INICIAL NUMERIC(14,2)
+                    DECLARE @FEC_DESEMBOLSO DATETIME
+                    DECLARE @FEC_1ER_VENCIMIENTO DATETIME
+                    DECLARE @TOTAL_INTERES NUMERIC(12,2)
+                    DECLARE @COD_TIPO_DCTO INT
+                    DECLARE @TOTAL_GASTOS NUMERIC(14,2)
+                    DECLARE @TOTAL_DESCUENTOS NUMERIC(14,2)
+                    DECLARE @MONTO_NETO NUMERIC(14,2)
+                    DECLARE @CANT_CUOTA_EXTRAORDINARIO NUMERIC(5,0)
+                    DECLARE @MONTO_AMORTIZACION NUMERIC(12,2)
+                    DECLARE @FEC_1RA_AMORTIZACION CHAR(10)
+                    DECLARE @PERIODO_AMORTIZACION NUMERIC(5,0)
+                    DECLARE @COND_LIQUIDACION NUMERIC(5,0)
+                    DECLARE @USU_INSERCION NUMERIC(4,0)
+                    DECLARE @INGRESO_FAMILIAR NUMERIC(12,2)
+                    DECLARE @COD_GRUPO_PRESTAMO NUMERIC(5,0)
+                    DECLARE @COD_TIPO_LINEA_CREDITO NUMERIC(8,0)
+                    DECLARE @FORMA_DESEMBOLSO INT
+                    DECLARE @COD_CTA_AHORRO NUMERIC(10,0)
+                    DECLARE @MONTO_REFINANCIADO NUMERIC(14,2)
+                    DECLARE @SUSCRIPCION_ADESCONTAR NUMERIC(14,2)
+                    DECLARE @CUO_GRACIA_INT_REF NUMERIC(3,0)
+                    DECLARE @CNT_CUO_INT_REF NUMERIC(3,0)
+                    DECLARE @COD_COMERCIO INT
+                    DECLARE @MENSAJE VARCHAR(100)
+                    DECLARE @MSG VARCHAR(100)
+                    DECLARE @NRO_SOL_GEN VARCHAR(10) --NRO. SOLICITUD GENERADA
 
-    -- TODO: Establezca los valores de los parámetros aquí.
+                    -- TODO: Establezca los valores de los parámetros aquí.
 
-    EXECUTE @RC = [dbo].[PA_ALTA_SOLICITUD_PRESTAMO] 
+                    BEGIN TRAN
+
+                    EXECUTE @RC = [dbo].[PA_ALTA_SOLICITUD_PRESTAMO] 
                      @SUCURSAL_ID={params['sucursal']}
-                    ,@SOCIO_ID={params['socio']}
+                    ,@COD_CLIENTE={params['cod_cliente']}
                     ,@NRO_SOLICITUD=@NRO_SOL_GEN OUTPUT
                     ,@TIPO_PRESTAMO_ID={params['tipo_prestamo']}
                     ,@FEC_SOLICITUD={params['fec_solicitud']}
@@ -89,13 +84,13 @@ def sp_alta_solicitud_prestamo(request):
                     ,@MONTO_SOLICITADO={params['monto_solicitado']}
                     ,@MONTO_PRESTAMO={params['monto_prestamo']}
                     ,@COD_SISTEMA_CALCULO=NULL
-                    ,@PLAZO_MES={params['plazo_mes']}
+                    ,@PLAZO_MESES={params['plazo_meses']}
                     ,@MONEDA_ID={params['moneda']}
                     ,@TASA_INTERES={params['tasa_interes']}
                     ,@CANT_CUOTA={params['cant_cuota']}
                     ,@MONTO_CUOTA_INICIAL={params['monto_cuota_inicial']}
                     ,@FEC_DESEMBOLSO={params['fec_desembolso']}
-                    ,@FEC_PRIMER_VTO={params['fec_primer_vto']}
+                    ,@FEC_1ER_VENCIMIENTO={params['fec_1er_vencimiento']}
                     ,@TOTAL_INTERES={params['total_interes']}
                     ,@TIPO_CUOTA=NULL
                     ,@TIPO_INTERES=NULL
@@ -112,7 +107,7 @@ def sp_alta_solicitud_prestamo(request):
                     ,@INGRESO_FAMILIAR=NULL
                     ,@COD_GRUPO_PRESTAMO=NULL
                     ,@COD_TIPO_LINEA_CREDITO=NULL
-                    ,@COD_FORMA_DESEMBOLSO={params['cod_forma_desembolso']}
+                    ,@FORMA_DESEMBOLSO={params['forma_desembolso']}
                     ,@COD_CTA_AHORRO=NULL
                     ,@MONTO_REFINANCIADO={params['monto_refinanciado']}
                     ,@SUSCRIPCION_ADESCONTAR=NULL
@@ -121,70 +116,193 @@ def sp_alta_solicitud_prestamo(request):
                     ,@COD_COMERCIO=NULL                      
                     ,@MENSAJE=@MSG OUTPUT;
 
-    SELECT @RC AS RTN, @MSG AS MSG,@NRO_SOL_GEN AS VAL;
-    """
+                       IF @RC<>0 
+                            ROLLBACK TRAN
+                        ELSE
+                            COMMIT TRAN 
 
-    print(storedProc)
-    # Usamos un operador de desempaquetado iterable con coma final, para pasar la lista params como tupla
-    # Ej.    lista = [10,20,30]
-    #        tupla = (*lista,)
-    # return SP_EXECUTE(storedProc, (*params,))
+                    SELECT @RC AS RTN, @MSG AS MSG,@NRO_SOL_GEN AS VAL;
+    """
     return SP_EXECUTE(storedProc)
 
 
-def sp_aprobar_solicitud_ingreso(request):
-    # Define variables
-    _COD_USUARIO = "ACOR"
-    _DDMMYYYY = request.POST["fec_resolucion"]
-    _FEC_RESOLUCION = _DDMMYYYY[6:] + "-" + _DDMMYYYY[3:5] + "-" + _DDMMYYYY[:2]
-    _NRO_ACTA = request.POST["nro_acta"]
-    _APROBADO = request.POST["aprobado"]
-    _AUTORIZADO_POR = request.POST["autorizado_por"]
-    _NRO_SOLICITUD = request.POST["nro_solicitud"]
-    _MOTIVO_RECHAZO = request.POST["motivo_rechazo"]
-    _NRO_SOCIO = request.POST["nro_socio"]
-    _MENSAJE = None
-    # Prepare the stored procedure execution script and parameter values
+def sp_generar_proforma_cuota(request):
+    print(request.POST)
+    params = {}
+    params["sucursal"] = request.POST["sucursal"]
+    params["fec_solicitud"] = TEXTO(request.POST["fec_solicitud"])
+    params["nro_solicitud"] = TEXTO(request.POST["nro_solicitud"])
+    params["monto_solicitado"] = RESET_FORMATO(request.POST["monto_solicitado"])
+    params["monto_prestamo"] = RESET_FORMATO(request.POST["monto_prestamo"])
+    params["plazo_meses"] = request.POST["plazo_meses"]
+    params["moneda"] = request.POST["moneda"]
+    params["tasa_interes"] = RESET_FORMATO(request.POST["tasa_interes"])
+    params["cant_cuota"] = request.POST["cant_cuota"]
+    params["monto_cuota_inicial"] = RESET_FORMATO(request.POST["monto_cuota_inicial"])
+    params["fec_desembolso"] = TEXTO(request.POST["fec_desembolso"])
+    params["fec_1er_vencimiento"] = TEXTO(request.POST["fec_1er_vencimiento"])
+    params["total_interes"] = RESET_FORMATO(request.POST["total_interes"])
+    params["monto_neto"] = RESET_FORMATO(request.POST["monto_neto"])
+    params["usu_actual"] = request.user.id
+    params["monto_refinanciado"] = RESET_FORMATO(request.POST["monto_refinanciado"])
 
-    params = (
-        _COD_USUARIO,
-        _FEC_RESOLUCION,
-        _NRO_ACTA,
-        _APROBADO,
-        _AUTORIZADO_POR,
-        _NRO_SOLICITUD,
-        _MOTIVO_RECHAZO,
-        _NRO_SOCIO,
-    )
     print(params)
-    storedProc = f"""  
-                        SET NOCOUNT ON;
-                        DECLARE @RC int
-                        DECLARE @COD_USUARIO varchar(4)
-                        DECLARE @FEC_RESOLUCION datetime
-                        DECLARE @NRO_ACTA varchar(20)
-                        DECLARE @APROBADO bit
-                        DECLARE @MOTIVO_RECHAZO varchar(50)
-                        DECLARE @NRO_SOLICITUD char(10)
-                        DECLARE @NRO_SOCIO varchar(10)
-                        DECLARE @AUTORIZADO_POR varchar(100)
-                        DECLARE @MENSAJE varchar(100)
-                        DECLARE @OUT varchar(100)
+    storedProc = f"""
+                    DECLARE @RC INT
+                    DECLARE @NRO_SOLICITUD CHAR(10)
+                    DECLARE @FEC_SOLICITUD DATE
+                    DECLARE @FEC_1ER_VENCIMIENTO DATE
+                    DECLARE @TASA_INTERES NUMERIC(14,2)
+                    DECLARE @PLAZO_MESES INT
+                    DECLARE @CANT_CUOTA_ANHO INT
+                    DECLARE @MONTO_PRESTAMO NUMERIC(14,2)
+                    DECLARE @MONTO_SOLICITADO NUMERIC(14,2)
+                    DECLARE @MONTO_NETO NUMERIC(14,2)
+                    DECLARE @MONTO_CUOTA NUMERIC(14,2)
+                    DECLARE @USUARIO_ID INT
+                    DECLARE @MENSAJE VARCHAR(100)
 
-                        EXECUTE @RC = [dbo].[PA_APROBAR_SOLICITUD_SOCIO] 
-                         @COD_USUARIO=%s
-                        ,@FEC_RESOLUCION=%s
-                        ,@NRO_ACTA=%s
-                        ,@APROBADO=%s
-                        ,@AUTORIZADO_POR=%s
-                        ,@NRO_SOLICITUD=%s                        
-                        ,@MOTIVO_RECHAZO=%s     
-                        ,@NRO_SOCIO=%s                   
-                        ,@MENSAJE=@OUT OUTPUT;
-                     
-                        SELECT @RC AS return_value;
-                        SELECT @OUT AS output_value;
-                    """
+                    -- TODO: Establezca los valores de los parámetros aquí.
 
-    # Execute Stored Procedure With Parameters
-    return SP_EXECUTE(storedProc, params)
+                    BEGIN TRAN
+
+                    EXECUTE @RC = [dbo].[PA_GENERAR_PROFORMA_CUOTA] 
+                    @NRO_SOLICITUD = {params['nro_solicitud']}
+                    ,@FEC_SOLICITUD ={params['fec_solicitud']}
+                    ,@FEC_1ER_VENCIMIENTO={params['fec_1er_vencimiento']}
+                    ,@TASA_INTERES={params['tasa_interes']}
+                    ,@PLAZO_MESES={params['plazo_meses']}
+                    ,@CANT_CUOTA_ANHO={params['cant_cuota']}
+                    ,@MONTO_PRESTAMO={params['monto_prestamo']}
+                    ,@MONTO_SOLICITADO={params['monto_solicitado']}
+                    ,@MONTO_NETO={params['monto_neto']}
+                    ,@USUARIO_ID={params['usu_actual']}
+                    ,@MONTO_CUOTA = @MONTO_CUOTA OUTPUT
+                    ,@MENSAJE=@MENSAJE OUTPUT
+                    
+                    IF @RC<>0 
+                        ROLLBACK TRAN
+                    ELSE
+                        COMMIT TRAN 
+
+                    SELECT @RC AS RTN, @MENSAJE AS MSG,@MONTO_CUOTA AS VAL;
+    """
+    return SP_EXECUTE(storedProc)
+
+
+def fn_monto_plazo_prestamo(request):
+    print(request.POST)
+    params = {}
+    params["monto_solicitado"] = request.POST["monto_solicitado"]
+    params["plazo_solicitado"] = isNULL(request.POST["plazo_solicitado"], "0")
+
+    print(params)
+    storedProc = f"""
+                DECLARE @VAL NUMERIC(14,2)                  
+
+                -- TODO: Establezca los valores de los parámetros aquí.
+
+                SELECT @VAL = [dbo].[fnMONTO_PLAZO_PRESTAMO]( 
+                            {params['monto_solicitado']}
+                            ,{params['plazo_solicitado']});
+                
+                SELECT @VAL AS VAL;
+                
+                """
+    return SP_EXECUTE(storedProc)
+
+
+def sp_trx503(request):
+    # print(request.POST)
+    params = {}
+    params["nro_solicitud"] = TEXTO(request.POST["solicitud"])
+    params["situacion_solicitud_id"] = request.POST["situacion_solicitud"]
+    params["fecha"] = TEXTO(request.POST["fecha"])
+    params["comentario"] = TEXTO(request.POST["comentario"])
+    params["nro_acta"] = TEXTO(request.POST["nro_acta"])
+    params["fec_acta"] = TEXTO(request.POST["fec_acta"])
+    params["nro_resolucion"] = request.POST["nro_resolucion"]
+    # params["nro_prestamo"] = request.POST["nro_prestamo"]
+    # params["cant_desembolso"] = TEXTO(request.POST["cant_desembolso"])
+    params["cant_desembolso"] = 1
+    params["monto_aprobado"] = request.POST["monto_aprobado"]
+    params["usu_actual"] = request.user.id
+
+    print(params)
+    storedProc = f"""
+                    DECLARE @RC INT
+                    DECLARE @NRO_SOLICITUD CHAR(10)
+                    DECLARE @SITUACION_SOLICITUD_ID INT
+                    DECLARE @FECHA DATETIME
+                    DECLARE @COMENTARIO VARCHAR(200)
+                    DECLARE @NRO_ACTA VARCHAR(15)
+                    DECLARE @FEC_ACTA VARCHAR(10)
+                    DECLARE @NRO_RESOLUCION NUMERIC(8,0)
+                    DECLARE @NRO_PRESTAMO NUMERIC(10,0)
+                    DECLARE @CANT_DESEMBOLSO NUMERIC(5,0)
+                    DECLARE @MONTO_APROBADO NUMERIC(14,2)
+                    DECLARE @USU_ACTUAL INT
+                    DECLARE @MENSAJE VARCHAR(300)
+
+                    -- TODO: Establezca los valores de los parámetros aquí.
+                    BEGIN TRAN
+
+                    EXECUTE @RC = [dbo].[TRX_503] 
+                    @NRO_SOLICITUD = {params['nro_solicitud']}
+                    ,@SITUACION_SOLICITUD_ID = {params['situacion_solicitud_id']}
+                    ,@FECHA  = {params['fecha']}
+                    ,@COMENTARIO = {params['comentario']}
+                    ,@NRO_ACTA= {params['nro_acta']}
+                    ,@FEC_ACTA= {params['fec_acta']}
+                    ,@NRO_RESOLUCION= {params['nro_resolucion']}
+                    ,@NRO_PRESTAMO=@NRO_PRESTAMO OUTPUT
+                    ,@CANT_DESEMBOLSO= {params['cant_desembolso']}
+                    ,@MONTO_APROBADO= {params['monto_aprobado']}
+                    ,@USU_ACTUAL= {params['usu_actual']}
+                    ,@MENSAJE=@MENSAJE OUTPUT
+
+                    
+                    IF @RC<>0 
+                        ROLLBACK TRAN
+                    ELSE
+                        COMMIT TRAN 
+
+                    SELECT @RC AS RTN, @MENSAJE AS MSG, @NRO_PRESTAMO AS VAL;
+    """
+    return SP_EXECUTE(storedProc)
+
+
+def sp_trx504(request):
+    # print(request.POST)
+    params = {}
+    params["nro_solicitud"] = TEXTO(request.POST["solicitud"])
+    params["fec_ult_desembolso"] = TEXTO(request.POST["fec_ult_desembolso"])
+    params["fec_1er_vencimiento"] = TEXTO(request.POST["fec_1er_vencimiento"])
+    params["usu_actual"] = request.user.id
+    print(params)
+    storedProc = f"""
+                    DECLARE @RC INT
+                    DECLARE @NRO_SOLICITUD CHAR(10)
+                    DECLARE @FEC_ULT_DESEMBOLSO DATETIME
+                    DECLARE @FEC_1ER_VENCIMIENTO DATETIME
+                    DECLARE @USU_ACTUAL INT
+                    DECLARE @MENSAJE VARCHAR(200)
+
+                    -- TODO: Establezca los valores de los parámetros aquí.
+                    --BEGIN TRAN
+                    EXECUTE @RC = [dbo].[TRX_504] 
+                    @NRO_SOLICITUD = {params['nro_solicitud']}
+                    ,@FEC_ULT_DESEMBOLSO ={params['fec_ult_desembolso']}
+                    ,@FEC_1ER_VENCIMIENTO={params['fec_1er_vencimiento']}
+                    ,@USU_ACTUAL={params['usu_actual']}
+                    ,@MENSAJE = @MENSAJE OUTPUT
+
+                    
+                    /*IF @RC<>0 
+                        ROLLBACK TRAN
+                    ELSE
+                        COMMIT TRAN */
+
+                    SELECT @RC AS RTN, @MENSAJE AS MSG, @NRO_SOLICITUD AS VAL;
+    """
+    return SP_EXECUTE(storedProc)

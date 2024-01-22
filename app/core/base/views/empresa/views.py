@@ -38,7 +38,7 @@ class EmpresaUpdate(ModuleMixin, UpdateView):
                 empresa.imagen = request.FILES["imagen"]
             if "imagen-clear" in request.POST:
                 empresa.remove_image()
-            empresa.desc = request.POST["desc"]
+            empresa.descripcion = request.POST["descripcion"]
             empresa.iva = float(request.POST["iva"])
             empresa.save()
         except Exception as e:

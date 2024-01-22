@@ -58,7 +58,7 @@ class OperativaContableDetalleAdmin(ModeloAdminBase):
 
 
 # Register your models here.
-admin.site.register(TipoMovimiento, ModeloAdminBase)
+# admin.site.register(TipoMovimiento, ModeloAdminBase)
 admin.site.register(EsquemaContable, EsquemaContableAdmin)
 admin.site.register(PlanDeCuenta, PlanDeCuentaAdmin)
 admin.site.register(OperativaContable, ModeloAdminBase)

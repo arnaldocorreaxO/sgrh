@@ -80,6 +80,17 @@ document.addEventListener('DOMContentLoaded', function (e) {
                     date: {
                         format: 'DD/MM/YYYY',
                         message: 'La fecha no es válida'
+                    },
+                    callback: {
+                        message: 'La fecha de resolucion es menor a la fecha de solicitud',
+                        callback: function (input) {
+                            fec_1 = form.querySelector('[name="fec_solicitud"]').value
+                            fec_2 = form.querySelector('[name="fec_resolucion"]').value
+                            if (fec_2 < fec_1) {
+                                return false
+                            }
+                            return true
+                        }
                     }
                 }
             },
@@ -153,12 +164,33 @@ $(function () {
         format: 'DD/MM/YYYY',
         locale: 'es',
         keepOpen: false,
-        date: new moment().format("YYYY-MM-DD")
+        date: new moment().format('YYYY-MM-DD')
     });
 
     input_fec_resolucion.on('change.datetimepicker', function () {
         fv.revalidateField('fec_resolucion');
     });
+
+    input_fec_solicitud = $('input[name="fec_solicitud"]');
+
+    input_fec_solicitud.datepicker({
+        format: 'DD/MM/YYYY',
+        locale: 'es',
+        keepOpen: false,
+        // date: input_fec_solicitud.val(),
+    });
+
+
+
+    input_fec_charla = $('input[name="fec_charla"]');
+    input_fec_charla.datepicker({
+        format: 'DD/MM/YYYY',
+        locale: 'es',
+        keepOpen: false,
+        // date: input_fec_charla.val(),
+    });
+
+
 
 
 

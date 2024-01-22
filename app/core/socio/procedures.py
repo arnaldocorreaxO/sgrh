@@ -7,7 +7,7 @@ def sp_validar_solicitud_ingreso(request):
     # Define variables
     params = {}
     params["cod_usuario"] = TEXTO(request.user.cod_usuario)
-    params["fec_solicitud"] = TEXTO(YYYY_MM_DD(request.POST["fec_solicitud"]))
+    params["fec_solicitud"] = TEXTO(request.POST["fec_solicitud"])
     params["cod_sucursal"] = request.POST["sucursal"]
     params["nro_documento"] = (
         Persona.objects.filter(id=request.POST["persona"]).first().ci

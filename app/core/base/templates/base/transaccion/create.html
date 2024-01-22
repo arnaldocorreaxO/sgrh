@@ -1,0 +1,138 @@
+{% extends 'form.html' %}
+{% load widget_tweaks %}
+{% load static %}
+{% block head_form %}
+
+<!-- SELECT2 -->
+<!-- <script src="{% static 'lib/select2-4.0.13/js/select2.min.js' %}"></script>
+<script src="{% static 'lib/select2-4.0.13/js/i18n/es.js' %}"></script>
+<link rel="stylesheet" href="{% static 'lib/select2-4.0.13/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'lib/select2-4.0.13/css/select2-bootstrap4.min.css' %}"> -->
+
+<!-- TOUCHSPIN  -->
+<link rel="stylesheet" href="{% static 'lib/bootstrap-touchspin-v4.2.5/css/jquery.bootstrap-touchspin.css' %}" />
+<script src="{% static 'lib/bootstrap-touchspin-v4.2.5/js/jquery.bootstrap-touchspin.js' %}"></script>
+
+<!-- TEMPUS DOMINUS DATETIMEPICKER -->
+<script src="{% static 'lib/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'lib/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.min.css' %}" />
+
+<!-- JQUERY VALIDATION -->
+<script src="{% static 'lib\jquery-validation-1.19.5\dist\jquery.validate.js' %}"></script>
+
+<!-- SCRIPT LOCALES  -->
+<script src="{% static 'base/transaccion/js/form.js' %}"></script>
+<script src="{% static 'js/select2/cliente.js' %}"></script>
+<script src="{% static 'js/select2/transaccion.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- <form class="form" method="post" action="." enctype="multipart/form-data" id="frmTransaccion" data-url=""> -->
+<form class="js-transaccion-form" method="post" action="." enctype="multipart/form-data" id="frmTransaccion"
+    data-url="{{ list_url }}">
+    <div class="card {{ dshboard.card }}">
+        <div class="card-header">
+            <h3 class="card-title">
+                {% if action == 'add' %}
+                <i class="fas fa-plus"></i>
+                {% else %}
+                <i class="fas fa-edit"></i>
+                {% endif %}
+                {{ title }}
+            </h3>
+        </div>
+        <div class="card-body" style="display: block;">
+            <div class="container-fluid">
+                {% csrf_token %}
+                <input type="hidden" id="modulo" name="modulo" value="{{ modulo }}">
+                <input type="hidden" id="tipo_acceso" name="tipo_acceso" value="{{ tipo_acceso }}">
+                <div class="form-row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label">{{form.sucursal_id.label}}</label>
+                            {{ form.sucursal_id }}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label">{{form.fec_movimiento.label}}</label>
+                            {{ form.fec_movimiento }}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label">{{form.cod_usuario.label}}</label>
+                            {{ form.cod_usuario }}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label">{{form.cod_movimiento.label}}</label>
+                            {{ form.cod_movimiento }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <!-- <label class="control-label">{{form.sucursal.label}}</label> -->
+                            {{ form.sucursal }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <!-- <label class="control-label">{{form.usuario.label}}</label> -->
+                            {{ form.usuario }}
+                        </div>
+                    </div>
+
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6 mb-0">
+                        <label for="{{ form.cliente.id_for_label }}">{{form.cliente.label}}</label>
+                        <div class="input-group">
+                            {{ form.cliente}}
+                        </div>
+                    </div>
+                    <div class="form-group col-md-6 mb-0">
+                        <label for="{{ form.cliente.id_for_label }}">{{form.transaccion.label}}</label>
+                        <div class="input-group">
+                            {{ form.transaccion}}
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+                <!-- <button type="button" class="btn btn-warning btn-flat" name="btnTEST" id="btnTEST">btnTEST</button> -->
+
+                <!--!!!!!!!!!!!!!! FORMULARIO DETALLE !!!!!!!!!!!! -->
+                <div name="div_transaccion" id="div_transaccion">
+                    <!-- Acá se inserta los form html  -->
+                </div>
+                <!--!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-->
+
+            </div>
+        </div>
+        <div class="card-footer">
+            <!-- <button type="button" class="btn btn-success btn-flat" id="procesar">
+                <i class="fas fa-sync"></i> Procesar
+            </button> -->
+            <!-- <a href="{#{ list_url }}" class="btn btn-danger btn-flat">
+                <i class="fas fa-times"></i> Cancelar
+            </a> -->
+        </div>
+    </div>
+</form>
+
+<!-- VENTANAS MODALES -->
+<div class="modal fade" id="modal-transaccion">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <!-- CONTENIDO DEL MODAL -->
+        </div>
+    </div>
+</div>
+
+{% endblock %}

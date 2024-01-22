@@ -1,6 +1,5 @@
 from django.urls import path
 
-from core.socio.views.socio.views import *
 from core.socio.views.solicitud_ingreso.views import *
 
 urlpatterns = [
@@ -30,9 +29,4 @@ urlpatterns = [
         SolicitudIngresoDelete.as_view(),
         name="solicitud_ingreso_delete",
     ),
-    # SOCIO
-    path("socio", SocioList.as_view(), name="socio_list"),
-    path("socio/add/", SocioCreate.as_view(), name="socio_create"),
-    path("socio/update/<int:pk>/", SocioUpdate.as_view(), name="socio_update"),
-    path("socio/delete/<int:pk>/", SocioDelete.as_view(), name="socio_delete"),
 ]
