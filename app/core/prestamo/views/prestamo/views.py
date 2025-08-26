@@ -16,7 +16,7 @@ from core.base.forms import TransaccionForm
 from core.base.models import Transaccion
 from core.base.utils import isNULL
 from core.general.models import Cliente
-from core.prestamo.forms import SolicitudPrestamoForm, Trx503Form, Trx504Form
+from core.prestamo.forms import SolicitudPrestamoForm, Trx501Form, Trx503Form, Trx504Form
 from core.prestamo.models import (
     ProformaCuota,
     SituacionSolicitudPrestamo,
@@ -62,6 +62,75 @@ class TransaccionPrestamoFormView(PermissionRequiredMixin, FormView):
         context["tipo_acceso"] = "D"  # C=CAJA D=DIARIO
         return context
 
+
+#!TRX 501
+class Trx501(PermissionRequiredMixin, FormView):
+    template_name = "prestamo/transaccion/trx501.html"
+    permission_required = "contable.add_movimiento"
+    form_class = Trx501Form
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    # Este usamos para el modal
+    def post(self, request, *args, **kwargs):
+        data = {}
+        print("501TRX" * 100)
+        action = request.POST["action"]
+        print(request.POST)
+        try:
+            if action == "load_form":
+                if request.user.has_perm("contable.add_movimiento"):
+                    # fec_movimiento = request.POST["fec_movimiento"]
+                    # cod_movimiento = request.POST["cod_movimiento"]
+                    # nro_documento = request.POST["nro_recibo"].split("/")
+                    # cod_cliente = request.POST["cod_cliente"]
+                    cod_cliente = 2973
+                    print(request.POST)
+                    if cod_cliente:
+                        solicitud = SolicitudPrestamo.objects.filter(
+                            cliente__cod_cliente__iexact=cod_cliente
+                        )
+                        print(solicitud)
+                        situacion_solicitud = SituacionSolicitudPrestamo.objects.filter(
+                            activo=True
+                        )
+                        print(situacion_solicitud)
+
+                        form = self.form_class
+                        context = self.get_context_data()
+                        context["form"] = form
+                        context["action"] = "trx"
+                        context["action_url"] = reverse_lazy("trx501_create")
+                        # data["data"] = promocion.toJSON()
+                        data["html_form"] = render_to_string(
+                            self.template_name, context, request=request
+                        )
+                        data
+                    else:
+                        data[
+                            "error"
+                        ] = "Debe selecccionar un socio para esta transaccion"
+
+                else:
+                    data["error"] = "No tiene permisos para editar"
+
+            elif action == "trx":
+                data = sp_trx503(request)
+
+        except Exception as e:
+            data["error"] = str(e)
+        return HttpResponse(
+            json.dumps(data, default=str), content_type="application/json"
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        #!VERIFICAR
+        context["create_url"] = reverse_lazy("trx_caja_create")
+        context["title"] = "DESEMBOLSO DE PRESTAMOS"
+        return context
 
 #!TRX 503
 class Trx503(PermissionRequiredMixin, FormView):

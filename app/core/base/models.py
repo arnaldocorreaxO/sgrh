@@ -1,76 +1,18 @@
 import os
-from datetime import datetime
 
-from crum import get_current_user
+
+from core.models import ModeloBase
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.forms import model_to_dict
+from config import settings as setting
 
-from config import settings
 from core.base.choices import *
 from core.base.utils import calculate_age
 
+
 # Create your models here.
-
-"""MODELO BASE"""
-
-
-class ModeloBase(models.Model):
-    # RefDets = RefDet.objects.filter(cod_referencia='ESTADO')
-    # CAMPOS POR DEFECTO PARA TODOS LOS MODELOS
-    usu_insercion = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        db_column="usu_insercion",
-        verbose_name="Creado por",
-        on_delete=models.RESTRICT,
-        related_name="+",
-    )
-    fec_insercion = models.DateTimeField(
-        verbose_name="Fecha Creación", auto_now_add=True
-    )
-    usu_modificacion = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        db_column="usu_modificacion",
-        verbose_name="Modificado por",
-        on_delete=models.RESTRICT,
-        related_name="+",
-    )
-    fec_modificacion = models.DateTimeField(
-        verbose_name="Fecha Modificación", auto_now=True
-    )
-    activo = models.BooleanField(default=True)
-    # estado = models.ForeignKey(RefDet,db_column='estado',on_delete=models.RESTRICT,limit_choices_to={'referencia': 'ESTADO'},to_field='valor',default='A')
-
-    def get_name_usu_insercion(self):
-        return self.usu_insercion.first_name
-
-    get_name_usu_insercion.short_description = "Creado por"
-
-    def get_name_usu_modificacion(self):
-        return self.usu_modificacion.first_name
-
-    get_name_usu_modificacion.short_description = "Modificado por"
-
-    """SAVE"""
-
-    def save(self, *args, **kwargs):
-        user = get_current_user()
-        print(user)
-        if user and not user.pk:
-            user = None
-        # print(dir(self))
-        if not self.usu_insercion_id:
-            self.usu_insercion = user
-        self.usu_modificacion = user
-        super(ModeloBase, self).save(*args, **kwargs)
-
-    class Meta:
-        abstract = True
-
-
 """REFERENCIA CABECERA"""
-
-
 class RefCab(ModeloBase):
     cod = models.CharField(
         verbose_name="Codigo", db_column="cod", max_length=20, unique=True
@@ -88,8 +30,6 @@ class RefCab(ModeloBase):
 
 
 """REFERENCIA DETALLE"""
-
-
 class RefDet(ModeloBase):
     refcab = models.ForeignKey(
         RefCab,
@@ -114,8 +54,6 @@ class RefDet(ModeloBase):
 
 
 """MESES"""
-
-
 class Meses(ModeloBase):
     # id = models.CharField('Código',db_column='cod_modulo',max_length=2,primary_key=True)
     mes = models.IntegerField("Mes", db_column="mes", primary_key=True)
@@ -133,8 +71,6 @@ class Meses(ModeloBase):
 
 
 """MODULOS"""
-
-
 class Modulo(ModeloBase):
     cod_modulo = models.CharField(
         "Código", db_column="cod_modulo", max_length=2, primary_key=True
@@ -162,8 +98,6 @@ class Modulo(ModeloBase):
 
 
 """TRANSACION"""
-
-
 class Transaccion(ModeloBase):
     cod_transaccion = models.IntegerField(verbose_name="Código", primary_key=True)
     modulo = models.ForeignKey(
@@ -207,8 +141,6 @@ class Transaccion(ModeloBase):
 
 
 """PARAMETROS GENERALES"""
-
-
 class Parametro(ModeloBase):
     modulo = models.ForeignKey(
         Modulo, verbose_name="Modulo", on_delete=models.RESTRICT, related_name="modulos"
@@ -243,9 +175,6 @@ class Pais(ModeloBase):
     def __str__(self):
         return "{} - {}".format(self.pk, self.denominacion)
 
-    # def nacionalidad(self):
-    # 	return self.nacionalidad
-
     class Meta:
         ordering = [
             "pk",
@@ -253,7 +182,6 @@ class Pais(ModeloBase):
         db_table = "bs_pais"
         verbose_name = "Pais"
         verbose_name_plural = "Paises"
-
 
 # DEPARTAMENTO
 class Departamento(ModeloBase):
@@ -278,7 +206,6 @@ class Departamento(ModeloBase):
         verbose_name = "Departamento"
         verbose_name_plural = "Departamentos"
         unique_together = ["pais", "denominacion"]
-
 
 # CIUDAD
 class Ciudad(ModeloBase):
@@ -375,8 +302,8 @@ class Empresa(ModeloBase):
 
     def get_image(self):
         if self.imagen:
-            return "{}{}".format(settings.MEDIA_URL, self.imagen)
-        return "{}{}".format(settings.STATIC_URL, "img/default/empty.png")
+            return "{}{}".format(setting.MEDIA_URL, self.imagen)
+        return "{}{}".format(setting.STATIC_URL, "img/default/empty.png")
 
     def get_iva(self):
         return format(self.iva, ".2f")
@@ -405,8 +332,6 @@ class Empresa(ModeloBase):
 
 
 """SUCURSAL"""
-
-
 class Sucursal(ModeloBase):
     # ID
     empresa = models.ForeignKey(
@@ -687,3 +612,250 @@ class Persona(ModeloBase):
         db_table = "bs_persona"
         verbose_name = "Persona"
         verbose_name_plural = "Personas"
+
+
+# MOVIMIENTOS BASE
+
+from core.general.models import Cliente
+from core.contable.models import PlanDeCuenta
+
+# TIPO MOVIMIENTO
+class TipoMovimiento(ModeloBase):
+    tip_movimiento = models.CharField(
+        verbose_name="Código", max_length=1, primary_key=True
+    )
+    denominacion = models.CharField(
+        verbose_name="Tipo Movimiento", max_length=100, unique=True
+    )
+
+    def __str__(self):
+        return "{} - {}".format(self.tip_movimiento, self.denominacion)
+
+    class Meta:
+        ordering = [
+            "tip_movimiento",
+        ]
+        db_table = "ge_tipo_movimiento"
+        verbose_name = "Tipo Movimiento"
+        verbose_name_plural = "Tipos Movimientos"
+
+# MOVIMIENTO ABSTRACT
+class MovimientoBase(ModeloBase):
+    fec_movimiento = models.DateField(verbose_name="Fecha Movimiento")
+    cod_movimiento = models.CharField(verbose_name="Codigo Movimiento", max_length=8)
+    tip_movimiento = models.ForeignKey(
+        TipoMovimiento,
+        verbose_name="Tipo",
+        db_column="tip_movimiento",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        default="A",
+    )
+    modulo = models.ForeignKey(
+        Modulo,
+        verbose_name="Modulo",
+        db_column="cod_modulo",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
+    transaccion = models.ForeignKey(
+        Transaccion,
+        verbose_name="Transacción",
+        db_column="cod_transaccion",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
+    nro_asiento = models.IntegerField(verbose_name="Nro. Asiento", default=0)
+    sucursal = models.ForeignKey(
+        Sucursal,
+        verbose_name="Sucursal",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
+    cliente = models.ForeignKey(
+        Cliente,
+        db_column="cod_cliente",
+        verbose_name="Cliente",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="%(app_label)s_%(class)s_cliente",
+    )
+    moneda = models.ForeignKey(
+        Moneda, verbose_name="Moneda", on_delete=models.PROTECT, blank=True, null=True
+    )
+    cotizacion = models.FloatField(verbose_name="Cotizacion", default=1)
+    mto_equi_local = models.DecimalField(
+        verbose_name="Monto Equivalente Local",
+        default=0,
+        max_digits=20,
+        decimal_places=2,
+    )
+    rubro_contable = models.ForeignKey(
+        PlanDeCuenta,
+        verbose_name="Rubro Contable",
+        db_column="rubro_contable",
+        on_delete=models.PROTECT,
+        related_name="%(app_label)s_%(class)s_rubro_contable",
+        blank=True,
+        null=True,
+    )
+    cuenta_operativa = models.CharField(
+        verbose_name="Cuenta Operativa", max_length=50, null=True, blank=True
+    )
+    concepto = models.CharField(verbose_name="Concepto", max_length=100, blank=True)
+    debito = models.DecimalField(
+        verbose_name="Debito", default=0, max_digits=20, decimal_places=2
+    )
+    credito = models.DecimalField(
+        verbose_name="Credito", default=0, max_digits=20, decimal_places=2
+    )
+    nombre_campo = models.CharField(
+        verbose_name="Nombre Campo", max_length=100, null=True, blank=True, default=None
+    )
+    referencia = models.CharField(
+        verbose_name="Referencia", max_length=100, null=True, blank=True, default=None
+    )
+    nro_caja = models.ForeignKey(
+        Caja,
+        verbose_name="Nro. Caja",
+        db_column="nro_caja",
+        on_delete=models.PROTECT,
+        default=0,
+        related_name="%(class)s_movimiento",
+        blank=True,
+        null=True,
+    )
+    caja_diario = models.CharField(
+        verbose_name="Caja Diario",
+        max_length=1,
+        choices=choiceCajaDiario(),
+        default="D",
+    )
+    nro_documento = models.CharField(
+        verbose_name="Nro. Documento", max_length=25, null=True, blank=True
+    )
+    fec_valor = models.DateField(
+        verbose_name="Fecha Valor", blank=True, null=True, default=None
+    )
+    iva = models.IntegerField(verbose_name="Iva %", default=0)
+    monto_iva = models.DecimalField(
+        verbose_name="Monto Iva", default=0, max_digits=20, decimal_places=2
+    )
+    # Compensaciones de Cheques
+    cod_compensacion = models.ForeignKey(
+        RefDet,
+        to_field="cod",
+        limit_choices_to={"refcab_id": 11},
+        db_column="cod_compensacion",
+        on_delete=models.RESTRICT,
+        related_name="%(app_label)s_%(class)s_compensacion",
+        max_length=1,
+        default=0,
+    )
+    tip_comprobante = models.ForeignKey(
+        TipoComprobante,
+        verbose_name="Tipo Comprobante",
+        db_column="tip_comprobante",
+        to_field="tip_comprobante",
+        on_delete=models.PROTECT,
+    )
+    # cod_usuario = models.ForeignKey(
+    #     setting.AUTH_USER_MODEL,
+    #     verbose_name="Usuario Movimiento",
+    #     to_field="cod_usuario",
+    #     db_column="cod_usuario",
+    #     on_delete=models.PROTECT,
+    #     related_name="%(app_label)s_%(class)s_usuario_movimiento",
+    #     blank=True,
+    #     null=True,
+    # )
+
+    class Meta:
+        abstract = True
+
+
+"""MOVIMIENTOS DIARIOS"""
+
+
+class Movimiento(MovimientoBase):
+    def toJSON(self):
+        item = model_to_dict(self)
+        # item = {}
+        item["placta"] = {"rubro_contable": str(self.rubro_contable)}
+        item["debito"] = format(self.debito, ".2f")
+        item["credito"] = format(self.credito, ".2f")
+        item["fec_movimiento"] = (
+            self.fec_movimiento.strftime("%d/%m/%Y") if self.fec_movimiento else None
+        )
+        item["credito"] = format(self.credito, ".2f")
+        item["credito"] = format(self.credito, ".2f")
+        item["nro_socio"] = self.cliente.nro_socio
+        item["cod_cliente"] = self.cliente.cod_cliente
+        item["socio"] = self.cliente.get_nro_socio_nombre()
+        item["cod_usuario"] = self.usu_insercion.cod_usuario
+
+        return item
+
+    class Meta:
+        # ordering = ['tip_movimiento', ]
+        db_table = "cb_movimientos"
+        verbose_name = "Movimiento Diario"
+        verbose_name_plural = "Movimientos Diarios"
+
+
+"""MOVIMIENTOS MENSUALES DEL PERIODO ACTUAL"""
+
+
+class MovimientosMensuales(MovimientoBase):
+    def toJSON(self):
+        item = model_to_dict(self)
+        item["placta"] = {"rubro_contable": str(self.rubro_contable)}
+        item["debito"] = format(self.debito, ".2f")
+        item["credito"] = format(self.credito, ".2f")
+        return item
+
+    class Meta:
+        # ordering = ['tip_movimiento', ]
+        db_table = "cb_movimientos_mensuales"
+        verbose_name = "Movimientos Mensuales"
+        verbose_name_plural = "Movimientos Mensuales"
+
+
+"""MOVIMIENTOS ANUALES HASTA PERIODO ANTERIOR"""
+
+
+class MovimientosAnuales(MovimientoBase):
+    def toJSON(self):
+        item = model_to_dict(self)
+        item["placta"] = {"rubro_contable": str(self.rubro_contable)}
+        item["debito"] = format(self.debito, ".2f")
+        item["credito"] = format(self.credito, ".2f")
+        return item
+
+    class Meta:
+        # ordering = ['tip_movimiento', ]
+        db_table = "cb_movimientos_anuales"
+        verbose_name = "Movimientos Anuales"
+        verbose_name_plural = "Movimientos Anuales"
+
+
+class TmpMovimiento(MovimientoBase):
+    def toJSON(self):
+        # item = model_to_dict(self)
+        item = {}
+        item["transaccion"] = self.transaccion
+        item["placta"] = {"rubro_contable": str(self.rubro_contable)}
+        item["debito"] = format(self.debito, ".2f")
+        item["credito"] = format(self.credito, ".2f")
+        return item
+
+    class Meta:
+        # ordering = ['tip_movimiento', ]
+        db_table = "tmp_movimientos"
+        verbose_name = "Movimiento Temporal"
+        verbose_name_plural = "Movimientos Temporales"

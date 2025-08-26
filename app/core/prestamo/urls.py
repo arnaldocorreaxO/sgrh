@@ -39,6 +39,11 @@ urlpatterns = [
         name="trx_prestamo_create",
     ),
     path(
+        "trx501/",
+        Trx501.as_view(),
+        name="trx501_create",
+    ),
+    path(
         "trx503/",
         Trx503.as_view(),
         name="trx503_create",

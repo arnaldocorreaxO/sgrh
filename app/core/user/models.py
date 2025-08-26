@@ -8,7 +8,7 @@ from django.db import models
 from django.forms.models import model_to_dict
 
 from config import settings
-from core.base.models import *
+from core.base.models import Caja, SectorOperativo, Sucursal
 
 
 class User(AbstractUser):
@@ -18,7 +18,7 @@ class User(AbstractUser):
     )
     is_change_password = models.BooleanField(default=False)
     # token = models.UUIDField(primary_key=False, editable=False, null=True, blank=True, default=uuid.uuid4, unique=True)
-    cod_usuario = models.CharField("Codigo Usuario", max_length=4, unique=True)
+    cod_usuario = models.CharField("Codigo Usuario", max_length=4, unique=True,default="ACOR")
     caja = models.ForeignKey(
         Caja,
         verbose_name="Caja",

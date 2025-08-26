@@ -2,7 +2,7 @@ from django import forms
 from django.forms import ModelForm
 
 from core.base.forms import readonly_fields
-from core.base.models import RefDet
+from core.base.models import Parametro, RefDet
 from core.base.utils import get_fecha_actual_ymd
 
 from .models import *
@@ -12,8 +12,9 @@ class SolicitudPrestamoForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["fec_solicitud"].widget.attrs["autofocus"] = True
-
-        self.fields["cant_cuota"].initial = 12
+        self.fields["cant_cuota"].initial = (
+        Parametro.objects.filter(parametro="CANT_CUOTA_ANUAL_INICIAL").first() or 12
+        ).valor
         self.fields["sucursal"].queryset = Sucursal.objects.exclude(activo=False)
         self.fields["cliente"].queryset = Cliente.objects.none()
         if self.instance:
@@ -97,6 +98,36 @@ class SolicitudPrestamoForm(ModelForm):
             data["error"] = str(e)
         return data
 
+
+# *TRX 501
+class Trx501Form(forms.Form):   
+    prestamo = forms.ModelChoiceField(
+        queryset=Prestamo.objects.filter(
+            activo=True, situacion_prestamo__in=["PEND", "INIC"]
+        ),
+        empty_label="(Todos)",
+        required=True,
+        to_field_name="nro_prestamo",
+        # widget=forms.Select(attrs={"class": "form-control select2", "disabled": True}),
+        widget=forms.Select(
+            attrs={
+                "class": "form-control select2",
+            },
+        ),
+    )
+    forma_desembolso = forms.ModelChoiceField(
+        queryset=RefDet.objects.filter(activo=True,refcab__cod__exact="FORMA_DESEMBOLSO"),
+        empty_label="(Todos)",
+        required=True,
+        # widget=forms.Select(attrs={"class": "form-control select2", "disabled": True}),
+        widget=forms.Select(
+            attrs={
+                "class": "form-control select2",
+            }
+        ),
+    )
+    banco = forms.CharField(required=False)
+    nro_cuenta_banco = forms.CharField(required=False)
 
 # *TRX 503
 class Trx503Form(forms.Form):

@@ -169,7 +169,7 @@ class ClienteCreate(PermissionMixin, CreateView):
                     # una matriz de objetos que contienen, como mínimo, las propiedades 'id' y 'text'
                     item = {}
                     item["id"] = c.cod_cliente
-                    item["text"] = "{} / {}".format(str(c), c.nro_socio)
+                    item["text"] = "{} # {}".format(str(c), c.nro_socio)
                     data.append(item)
             else:
                 data["error"] = "No ha seleccionado ninguna opción"

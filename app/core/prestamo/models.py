@@ -6,7 +6,8 @@ from django.db.models import Q
 from django.forms import model_to_dict
 
 from core.base.choices import choiceMultipleDesembolso, choiceSiNo
-from core.base.models import ModeloBase, Modulo, Moneda, RefDet, Sucursal, Transaccion
+from core.base.models import (ModeloBase, Modulo, Moneda, RefDet, Sucursal,
+                              Transaccion)
 from core.contable.models import OperativaContable, PlanDeCuenta
 from core.general.models import Cliente, Plazo
 
@@ -427,7 +428,7 @@ class SolicitudPrestamo(ModeloBase):
     estado = models.ForeignKey(
         RefDet,
         to_field="cod",
-        limit_choices_to={"refcab_cod": "ESTADO_APROBACION"},
+        limit_choices_to={"refcab__cod": "ESTADO_APROBACION"},
         db_column="estado",
         on_delete=models.RESTRICT,
         related_name="estado_solicitud",
@@ -460,7 +461,7 @@ class SolicitudPrestamo(ModeloBase):
     forma_desembolso = models.ForeignKey(
         RefDet,
         to_field="cod",
-        limit_choices_to={"refcab_cod": "FORMA_DESEMBOLSO"},
+        limit_choices_to={"refcab__cod": "FORMA_DESEMBOLSO"},
         db_column="forma_desembolso",
         on_delete=models.RESTRICT,
         related_name="forma_desembolso_solicitud",
@@ -897,3 +898,93 @@ class LiquidacionPrestamoDetalle(ModeloBase):
         db_table = "pr_liquidacion_prestamo_detalle"
         verbose_name = "Liquidacion de Prestamo Detalle"
         verbose_name_plural = "Liquidaciones de Prestamos Detalles"
+
+
+
+# ***********************************************
+# * DESEMBOLSO DE PRESTAMOS
+# ***********************************************
+class DesembolsoPrestamo(ModeloBase):
+    sucursal = models.ForeignKey(
+        Sucursal, verbose_name="Sucursal", on_delete=models.PROTECT
+    )
+    nro_solicitud = models.ForeignKey(
+        SolicitudPrestamo,
+        db_column="nro_solicitud",
+        verbose_name="Solicitud Prestamo",
+        on_delete=models.RESTRICT,
+        related_name="solicitud_desembolso",
+        to_field="nro_solicitud",
+        blank=True,
+        null=True,
+    )
+    nro_prestamo = models.ForeignKey(
+        Prestamo,
+        db_column="nro_prestamo",
+        verbose_name="Nro. Prestamo",
+        on_delete=models.RESTRICT,
+        related_name="prestamo_desembolso",
+        to_field="nro_prestamo",
+        blank=True,
+        null=True,
+    )
+    nro_desembolso = models.IntegerField()
+    monto_previsto = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    fecha_prevista = models.DateField()
+    monto_desembolsado = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    fecha_desembolsado = models.DateField()
+    monto_retencion_garantia = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    procesado = models.BooleanField(default=False)
+    cod_movimiento = models.CharField(verbose_name="Codigo Movimiento", max_length=8, null=True, blank=True)
+    
+    class Meta:
+        db_table = "pr_desembolso_prestamo"
+        verbose_name = "Desembolso de Prestamo"
+        verbose_name_plural = "Desembolsos de Prestamos"
+
+
+# ***********************************************
+# * PRESTAMO REFINANCIADO
+# ***********************************************
+class PrestamoRefinanciado(models.Model):
+    nro_prestamo = models.ForeignKey(
+        Prestamo,
+        db_column="nro_prestamo",
+        verbose_name="Nro. Prestamo",
+        on_delete=models.RESTRICT,
+        related_name="prestamo_refinanciado_new",
+        to_field="nro_prestamo",
+        blank=True,
+        null=True,
+    )
+    nro_prestamo_refinanciado = models.ForeignKey(
+        Prestamo,
+        db_column="nro_prestamo_refinanciado",
+        verbose_name="Nro. Prestamo Refinanciado",
+        on_delete=models.RESTRICT,
+        related_name="prestamo_refinanciado_old",
+        to_field="nro_prestamo",
+        blank=True,
+        null=True,
+    )
+    nro_solicitud = models.ForeignKey(
+        SolicitudPrestamo,
+        db_column="nro_solicitud",
+        verbose_name="Solicitud Prestamo",
+        on_delete=models.RESTRICT,
+        related_name="solicitud_prestamo_refinanciado",
+        to_field="nro_solicitud",
+        blank=True,
+        null=True,
+    )
+    tipo_prestamo = models.ForeignKey(
+        TipoPrestamo, verbose_name="Tipo Prestamo", on_delete=models.PROTECT
+    )
+    saldo_suscripcion = models.DecimalField(max_digits=14, decimal_places=2)
+    fecha_saldo = models.DateTimeField()
+
+    class Meta:
+        db_table = "pr_prestamo_refinanciado"
+        verbose_name = "Prestamo Refinanciado"
+        verbose_name_plural = "Prestamos Refinanciados"
+

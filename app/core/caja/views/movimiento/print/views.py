@@ -16,7 +16,7 @@ from weasyprint import CSS, HTML
 from config import settings
 from core.base.models import Empresa
 from core.caja.procedures import sp_rptcaj012
-from core.contable.models import Movimiento
+from core.base.models import Movimiento
 from core.pos.models import Sale
 from core.reports.forms import ReportForm
 from core.security.mixins import PermissionMixin

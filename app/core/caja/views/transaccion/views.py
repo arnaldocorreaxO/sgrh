@@ -13,7 +13,7 @@ from django.views.generic import FormView
 from core.base.utils import YYYY_MM_DD
 from core.caja.forms import *
 from core.caja.procedures import *
-from core.contable.models import TmpMovimiento
+from core.base.models import TmpMovimiento
 from core.security.mixins import PermissionMixin
 from core.socio.models import PromocionIngreso, SolicitudIngreso
 

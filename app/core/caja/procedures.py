@@ -171,7 +171,7 @@ def sp_trx701(request, *args, **kwargs):
                         -- TODO: Establezca los valores de los parámetros aquí.
 
                         EXECUTE @RC = [dbo].[PTRX_701] 
-                        @COD_MOVIMIENTO={params['cod_movimiento']}
+                         @COD_MOVIMIENTO={params['cod_movimiento']}
                         ,@FEC_MOVIMIENTO={params['fec_movimiento']}
                         ,@cod_cliente ={params['cod_cliente']}
                         ,@NRO_DOCUMENTO={params['nro_documento']}                     

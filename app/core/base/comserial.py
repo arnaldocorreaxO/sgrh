@@ -3,6 +3,7 @@ import os
 import time
 
 import serial
+
 from core.views import printSeparador
 
 # initialization and open the port

@@ -1,16 +1,9 @@
 from django.db import models
 from django.forms import model_to_dict
 
-from core.base.models import (
-    ModeloBase,
-    Modulo,
-    Moneda,
-    Persona,
-    RefDet,
-    Sucursal,
-    Transaccion,
-)
-
+from core.contable.models import PlanDeCuenta
+from core.models import ModeloBase
+from core.base.models import Persona, RefDet, Sucursal, Moneda
 
 # CALIFICACION CLIENTE
 class CalificacionCliente(ModeloBase):
@@ -109,179 +102,6 @@ class Cliente(ModeloBase):
         verbose_name = "Cliente"
         verbose_name_plural = "Clientes"
 
-
-# TIPO MOVIMIENTO
-class TipoMovimiento(ModeloBase):
-    tip_movimiento = models.CharField(
-        verbose_name="Código", max_length=1, primary_key=True
-    )
-    denominacion = models.CharField(
-        verbose_name="Tipo Movimiento", max_length=100, unique=True
-    )
-
-    def __str__(self):
-        return "{} - {}".format(self.tip_movimiento, self.denominacion)
-
-    class Meta:
-        ordering = [
-            "tip_movimiento",
-        ]
-        db_table = "ge_tipo_movimiento"
-        verbose_name = "Tipo Movimiento"
-        verbose_name_plural = "Tipos Movimientos"
-
-
-"""MOVIMIENTO GENERAL BASE ABSTRACT"""
-
-
-class MovimientoBase(ModeloBase):
-    fec_movimiento = models.DateField(verbose_name="Fecha Movimiento")
-    cod_movimiento = models.CharField(verbose_name="Codigo Movimiento", max_length=8)
-    tip_movimiento = models.ForeignKey(
-        TipoMovimiento,
-        verbose_name="Tipo",
-        db_column="tip_movimiento",
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-        related_name="%(app_label)s_%(class)s_tip_movimiento",
-    )
-    modulo = models.ForeignKey(
-        Modulo,
-        verbose_name="Modulo",
-        db_column="cod_modulo",
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-        related_name="%(app_label)s_%(class)s_modulo",
-    )
-    transaccion = models.ForeignKey(
-        Transaccion,
-        verbose_name="Transacción",
-        db_column="cod_transaccion",
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-        related_name="%(app_label)s_%(class)s_transaccion",
-    )
-
-    sucursal = models.ForeignKey(
-        Sucursal,
-        verbose_name="Sucursal",
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-        related_name="%(app_label)s_%(class)s_sucursal",
-    )
-    cliente = models.ForeignKey(
-        Cliente,
-        db_column="cod_cliente",
-        verbose_name="Cliente",
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-        related_name="%(app_label)s_%(class)s_cliente",
-    )
-    moneda = models.ForeignKey(
-        Moneda,
-        verbose_name="Moneda",
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-        related_name="%(app_label)s_%(class)s_moneda",
-    )
-    cuenta_operativa = models.CharField(
-        verbose_name="Cuenta Operativa", max_length=50, null=True, blank=True
-    )
-    concepto = models.CharField(verbose_name="Concepto", max_length=100, blank=True)
-    importe = models.DecimalField(
-        verbose_name="Importe", default=0, max_digits=20, decimal_places=2
-    )
-    monto_pagado = models.DecimalField(
-        verbose_name="Monto Pagado", default=0, max_digits=20, decimal_places=2
-    )
-    nombre_campo = models.CharField(
-        verbose_name="Nombre Campo", max_length=100, null=True, blank=True, default=None
-    )
-    referencia = models.CharField(
-        verbose_name="Referencia", max_length=100, null=True, blank=True, default=None
-    )
-
-    nro_documento = models.CharField(
-        verbose_name="Nro. Documento", max_length=25, null=True, blank=True
-    )
-    vigencia_desde = models.DateField(
-        verbose_name="Vigencia Desde", blank=True, null=True, default=None
-    )
-    vigencia_hasta = models.DateField(
-        verbose_name="Vigencia Hasta", blank=True, null=True, default=None
-    )
-    fec_movimiento_pago = models.DateField(
-        verbose_name="Fecha Movimiento Pago", null=True, blank=True
-    )
-    cod_movimiento_pago = models.CharField(
-        verbose_name="Codigo Movimiento Pago", max_length=8, null=True, blank=True
-    )
-
-    class Meta:
-        abstract = True
-
-
-"""MOVIMIENTOS GENERALES NO CONTABLES"""
-"""MOVIMIENTOS DIARIOS"""
-
-
-class Movimiento(MovimientoBase):
-    def toJSON(self):
-        item = model_to_dict(self)
-        item["placta"] = {"rubro_contable": str(self.rubro_contable)}
-        item["importe"] = format(self.importe, ".2f")
-        item["monto_pagado"] = format(self.monto_pagado, ".2f")
-        return item
-
-    class Meta:
-        # ordering = ['tip_movimiento', ]
-        db_table = "ge_movimientos"
-        verbose_name = "Movimiento Diario"
-        verbose_name_plural = "Movimientos Diarios"
-
-
-"""MOVIMIENTOS MENSUALES DEL PERIODO ACTUAL"""
-
-
-class MovimientosMensuales(MovimientoBase):
-    def toJSON(self):
-        item = model_to_dict(self)
-        item["placta"] = {"rubro_contable": str(self.rubro_contable)}
-        item["importe"] = format(self.importe, ".2f")
-        item["monto_pagado"] = format(self.monto_pagado, ".2f")
-        return item
-
-    class Meta:
-        # ordering = ['tip_movimiento', ]
-        db_table = "ge_movimientos_mensuales"
-        verbose_name = "Movimientos Mensuales"
-        verbose_name_plural = "Movimientos Mensuales"
-
-
-"""MOVIMIENTOS ANUALES HASTA PERIOD ANTERIOR"""
-
-
-class MovimientosAnuales(MovimientoBase):
-    def toJSON(self):
-        item = model_to_dict(self)
-        item["placta"] = {"rubro_contable": str(self.rubro_contable)}
-        item["importe"] = format(self.importe, ".2f")
-        item["monto_pagado"] = format(self.monto_pagado, ".2f")
-        return item
-
-    class Meta:
-        # ordering = ['tip_movimiento', ]
-        db_table = "ge_movimientos_anuales"
-        verbose_name = "Movimientos Anuales"
-        verbose_name_plural = "Movimientos Anuales"
-
-
 """PLAZOS EN DIAS"""
 
 
@@ -308,3 +128,120 @@ class Plazo(ModeloBase):
         db_table = "ge_plazo"
         verbose_name = "Plazos en Dias"
         verbose_name_plural = "Plazos en Dias"
+
+
+
+"""TIPO BANCO"""
+class TipoBanco(ModeloBase):
+    denominacion = models.CharField(verbose_name="Denominacion", max_length=50)
+    def __str__(self):
+        return f"{self.denominacion}"
+
+    class Meta:
+        ordering = ["id"]
+        db_table = "ge_tipo_banco"
+        verbose_name = "Tipo Banco"
+        verbose_name_plural = "Tipos de Bancos"
+
+
+"""BANCOS"""
+class Banco(ModeloBase):
+    tipo_banco = models.ForeignKey(
+        TipoBanco,
+        to_field="id",
+        db_column="tipo_banco_id",
+        verbose_name="Tipo Banco",
+        on_delete=models.RESTRICT,
+        related_name="banco_tipo_banco",
+    )
+    denominacion = models.CharField(verbose_name="Denominacion", max_length=50)
+    def __str__(self):
+        return f"{self.denominacion}"
+
+    class Meta:
+        ordering = ["id"]
+        db_table = "ge_banco"
+        verbose_name = "Banco"
+        verbose_name_plural = "Bancos"
+
+
+"""CUENTAS BANCO"""
+class CuentaBanco(ModeloBase):
+    nro_cuenta = models.CharField(
+        verbose_name="Nro. Cuenta", max_length=50, unique=True
+    )
+    banco = models.ForeignKey(
+        Banco,
+        to_field="id",
+        db_column="banco_id",
+        verbose_name="Banco",
+        on_delete=models.RESTRICT,
+        related_name="cuenta_banco_banco",
+    )
+    rubro_contable = models.ForeignKey(
+        PlanDeCuenta,
+        verbose_name="Rubro Contable",
+        db_column="rubro_contable",
+        on_delete=models.PROTECT,
+        related_name="rubro_contable_cuenta_banco",
+        limit_choices_to={"asentable": 1},
+        null=True,
+        blank=True,
+        help_text="Seleccione el rubro contable al que pertenece esta cuenta bancaria.",  
+    )
+    saldo = models.DecimalField(
+        verbose_name="Saldo", default=0, max_digits=20, decimal_places=2
+    )
+    nro_cheque_desde = models.CharField(
+        max_length=20,
+        verbose_name="Número de cheque desde",
+        help_text="Ingrese el número de cheque desde donde desea iniciar."
+    )
+    nro_cheque_hasta = models.CharField(
+        max_length=20,
+        verbose_name="Número de cheque hasta",
+        help_text="Ingrese el número de cheque hasta donde desea finalizar."
+    )
+    nro_cheque_actual = models.CharField(
+        max_length=20,
+        verbose_name="Número de cheque actual",
+        help_text="Ingrese el número de cheque actual."
+    )
+    Moneda = models.ForeignKey(
+        Moneda,
+        to_field="id",
+        db_column="moneda_id",
+        verbose_name="Moneda",
+        on_delete=models.RESTRICT,
+        related_name="cuenta_banco_moneda",
+    )
+    Sucursal = models.ForeignKey(
+        Sucursal,
+        to_field="id",
+        db_column="sucursal_id",
+        verbose_name="Sucursal",
+        on_delete=models.RESTRICT,
+        related_name="cuenta_banco_sucursal",
+    )
+    saldo_minimo = models.DecimalField(
+        verbose_name="Saldo Mínimo",
+        default=0,
+        max_digits=20,
+        decimal_places=2,
+        help_text="Ingrese el saldo mínimo permitido en la cuenta.",
+    )
+    saldo_promedio = models.DecimalField(
+        verbose_name="Saldo Promedio",
+        default=0,
+        max_digits=20,
+        decimal_places=2,
+        help_text="Ingrese el saldo promedio de la cuenta.",
+    )
+    def __str__(self):
+        return f"{self.banco} - {self.nro_cuenta}"
+
+    class Meta:
+        ordering = ["id"]
+        db_table = "ge_cuenta_banco"
+        verbose_name = "Cuenta Banco"
+        verbose_name_plural = "Cuentas Bancos"
