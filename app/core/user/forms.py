@@ -24,7 +24,6 @@ class UserForm(ModelForm):
             "groups",
             "image",
             "sucursal",
-            "caja",
             "is_active",
             "is_staff",
             "is_superuser",

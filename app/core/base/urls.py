@@ -3,7 +3,6 @@ from django.urls import path
 from core.base.views.empresa.views import EmpresaUpdate
 from core.base.views.persona.views import *
 from core.base.views.sucursal.views import *
-from core.base.views.transaccion.views import *
 
 urlpatterns = [
     # EMPRESA
@@ -19,10 +18,5 @@ urlpatterns = [
     path("persona/update/<int:pk>/", PersonaUpdate.as_view(), name="persona_update"),
     path("persona/delete/<int:pk>/", PersonaDelete.as_view(), name="persona_delete"),
     path("persona/get_datos_persona/", get_datos_persona, name="get_datos_persona"),
-    # TRANSACCIONES BASE
-    path(
-        "transaccion/add/",
-        TransaccionFormView.as_view(),
-        name="transaccion_create",
-    ),
+   
 ]

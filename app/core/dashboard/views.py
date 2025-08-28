@@ -15,8 +15,6 @@ from django.views.generic import TemplateView
 from core.base.models import Empresa, Persona
 from core.base.utils import YYYY_MM_DD
 from core.dashboard.forms import DashboardForm
-from core.general.models import Cliente
-from core.prestamo.models import Prestamo, SolicitudPrestamo
 from core.security.models import Dashboard
 from core.user.models import User
 
@@ -508,12 +506,12 @@ class DashboardView(TemplateView):
         context["anho_actual"] = anho_actual
         context["empresa"] = Empresa.objects.first()
         context["personas"] = Persona.objects.exclude(activo=False).count()
-        context["clientes"] = Cliente.objects.exclude(activo=False).count()
-        context["prestamos"] = (
-            Prestamo.objects.filter(fec_aprobacion__year=anho_actual)
-            .exclude(activo=False)
-            .count()
-        )
+        # context["clientes"] = Cliente.objects.exclude(activo=False).count()
+        # context["prestamos"] = (
+        #     Prestamo.objects.filter(fec_aprobacion__year=anho_actual)
+        #     .exclude(activo=False)
+        #     .count()
+        # )
         context["usuario"] = self.usuario
         context["form"] = DashboardForm()
         return context
