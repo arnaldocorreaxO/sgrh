@@ -1,0 +1,217 @@
+import json
+
+from django.http import Http404, HttpResponse, JsonResponse
+from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from core.base.views.generics import BaseListView
+from django.views.generic import CreateView, DeleteView, UpdateView
+
+
+from core.rrhh.forms.capacitacion.forms import CapacitacionForm
+
+from core.rrhh.models import Empleado, Capacitacion
+from core.rrhh.views.empleado.views import EmpleadoUsuarioMixin
+from core.security.mixins import PermissionMixin
+
+
+class CapacitacionList(BaseListView,EmpleadoUsuarioMixin, PermissionMixin):
+	model = Capacitacion
+	template_name = "capacitacion/list.html"
+	permission_required = "view_capacitacion"
+
+	@method_decorator(csrf_exempt)
+	def dispatch(self, request, *args, **kwargs):
+		return super().dispatch(request, *args, **kwargs)
+
+	def get_queryset(self):
+		try:
+			empleado = Empleado.objects.get(usuario=self.request.user)
+			return Capacitacion.objects.filter(empleado=empleado)
+		except Empleado.DoesNotExist:
+			return Capacitacion.objects.none()
+
+	def post(self, request, *args, **kwargs):
+		data = {}
+		action = request.POST["action"]
+		try:
+			if action == "search":
+				data = self.handle_search(request)
+				print(data.content.decode())  # Muestra el JSON como string legible
+
+			else:
+				data["error"] = "No ha ingresado una opción"
+		except Exception as e:
+			data["error"] = str(e)
+		return HttpResponse(data, content_type="application/json"
+		)
+
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		context["create_url"] = reverse_lazy("capacitacion_create")
+		#Titulo con el nombre del empleado
+		return self.enrich_context_with_empleado(context, prefijo="Formación Académica")
+
+
+class CapacitacionCreate(PermissionMixin,EmpleadoUsuarioMixin,CreateView):
+	model = Capacitacion
+	form_class = CapacitacionForm
+	template_name = "capacitacion/create.html"
+	success_url = reverse_lazy("capacitacion_list")
+	permission_required = "add_capacitacion"
+
+	@method_decorator(csrf_exempt)
+	def dispatch(self, request, *args, **kwargs):
+		return super().dispatch(request, *args, **kwargs)
+
+	 # Obtener la formacion academica del empleado asociado al usuario logueado
+	def get_capacitacion_academica_empleado(self):
+		try:
+			empleado = Empleado.objects.get(usuario=self.request.user)
+			return Capacitacion.objects.filter(empleado=empleado)
+		except Empleado.DoesNotExist:
+			raise Http404("No se encontró el perfil del empleado asociado al usuario.")
+	
+	# Sobrescribir get_object para obtener la formacion academica del empleado usuario logueado
+	def get_object(self, queryset=None):
+		formacion = self.get_capacitacion_academica_empleado()
+		if formacion:
+			return formacion
+		return Capacitacion()
+	
+	def validate_data(self):
+		data = {"valid": True}
+		try:
+			pass
+		except:
+			pass
+		return JsonResponse(data)
+
+	def post(self, request, *args, **kwargs):
+		data = {}
+		action = request.POST["action"]
+		try:
+			if action == "add":
+				form = self.get_form()
+				if form.is_valid():                                       
+					# 🔗 Asociar el empleado actual al usuario de sesión
+					try:
+						empleado = Empleado.objects.get(usuario=request.user)
+						instance = form.save_with_empleado(empleado=empleado)
+					except Empleado.DoesNotExist:
+						data["error"] = "No se encontró un empleado vinculado al usuario actual"
+						return JsonResponse(data, status=400)
+				
+				else:
+					data["error"] = form.errors
+
+			elif action == "validate_data":
+				return self.validate_data()
+			else:
+				data["error"] = "No ha seleccionado ninguna opción"
+		except Exception as e:
+			data["error"] = str(e)
+		return HttpResponse(json.dumps(data), content_type="application/json")
+
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data()
+		context["list_url"] = self.success_url
+		context["action"] = "add"
+		#Titulo con el nombre del empleado
+		return self.enrich_context_with_empleado(context, prefijo="Agregar Formación Académica")
+
+
+
+class CapacitacionUpdate(PermissionMixin,EmpleadoUsuarioMixin,UpdateView):
+	model = Capacitacion
+	form_class = CapacitacionForm
+	template_name = "capacitacion/create.html"
+	success_url = reverse_lazy("capacitacion_list")
+	permission_required = "change_capacitacion"
+
+	@method_decorator(csrf_exempt)
+	def dispatch(self, request, *args, **kwargs):
+		self.object = self.get_object()
+		return super().dispatch(request, *args, **kwargs)
+	
+	def get_object(self, queryset=None):
+		try:
+			empleado = Empleado.objects.get(usuario=self.request.user)
+			return Capacitacion.objects.get(pk=self.kwargs["pk"], empleado=empleado)
+		except (Empleado.DoesNotExist, Capacitacion.DoesNotExist):
+			raise Http404("No se encontró la formación académica asociada al usuario.")
+
+
+	def validate_data(self):
+		data = {"valid": True}
+		try:
+			pass
+		except:
+			pass
+		return JsonResponse(data)
+
+	def post(self, request, *args, **kwargs):
+		data = {}
+		action = request.POST["action"]
+		try:
+			if action == "edit":
+				form = self.get_form()
+				if form.is_valid():                                       
+					# 🔗 Asociar el empleado actual al usuario de sesión
+					try:
+						#El empleado ya está asociado al objeto
+						#Acá es solo reforzar la asociación.
+						empleado = Empleado.objects.get(usuario=request.user)
+						form.instance.empleado = empleado
+						form.save()
+
+					except Empleado.DoesNotExist:
+						data["error"] = "No se encontró un empleado vinculado al usuario actual"
+						return JsonResponse(data, status=400)
+				
+				else:
+					data["error"] = form.errors
+
+			elif action == "validate_data":
+				return self.validate_data()
+			else:
+				data["error"] = "No ha seleccionado ninguna opción"
+		except Exception as e:
+			data["error"] = str(e)
+		return HttpResponse(json.dumps(data), content_type="application/json")
+
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data()
+		context["list_url"] = self.success_url
+		context["action"] = "edit"
+		context["instance"] = self.object
+		#Titulo con el nombre del empleado
+		return self.enrich_context_with_empleado(context, prefijo="Modificar Formación Académica")
+
+
+
+class CapacitacionDelete(PermissionMixin, DeleteView):
+	model = Capacitacion
+	template_name = "capacitacion/delete.html"
+	success_url = reverse_lazy("capacitacion_list")
+	permission_required = "delete_capacitacion"
+
+	@method_decorator(csrf_exempt)
+	def dispatch(self, request, *args, **kwargs):
+		return super().dispatch(request, *args, **kwargs)
+
+	def post(self, request, *args, **kwargs):
+		data = {}
+		try:
+			self.get_object().delete()
+		except Exception as e:
+			data["error"] = str(e)
+		return HttpResponse(json.dumps(data), content_type="application/json")
+
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		context["title"] = "Notificación de eliminación"
+		context["list_url"] = self.success_url
+		return context
+
+

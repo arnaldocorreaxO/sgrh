@@ -1,0 +1,59 @@
+{% comment %} {% extends 'list.html' %} {% endcomment %}
+{% load widget_tweaks %}
+{% load security_extras %}
+{% load static %}
+{% block head_form_tab %}
+    <script src="{% static 'lib/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'lib/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.min.css' %}" />
+    {% block head_form %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+    <form class="form" method="post" action="." enctype="multipart/form-data" id="frmForm"
+          data-url="{{ list_url }}">
+        <div class="card {{ dshboard.card }}">
+            {% comment %} <div class="card-header">
+                <h3 class="card-title">
+                    {% if action == 'add' %}
+                        <i class="fas fa-plus"></i>
+                    {% else %}
+                        <i class="fas fa-edit"></i>
+                    {% endif %}
+                    {{ title }}
+                </h3>
+            </div> {% endcomment %}
+            <div class="card-body" style="display: block;">
+                <div class="container-fluid">
+                    {% comment %} <input type="hidden" name="action" id="action" value="{{ action }}">
+                    <input type="hidden" name="suc_usuario" id="suc_usuario" value="{{ suc_usuario}}"> {% endcomment %}
+                    {% csrf_token %}
+                    {% block fields %}
+                        {% for field in form.visible_fields %}
+                            <div class="form-group">
+                                <label>{{ field.label }}:</label>
+                                {% if field|is_checkbox %}
+                                    {{ field }}
+                                {% else %}
+                                    {{ field|add_class:'form-control'|attr:"autocomplete:off" }}
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% endblock fields %}
+
+                </div>
+            </div>
+            {% block box_footer %}
+                <div class="card-footer">
+                    {% block buttons %}
+                        <button type="submit" class="btn btn-primary btn-flat" id="btnGuardar">
+                            <i class="fas fa-save"></i> Guardar registro
+                        </button>
+                        <a href="{{ list_url }}" class="btn btn-danger btn-flat">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    {% endblock %}
+                </div>
+            {% endblock %}
+        </div>
+    </form>
+{% endblock %}

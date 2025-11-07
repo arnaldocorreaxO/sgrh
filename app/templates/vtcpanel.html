@@ -51,15 +51,16 @@
 {% block breadcrumb %}
 {% endblock %}
 {% block content %}
-{% if request.user.is_client %}
+{% if not request.user.is_client %}
+{% comment %} {% if request.user.groups.filter(name='Administradores').exists %} {% endcomment %}
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-8 mt-3">
             <div class="card card-widget widget-user">
                 <div class="widget-user-header bg-gradient-blue" style="height: auto;">
                     <h3 class="widget-user-username">
-                        {{ company.name }}<br>
-                        Ruc: {{ company.ruc }}
+                        {{ empresa.denominacion}}<br>
+                        Ruc: {{ empresa.ruc}}
                     </h3>
                     <br>
                     <h5 class="widget-user-desc" style="font-weight: normal;">
@@ -77,8 +78,8 @@
                                 <h5 class="description-header font-weight-bold mb-2">
                                     Teléfono
                                 </h5>
-                                <span class="description-text">
-                                    {{ company.mobile }} / {{ company.phone }}
+                                <span class="description-texts">
+                                    {{ empresa.telefono }} / {{ empresa.celular }}
                                 </span>
                             </div>
                             <!-- /.description-block -->
@@ -89,8 +90,8 @@
                                 <h5 class="description-header font-weight-bold mb-2">
                                     Email
                                 </h5>
-                                <span class="description-text">
-                                    {{ company.email }}
+                                <span class="description-texts">
+                                    {{ empresa.email }}
                                 </span>
                             </div>
                             <!-- /.description-block -->
@@ -104,8 +105,8 @@
                                 <h5 class="description-header font-weight-bold mb-2">
                                     Dirección
                                 </h5>
-                                <span class="description-text">
-                                    {{ company.address }}
+                                <span class="description-texts">
+                                    {{ empresa.direccion }}
                                 </span>
                             </div>
                             <!-- /.description-block -->
@@ -116,8 +117,8 @@
                                 <h5 class="description-header font-weight-bold mb-2">
                                     Pagina Web
                                 </h5>
-                                <span class="description-text">
-                                    {{ company.website }}
+                                <span class="description-texts">
+                                    {{ empresa.website }}
                                 </span>
                             </div>
                         </div>
@@ -175,39 +176,42 @@
             </a>
         </div>
         <div class="col-md-3 col-sm-6 col-12">
-            <a href="{% url 'cliente_list' %}" class="small-box-footer">
+            {% comment %} <a href="{% url 'cliente_list' %}" class="small-box-footer"> {% endcomment %}
+            <a href="" class="small-box-footer">
                 <div class="info-box">
                     <span class="info-box-icon bg-success"><i class="fas fa-handshake"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Clientes</span>
                         <span class="info-box-number">
-                            {{ clientes }}
+                            {% comment %} {{ clientes }} {% endcomment %}
                         </span>
                     </div>
                 </div>
             </a>
         </div>
         <div class="col-md-3 col-sm-6 col-12">
-            <a href="{% url 'solicitud_prestamo_list' %}" class="small-box-footer">
+            {% comment %} <a href="{% url 'solicitud_prestamo_list' %}" class="small-box-footer"> {% endcomment %}
+            <a href="" class="small-box-footer">
                 <div class="info-box">
                     <span class="info-box-icon bg-warning"><i class="fas fa-money-bill"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Prestamos</span>
                         <span class="info-box-number">
-                            {{ prestamos }}
+                            {% comment %} {{ prestamos }} {% endcomment %}
                         </span>
                     </div>
                 </div>
             </a>
         </div>
         <div class="col-md-3 col-sm-6 col-12">
-            <a href="{% url 'solicitud_prestamo_list' %}" class="small-box-footer">
+            {% comment %} <a href="{% url 'solicitud_prestamo_list' %}" class="small-box-footer"> {% endcomment %}
+            <a href="" class="small-box-footer">
                 <div class="info-box">
                     <span class="info-box-icon bg-danger"><i class="fas fa-box"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Cuentas</span>
                         <span class="info-box-number">
-                            {{ productos }}
+                            {% comment %} {{ productos }} {% endcomment %}
                         </span>
                     </div>
                 </div>

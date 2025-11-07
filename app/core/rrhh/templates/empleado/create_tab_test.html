@@ -1,0 +1,83 @@
+{% extends 'form.html' %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-12 mt-3">
+            {% comment %} <form method="post" enctype="multipart/form-data" id="frmForm" data-url="{{ list_url }}"> {% endcomment %}
+                {% csrf_token %}
+                <div class="card {% if action == 'add' %}card-success{% else %}card-warning{% endif %}">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            {% if action == 'add' %}
+                            <i class="fas fa-plus"></i>
+                            {% else %}
+                            <i class="fas fa-edit"></i>
+                            {% endif %}
+                            {{ title }}
+                        </h3>
+                    </div>
+                    <div class="card-body">
+
+                        {% if form.errors %}
+                        <div class="alert alert-danger alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                            <h5><i class="icon fas fa-ban"></i> Ha ocurrido un error al querer guardar el registro</h5>
+                            <ul>
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs" id="formTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="empleado-tab" data-toggle="tab" href="#empleado" role="tab" aria-controls="empleado" aria-selected="true">Empleado</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="cargo-tab" data-toggle="tab" href="#cargo" role="tab" aria-controls="cargo" aria-selected="false">Cargo</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="formacion-tab" data-toggle="tab" href="#formacion" role="tab" aria-controls="formacion" aria-selected="false">Formación Académica</a>
+                            </li>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content mt-3" id="formTabsContent">
+                            <!-- Empleado -->
+                            <div class="tab-pane fade show active" id="empleado" role="tabpanel" aria-labelledby="empleado-tab">                               
+                                {% include './empleado.html' %}                              
+                            </div>
+                            <!-- Cargo -->
+                            <div class="tab-pane fade" id="cargo" role="tabpanel" aria-labelledby="cargo-tab">
+                                {% include './cargo.html' %}
+                            </div>
+
+                            <!-- Formación Académica -->
+                            <div class="tab-pane fade" id="formacion" role="tabpanel" aria-labelledby="formacion-tab">
+                                 {% include './formacion.html' %}
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary btn-flat" id="btnGuardar">
+                            <i class="fas fa-save"></i> Guardar registro
+                        </button>
+                        <a href="{{ list_url }}" class="btn btn-danger btn-flat">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </div>
+            {% comment %} </form> {% endcomment %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

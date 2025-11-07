@@ -3,12 +3,18 @@
 {% load security_extras %}
 {% load static %}
 {% block head_list %}
+ <!--Librerias utilizadas en todos los forms-->
  <!--Formvalidation Libs-->
  <link rel="stylesheet" href="{% static 'lib/formvalidation-dist-v1.7.0/dist/css/formValidation.min.css' %}">
  <script src="{% static 'lib/formvalidation-dist-v1.7.0/es6-shim.min.js' %}"></script>
  <script src="{% static 'lib/formvalidation-dist-v1.7.0/dist/js/FormValidation.min.js' %}"></script>
  <script src="{% static 'lib/formvalidation-dist-v1.7.0/dist/js/plugins/Bootstrap.min.js' %}"></script>
  <script src="{% static 'lib/formvalidation-dist-v1.7.0/dist/js/locales/es_ES.min.js' %}"></script> 
+
+<!-- DateTimePicker Libs-->
+<script src="{% static 'lib/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'lib/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.min.css' %}" />
+
     {% block head_form %}{% endblock %}
 {% endblock %}
 

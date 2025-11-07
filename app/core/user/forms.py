@@ -27,7 +27,7 @@ class UserForm(ModelForm):
             "is_active",
             "is_staff",
             "is_superuser",
-            "cod_usuario",
+            
         )
         widgets = {
             "first_name": forms.TextInput(attrs={"placeholder": "Ingrese sus nombres"}),

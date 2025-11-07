@@ -158,7 +158,7 @@ class PersonaList(ListView):
         return context
 
 
-class PersonaCreate(PermissionMixin, CreateView):
+class PersonaCreate( CreateView):
     model = Persona
     template_name = "persona/create.html"
     form_class = PersonaForm
@@ -206,7 +206,7 @@ class PersonaCreate(PermissionMixin, CreateView):
             if action == "add":
                 with transaction.atomic():
                     # INSTANCIAR
-                    p = Persona()
+                    persona = Persona()
 
                     # OBTENER VALORES
                     ci = isNULL(request.POST["ci"])
@@ -225,23 +225,23 @@ class PersonaCreate(PermissionMixin, CreateView):
                     estado_civil = isNULL(request.POST["estado_civil"])
 
                     # SETEAR VALORES
-                    p.ci = ci
-                    p.ruc = ruc
-                    p.nombre = nombre
-                    p.apellido = apellido
-                    p.nacionalidad_id = nacionalidad
-                    p.ciudad_id = ciudad
-                    p.barrio_id = barrio
-                    p.direccion = direccion
-                    p.celular = celular
-                    p.telefono = telefono
-                    p.email = email
-                    p.fec_nacimiento = fec_nacimiento
-                    p.sexo_id = sexo
-                    p.estado_civil_id = estado_civil
+                    persona.ci = ci
+                    persona.ruc = ruc
+                    persona.nombre = nombre
+                    persona.apellido = apellido
+                    persona.nacionalidad_id = nacionalidad
+                    persona.ciudad_id = ciudad
+                    persona.barrio_id = barrio
+                    persona.direccion = direccion
+                    persona.celular = celular
+                    persona.telefono = telefono
+                    persona.email = email
+                    persona.fec_nacimiento = fec_nacimiento
+                    persona.sexo_id = sexo
+                    persona.estado_civil_id = estado_civil
                     # GRABAR
-                    p.save()
-                    data["id"] = p.id
+                    persona.save()
+                    data["id"] = persona.id
 
                 # data = self.get_form().save()
             elif action == "validate_data":

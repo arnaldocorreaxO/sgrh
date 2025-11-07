@@ -12,13 +12,17 @@ from core.base.models import Sucursal
 
 
 class User(AbstractUser):
+    def user_directory_path(instance, filename):
+    # Asumiendo que el modelo tiene un campo llamado 'dni'
+        return f'users/{instance.dni}/{filename}'
+
     dni = models.CharField(max_length=13, unique=True, verbose_name="Cédula o RUC")
     image = models.ImageField(
-        upload_to="users/%Y/%m/%d", verbose_name="Imagen", null=True, blank=True
+        # upload_to="users/%Y/%m/%d", verbose_name="Imagen", null=True, blank=True
+        upload_to=user_directory_path, verbose_name="Imagen", null=True, blank=True
     )
     is_change_password = models.BooleanField(default=False)
     # token = models.UUIDField(primary_key=False, editable=False, null=True, blank=True, default=uuid.uuid4, unique=True)
-    cod_usuario = models.CharField("Codigo Usuario", max_length=4, unique=True,default="ACOR")
     sucursal = models.ForeignKey(
         Sucursal,
         verbose_name="Sucursal",

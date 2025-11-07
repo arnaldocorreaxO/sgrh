@@ -116,22 +116,3 @@ def sp_identificaciones(**kwargs):
         return SP_EXECUTE(storedProc, all=True)
     except Exception as e:
         print(e)
-
-
-"""
-cursor = db.execute_sql("select * from something")
-columns = [col[0] for col in cursor.description]
-for row in cursor.fetchall():
-    row = dict(zip(columns, row))
-    print(row)
-
-
-def dictfetchall(cursor):
-    "Returns all rows from a cursor as a dict"
-    desc = cursor.description
-    return [dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()]
-
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM app_person <YOUR JOINS HERE>")
-    values = dictfetchall(cursor)
-"""

@@ -24,8 +24,7 @@ class ModeloBase(models.Model):
         on_delete=models.RESTRICT,
         # related_name="+",
         related_name="%(app_label)s_%(class)s_inserciones",  # Cambiado related_name
-        to_field="cod_usuario",  # Agregado to_field
-        default="ACOR"  # Agregado default
+    
     )
     fec_insercion = models.DateTimeField(
         verbose_name="Fecha Creación", auto_now_add=True
@@ -37,8 +36,7 @@ class ModeloBase(models.Model):
         on_delete=models.RESTRICT,
         # related_name="+",
         related_name="%(app_label)s_%(class)s_modificaciones",  # Cambiado related_name
-        to_field="cod_usuario",  # Agregado to_field
-        default="ACOR"  # Agregado default
+        
     )
     fec_modificacion = models.DateTimeField(
         verbose_name="Fecha Modificación", auto_now=True

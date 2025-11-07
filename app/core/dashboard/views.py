@@ -21,7 +21,7 @@ from core.user.models import User
 locale.setlocale(locale.LC_TIME, "")
 
 
-class DashboardView(TemplateView):
+class DashboardView(LoginRequiredMixin,TemplateView):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         self.usuario = User.objects.filter(id=self.request.user.id).first()
@@ -35,8 +35,10 @@ class DashboardView(TemplateView):
         return "hztpanel.html"
 
     def get(self, request, *args, **kwargs):
-        request.user.set_group_session()
+        if request.user.is_authenticated:
+            request.user.set_group_session()
         return super().get(request, *args, **kwargs)
+
 
     def post(self, request, *args, **kwargs):
         data = {}
@@ -55,40 +57,40 @@ class DashboardView(TemplateView):
 
             now = fecha
 
-            # *ULTIMAS SOLICITUDES DE PRESTAMOS
-            if action == "list":
-                data = []
-                rows = SolicitudPrestamo.objects.filter(activo=True).order_by("-id")[
-                    0:10
-                ]
-                for row in rows:
-                    data.append(row.toJSON())
+            # # *ULTIMAS SOLICITUDES DE PRESTAMOS
+            # if action == "list":
+            #     data = []
+            #     rows = SolicitudPrestamo.objects.filter(activo=True).order_by("-id")[
+            #         0:10
+            #     ]
+            #     for row in rows:
+            #         data.append(row.toJSON())
 
-            # *GRAFICO N° 1
-            elif action == "get_graph_1_1":
-                data = []
-                # hoy = datetime.datetime.now()
-                rows = (
-                    SolicitudPrestamo.objects.values("estado__denominacion")
-                    .filter(sucursal=sucursal, fec_solicitud__year=anho)
-                    .exclude(activo=False)
-                    .annotate(cant_solicitud=Count("id", output_field=FloatField()))
-                    .order_by("-cant_solicitud")
-                )
-                for row in rows:
-                    data.append(
-                        [
-                            row["estado__denominacion"],
-                            row["cant_solicitud"],
-                        ]
-                    )
-                # print(rows.query)
-                data = {
-                    "name": "Solicitudes de Prestamos",
-                    "type": "pie",
-                    "colorByPoint": True,
-                    "data": data,
-                }
+            # # *GRAFICO N° 1
+            # elif action == "get_graph_1_1":
+            #     data = []
+            #     # hoy = datetime.datetime.now()
+            #     rows = (
+            #         SolicitudPrestamo.objects.values("estado__denominacion")
+            #         .filter(sucursal=sucursal, fec_solicitud__year=anho)
+            #         .exclude(activo=False)
+            #         .annotate(cant_solicitud=Count("id", output_field=FloatField()))
+            #         .order_by("-cant_solicitud")
+            #     )
+            #     for row in rows:
+            #         data.append(
+            #             [
+            #                 row["estado__denominacion"],
+            #                 row["cant_solicitud"],
+            #             ]
+            #         )
+            #     # print(rows.query)
+            #     data = {
+            #         "name": "Solicitudes de Prestamos",
+            #         "type": "pie",
+            #         "colorByPoint": True,
+            #         "data": data,
+            #     }
 
             #         elif action == "get_graph_1_2":
             #             data = []
@@ -487,15 +489,16 @@ class DashboardView(TemplateView):
             #                     vehiculo_pendiente_series,
             #                 ],
             #             }
-            else:
-                data["error"] = "Ha ocurrido un error"
+            # else:
+            #     data["error"] = "Ha ocurrido un error"
         except Exception as e:
             data["error"] = str(e)
         return JsonResponse(data, safe=False)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        usu_sucursal = self.usuario.sucursal.id
+        if self.request.user.is_authenticated:
+            usu_sucursal = self.usuario.sucursal.id
         anho_actual = datetime.datetime.today().strftime("%Y")
         context["title"] = "Panel de administración"
         context["fecha_actual"] = datetime.datetime.today().strftime("%d/%m/%Y")

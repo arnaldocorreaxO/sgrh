@@ -14,13 +14,13 @@ from core.base.utils import calculate_age
 # Create your models here.
 """REFERENCIA CABECERA"""
 class RefCab(ModeloBase):
-    cod = models.CharField(
-        verbose_name="Codigo", db_column="cod", max_length=20, unique=True
+    cod_referencia = models.CharField(
+        verbose_name="Codigo Referencia", max_length=100
     )
     denominacion = models.CharField(verbose_name="Denominacion", max_length=50)
 
     def __str__(self):
-        return "{} - {}".format(self.cod, self.denominacion)
+        return "{} - {}".format(self.cod_referencia, self.denominacion)
 
     class Meta:
         # ordering = ['tip_movimiento',]
@@ -37,20 +37,36 @@ class RefDet(ModeloBase):
         on_delete=models.RESTRICT,
         related_name="referencia",
     )
-    cod = models.CharField(
-        verbose_name="Codigo", db_column="cod", max_length=20, unique=True
+    cod_referencia = models.CharField(
+        verbose_name="Codigo Referencia", max_length=100
     )
-    denominacion = models.CharField(verbose_name="Denominacion", max_length=50)
+    denominacion = models.CharField(verbose_name="Denominacion", max_length=50) #Nombre Referencia
+    descripcion = models.CharField(verbose_name="Descripción", max_length=50,null=True,blank=True)#Descripcion Referencia
+    valor_alfanumerico = models.CharField(verbose_name="Valor Alfanumerico", max_length=100, null=True, blank=True)
+    valor_numerico = models.DecimalField(verbose_name="Valor Numérico", max_digits=18, decimal_places=4, null=True, blank=True)   
+    valor_fecha = models.DateField(verbose_name="Valor Fecha", null=True, blank=True)
+    valor_unico = models.CharField(verbose_name="Valor Único", max_length=25,unique=True) # Valor unico para relacionar en otras tablas
 
     def __str__(self):
         return self.denominacion or ""
+
+    # Generar valor unico automatico si no se ingresa
+    def save(self, *args, **kwargs):
+        if not self.valor_unico:
+            # Guardar primero para obtener el ID
+            super().save(*args, **kwargs)
+            self.valor_unico = str(self.id)
+            # Guardar solo el campo actualizado
+            super().save(update_fields=["valor_unico"])
+        else:
+            super().save(*args, **kwargs)
 
     class Meta:
         # ordering = ['tip_movimiento',]
         db_table = "bs_refdet"
         verbose_name = "Referencia Detalle"
         verbose_name_plural = "Referencias Detalle"
-        unique_together = ["refcab", "cod"]
+        unique_together = ["refcab", "valor_unico"]
 
 
 """MESES"""
@@ -76,17 +92,7 @@ class Modulo(ModeloBase):
         "Código", db_column="cod_modulo", max_length=2, primary_key=True
     )
     denominacion = models.CharField(max_length=100, unique=True)
-    tipo_cartera = models.ForeignKey(
-        RefDet,
-        to_field="cod",
-        limit_choices_to={"refcab_id": 12},
-        db_column="tipo_cartera",
-        on_delete=models.RESTRICT,
-        related_name="modulo_tipo_cartera",
-        max_length=1,
-        default="N",
-    )
-
+    
     def __str__(self):
         return f"{self.cod_modulo} - {self.denominacion}"
 
@@ -207,14 +213,37 @@ class Departamento(ModeloBase):
         verbose_name_plural = "Departamentos"
         unique_together = ["pais", "denominacion"]
 
+# DISTRITO
+class Distrito(ModeloBase):
+    # ID
+    departamento = models.ForeignKey(
+        Departamento, verbose_name="Departamento", on_delete=models.RESTRICT, related_name="departamentos"
+    )
+    denominacion = models.CharField(verbose_name="Denominación", max_length=100)
+
+    def __str__(self):
+        return "{} - {}".format(self.pk, self.denominacion)
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        return item
+
+    class Meta:
+        ordering = [
+            "pk",
+        ]
+        db_table = "bs_distrito"
+        verbose_name = "Distrito"
+        verbose_name_plural = "Distritos"
+
 # CIUDAD
 class Ciudad(ModeloBase):
     # ID
-    departamento = models.ForeignKey(
-        Departamento,
-        verbose_name="Departamento",
+    distrito = models.ForeignKey(
+        Distrito,
+        verbose_name="Distrito",
         on_delete=models.RESTRICT,
-        related_name="departamento",
+        related_name="distritos",null=True, blank=True 
     )
     denominacion = models.CharField(verbose_name="Denominación", max_length=100)
 
@@ -429,23 +458,19 @@ class Persona(ModeloBase):
     fec_nacimiento = models.DateField(verbose_name="Fecha Nacimiento", null=True)
     sexo = models.ForeignKey(
         RefDet,
-        to_field="cod",
         verbose_name="Genero",
         db_column="sexo",
         on_delete=models.RESTRICT,
         related_name="sexo",
-        max_length=1,
         blank=True,
         null=True,
     )
     estado_civil = models.ForeignKey(
         RefDet,
-        to_field="cod",
         verbose_name="Estado Civil",
         db_column="estado_civil",
         on_delete=models.RESTRICT,
         related_name="estado_civil",
-        max_length=2,
         blank=True,
         null=True,
     )

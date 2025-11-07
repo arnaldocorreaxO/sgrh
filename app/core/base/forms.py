@@ -106,20 +106,23 @@ class PersonaForm(ModelForm):
         self.fields["ci"].widget.attrs["autofocus"] = True
         # ESTADO CIVIL
         estado_civil = forms.ModelChoiceField(
-            queryset=RefDet.objects.filter(refcab__cod__exact="ESTADO_CIVIL"),
-            to_field_name="cod",
+            queryset=RefDet.objects.filter(refcab__cod_referencia__exact="ESTADO_CIVIL"),
+            # to_field_name="cod",
             empty_label="(Ninguno)",
+            label="Estado Civil",
         )
         estado_civil.widget.attrs.update({"class": "form-control select2"})
         self.fields["estado_civil"] = estado_civil
         # GENERO
         sexo = forms.ModelChoiceField(
-            queryset=RefDet.objects.filter(refcab__cod__exact="GENERO"),
-            to_field_name="cod",
+            queryset=RefDet.objects.filter(refcab__cod_referencia__exact="SEXO"),
+            # to_field_name="cod",
             empty_label="(Ninguno)",
+            label="Género",
         )
         sexo.widget.attrs.update({"class": "form-control select2"})
         self.fields["sexo"] = sexo
+        
         # NACIONALIDAD
         nacionalidad = self.NacionalidadModelChoiceField(
             queryset=Pais.objects.all(), empty_label="(Ninguno)"
@@ -133,6 +136,7 @@ class PersonaForm(ModelForm):
             self.fields["ciudad"].queryset = Ciudad.objects.filter(
                 id=self.instance.ciudad_id
             )
+        
 
     class Meta:
         model = Persona
@@ -151,15 +155,15 @@ class PersonaForm(ModelForm):
                 attrs={"class": "form-control select2", "style": "width: 100%;"}
             ),
             "direccion": forms.TextInput(
-                attrs={"placeholder": "Ingrese una dirección"}
+                attrs={"placeholder": "Indique una dirección particular"}
             ),
             "telefono": forms.TextInput(
-                attrs={"placeholder": "Ingrese un teléfono convencional"}
+                attrs={"placeholder": "Indique un numero de telefono convencional"}
             ),
             "celular": forms.TextInput(
-                attrs={"placeholder": "Ingrese un teléfono celular"}
+                attrs={"placeholder": "Indique un numero de telefono celular principal"}
             ),
-            "email": forms.TextInput(attrs={"placeholder": "Ingrese un email"}),
+            "email": forms.TextInput(attrs={"placeholder": "Indique un email principal"}),
             "fec_nacimiento": forms.DateInput(
                 format="%Y-%m-%d",
                 attrs={
