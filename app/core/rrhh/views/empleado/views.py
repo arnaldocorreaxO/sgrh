@@ -16,7 +16,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from config import settings
-from config.identificaciones import get_consultar_datos_persona
 from core.rrhh.models import Empleado
 from core.rrhh.forms.empleado.forms import EmpleadoForm
 from core.base.models import Barrio, Ciudad
@@ -24,19 +23,6 @@ from core.base.procedures import sp_identificaciones
 from core.base.utils import YYYY_MM_DD, get_fecha_actual, isNULL
 from core.security.mixins import PermissionMixin
 from core.user.models import User
-
-
-# Obtener datos de la persona de la Base de Datos de Identificaciones
-# POSTGRESQL
-def get_datos_persona_pgsql(request):
-    # import pdb; pdb.set_trace()
-    vCi = str(request.GET.get("ci", "X"))
-    # print("*" * 10)
-    # print(vCi)
-    persona = get_consultar_datos_persona(vCedula=vCi)
-    # print(persona)
-    return HttpResponse(simplejson.dumps(persona), content_type="application/json")
-
 
 # MSSQL
 def get_datos_persona(request):
