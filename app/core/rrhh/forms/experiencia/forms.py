@@ -38,7 +38,7 @@ class ExperienciaLaboralForm(ModelForm):
         if self.instance:
             self.fields["institucion"].queryset = Institucion.objects.all().order_by('denominacion')
             self.fields["cargo"].queryset = RefDet.objects.filter(
-                refcab__cod_referencia="CARGO"
+                refcab__cod_referencia="CARGO_PUESTO"
             ).order_by('descripcion')
 
             self.fields['archivo_pdf'].required = False
