@@ -27,7 +27,7 @@ class ExperienciaLaboralForm(ModelForm):
 
         # CARGO
         cargo = forms.ModelChoiceField(
-            queryset=RefDet.objects.filter(refcab__cod_referencia="CARGO"),
+            queryset=RefDet.objects.filter(refcab__cod_referencia="CARGO_PUESTO"),
             empty_label="(Seleccione un cargo)",
             label="Cargo",
         )
