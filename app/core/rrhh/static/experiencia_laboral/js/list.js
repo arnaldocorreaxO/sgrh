@@ -2,7 +2,7 @@ var tblData;
 var input_daterange;
 var columns = [];
 
-capacitacion = {
+experienciaLaboral = {
   list: function (all) {
     const select_empleado = $("#empleado");
     const current_date = new moment().format("YYYY-MM-DD");
@@ -150,13 +150,13 @@ $(function () {
   input_daterange = $("#input_daterange");
   $(".select2").select2({ theme: "bootstrap4", language: "es" });
 
-  capacitacion.list(false);
+  experienciaLaboral.list(false);
 
   $("#btnBuscar").on("click", function () {
-    capacitacion.list(false);
+    experienciaLaboral.list(false);
   });
 
   $("#btnTodos").on("click", function () {
-    capacitacion.list(true);
+    experienciaLaboral.list(true);
   });
 });

@@ -15,4 +15,6 @@
 <th scope="col" style="width: 10%;">Archivo</th>
 <th scope="col" style="width: 10%;" class="text-center">Opciones</th>
 {% endblock %}
-
+{% block content_list_before %}
+    {% include 'empleado/empleado_filter.html' %}
+{% endblock %}

@@ -15,37 +15,7 @@
 <th scope="col" style="width: 10%;">Archivo</th>
 <th scope="col" style="width: 10%;" class="text-center">Opciones</th>
 {% endblock %}
+
 {% block content_list_before %}
-    <div class="row">
-        <div class="col-lg-6">
-            <div class="form-group">
-                <label>Por Empleado:</label>
-                <div class="input-group mb-3">{{ filter_form.empleado }}</div>
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="form-group">
-                <label>Por Institución:</label>
-                <div class="input-group mb-3">{{ filter_form.institucion }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-lg-6">
-            <div class="form-group">
-                <label>Acciones:</label>
-                <div class="input-group mb-3">
-                    <div class="input-group-append">
-                        <button id="btnBuscar" class="btn btn-warning btnBuscar" type="button">
-                            <i class="fas fa-search"></i> Filtrar
-                        </button>
-                        <button id="btnTodos" class="btn btn-success btnTodos" type="button">
-                            <i class="fab fa-searchengin"></i> Ver todos
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <hr>
+    {% include 'empleado/empleado_filter.html' %}
 {% endblock %}
