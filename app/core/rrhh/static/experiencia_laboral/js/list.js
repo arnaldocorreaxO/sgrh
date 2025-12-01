@@ -97,9 +97,10 @@ experienciaLaboral = {
       ],
       columns: [
         { data: "id" },
+        { data: "empleado" },
         { data: "cargo_denominacion" },
         { data: "institucion_denominacion" },
-        { data: "empleado_ci" },
+        { data: "fecha_desde" },
         { data: "fecha_hasta" },
         { data: "archivo_pdf" },
         { data: "id" },

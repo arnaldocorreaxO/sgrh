@@ -121,18 +121,3 @@ class ExperienciaLaboralForm(ModelFormEmpleado):
         except Exception as e:
             data["error"] = str(e)
         return data
-
-    def save_with_empleado(self, commit=True, empleado=None):
-        data = {}
-        try:
-            if self.is_valid():
-                instance = super().save(commit=False)
-                if empleado and not instance.pk:
-                    instance.empleado = empleado
-                if commit:
-                    instance.save()
-                data["success"] = instance
-            else:
-                data["error"] = self.errors
-        except Exception as e:
-            data["error"] = str(e)
