@@ -1,14 +1,14 @@
 import os
 
 from django.core.validators import FileExtensionValidator
+from django.utils import timezone
 
 
-from core.base.models import Barrio, Ciudad, Pais, RefDet
+from core.base.models import Barrio, Ciudad, Moneda, Pais, RefDet
 from core.models import ModeloBase
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.forms import model_to_dict
-from config import settings as setting
 
 from core.base.choices import *
 from core.base.utils import calculate_age
@@ -56,20 +56,85 @@ class Dependencia(ModeloBase):
     denonimacion = models.CharField(max_length=255)
     dependencia_padre = models.ForeignKey('self', on_delete=models.RESTRICT, null=True, blank=True)
 
+    def __str__(self):  
+        return self.denonimacion
+
     class Meta:
         db_table = "rh_dependencia"
         verbose_name = "Dependencia"
         verbose_name_plural = "Dependencias" 
+        ordering = ['id']
 
-# DEPENDENCIA POSICION = CARGO  
-class DependenciaPosicion(ModeloBase):
-    dependencia=models.ForeignKey(Dependencia, on_delete=models.RESTRICT)
-    posicion=models.ForeignKey(RefDet, on_delete=models.RESTRICT)
+class CategoriaSalarial(ModeloBase):
+    codigo = models.CharField(max_length=4)
+    moneda = models.ForeignKey(Moneda, on_delete=models.RESTRICT)
+    vigencia = models.DateField(default=timezone.now)
+    denominacion = models.CharField(max_length=150, verbose_name="Denominación")
+    sueldo_basico = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Sueldo Básico")
+
+    def __str__(self):
+       return f"{self.denominacion} - {self.codigo}"
 
     class Meta:
-        db_table = "rh_dependencia_posicion"
-        verbose_name = "Dependencia Posicion"
-        verbose_name_plural = "Dependencias Posiciones" 
+        db_table = "rh_categoria_salarial"
+        verbose_name = "Categoría Salarial"
+        verbose_name_plural = "Categorías Salariales"
+        unique_together = ("codigo","denominacion", "vigencia")
+        ordering = ['id']
+
+# Nivel Jerarquico, Cargo, Puesto
+class Nivel(ModeloBase):
+    denominacion = models.CharField(max_length=150, verbose_name="Denominación")
+    categoria = models.ForeignKey(CategoriaSalarial, on_delete=models.RESTRICT, related_name="nivel_categoria",null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.denominacion}  - {self.categoria}"
+
+    class Meta:
+        db_table = "rh_nivel"
+        verbose_name = "Nivel"
+        verbose_name_plural = "Niveles"
+        ordering = ['id']
+
+class MatrizSalarial(ModeloBase):
+    nivel = models.ForeignKey(Nivel, on_delete=models.RESTRICT, related_name="matriz_nivel")
+    monto_salario = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Monto Salarial")
+    vigencia_inicio = models.DateField(verbose_name="Vigencia Inicio")
+    vigencia_fin = models.DateField(verbose_name="Vigencia Fin", null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.nivel} - {self.nivel.categoria} - {self.monto_salario}"
+    class Meta:
+        db_table = "rh_matriz_salarial"
+        verbose_name = "Matriz Salarial"
+        verbose_name_plural = "Matriz Salariales"
+
+class Cargo(ModeloBase):
+    denominacion = models.CharField(max_length=150, verbose_name="Denominación")
+    nivel = models.ForeignKey(Nivel, on_delete=models.RESTRICT, related_name="nivel_cargo", null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.denominacion} - {self.nivel.categoria if self.nivel else ''}"
+
+    class Meta:
+        db_table = "rh_cargo"
+        verbose_name = "Cargo"
+        verbose_name_plural = "Cargos"
+        ordering = ['id']
+
+class Puesto(ModeloBase):
+    cargo = models.ForeignKey(Cargo, on_delete=models.RESTRICT, related_name="puesto_cargo")
+    denominacion = models.CharField(max_length=255, verbose_name="Descripción del Puesto")
+    
+    def __str__(self):
+        return f"{self.cargo} - {self.denominacion}"
+
+    class Meta:
+        db_table = "rh_puesto"
+        verbose_name = "Puesto"
+        verbose_name_plural = "Puestos"
+        ordering = ['id']
+
 
 # EMPLEADO
 class Empleado(ModeloBase):
@@ -149,13 +214,27 @@ class Empleado(ModeloBase):
         verbose_name = "Empleado"
         verbose_name_plural = "Empleados"
         unique_together = ("legajo", "ci")
-        permissions = (
-            ("change_perfil_empleado", "Puede modificar su propio perfil"),
-        )
-            
+        permissions = [
+            ("view_empleado_self", "Puede ver su propio perfil"),
+            ("add_empleado_self", "Puede agregar su propio perfil"),
+            ("change_empleado_self", "Puede modificar su propio perfil"),
+            ("delete_empleado_self", "Puede eliminar su propio perfil"),            
+        ]
 
+# DEPENDENCIA POSICION = CARGO  
+class DependenciaPosicion(ModeloBase):
+    dependencia=models.ForeignKey(Dependencia, on_delete=models.RESTRICT)
+    posicion=models.ForeignKey(Puesto, on_delete=models.RESTRICT)
 
-# EMPLEADO POSICION = ASIGNACION DE CARGO
+    def __str__(self):  
+        return f"{self.dependencia} - {self.posicion}"
+
+    class Meta:
+        db_table = "rh_dependencia_posicion"
+        verbose_name = "Dependencia Posicion"
+        verbose_name_plural = "Dependencias Posiciones" 
+
+# EMPLEADO POSICION = ASIGNACION DE CARGO PUESTO
 class EmpleadoPosicion(ModeloBase):
     def directory_path(instance, filename):
         return f'empleado/{instance.empleado.ci}/DOC/RESOLUCION/{filename}'    
@@ -182,6 +261,8 @@ class EmpleadoPosicion(ModeloBase):
         related_name="estado_empleado_posicion",
         default="S", # Activo
     )  
+    def __str__(self):
+        return f"{self.empleado} - {self.dependencia_posicion}"
     class Meta:
         db_table = "rh_empleado_posicion"
         verbose_name = "Asignación de Cargo"
@@ -202,6 +283,7 @@ class FormacionAcademica(ModeloBase):
     )
     institucion = models.ForeignKey(Institucion, on_delete=models.RESTRICT, related_name="institucion_antecedente_academico")
     titulo_obtenido = models.ForeignKey(RefDet, on_delete=models.RESTRICT, related_name="titulo_obtenido_antecedente_academico")
+    denominacion_carrera = models.CharField(max_length=150, verbose_name="Carrera", null=True, blank=True)
     anho_graduacion = models.IntegerField(verbose_name="Año Graduación", null=True, blank=True)
     archivo_pdf = models.FileField(
         upload_to=directory_path,
@@ -225,22 +307,25 @@ class FormacionAcademica(ModeloBase):
                 item[field.name] = value.url if value else None
             elif hasattr(value, 'name'):
                 item[field.name] = value.name if value else None
-
+        item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
         item['institucion_denominacion'] = self.institucion.denominacion if self.institucion else None
         item['nivel_academico_denominacion'] = self.nivel_academico.denominacion if self.nivel_academico else None
         item['titulo_obtenido_denominacion'] = self.titulo_obtenido.denominacion if self.titulo_obtenido else None
+        item['denominacion_carrera'] = self.denominacion_carrera if self.denominacion_carrera else None
         # Formatear fecha de graduación
         item['anho_graduacion'] = self.anho_graduacion if self.anho_graduacion else None
-
         
         return item
-
-
     
     class Meta:
         db_table = "rh_formacion_academica"
         verbose_name = "Formación Académica"
         verbose_name_plural = "Formaciones Académicas"
+        permissions = [('view_formacionacademica_self', 'Puede ver su propia formación académica'),
+                       ('add_formacionacademica_self', 'Puede agregar su propia formación académica'),
+                       ('change_formacionacademica_self', 'Puede modificar su propia formación académica'),
+                       ('delete_formacionacademica_self', 'Puede eliminar su propia formación académica'),            
+                      ]
 
 
 # CURSOS REALIZADOS = CAPACITACION
@@ -248,7 +333,7 @@ class Capacitacion(ModeloBase):
     def directory_path(instance, filename):
         return f'empleado/{instance.empleado.ci}/DOC/CAPACITACION/{filename}'
     
-    empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT)
+    empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT,related_name='capacitacion')
 
     institucion = models.ForeignKey(
         Institucion,
@@ -294,14 +379,13 @@ class Capacitacion(ModeloBase):
         verbose_name = "Capacitacion Realizada"
         verbose_name_plural = "Capacitaciones Realizadas"
         ordering = ["-fecha_fin"]
+        permissions = [('view_capacitacion_self', 'Puede ver su propia capacitación realizada'),
+                       ('add_capacitacion_self', 'Puede agregar su propia capacitación realizada'),
+                       ('change_capacitacion_self', 'Puede modificar su propia capacitación realizada'),
+                       ('delete_capacitacion_self', 'Puede eliminar su propia capacitación realizada'),            
+                      ]
 
-    @property
-    def duracion_dias(self):
-        if self.fecha_inicio and self.fecha_fin:
-            return (self.fecha_fin - self.fecha_inicio).days
-        return None
-    @property
-    
+    @property    
     def duracion_dias(self):
         if self.fecha_inicio and self.fecha_fin:
             return (self.fecha_fin - self.fecha_inicio).days
@@ -326,6 +410,7 @@ class Capacitacion(ModeloBase):
         item['institucion_denominacion'] = self.institucion.denominacion if self.institucion else None
         item['tipo_certificacion_denominacion'] = self.tipo_certificacion.denominacion if self.tipo_certificacion else None
         item['empleado_ci'] = self.empleado.ci if self.empleado else None
+        item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
 
         # Fechas formateadas
         item['fecha_inicio'] = self.fecha_inicio.strftime('%d/%m/%Y') if self.fecha_inicio else None
@@ -336,7 +421,7 @@ class Capacitacion(ModeloBase):
 class ExperienciaLaboral(ModeloBase):
     def directory_path(instance, filename):
         return f'empleado/{instance.empleado.ci}/DOC/LABORALS/{filename}'
-    empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT)
+    empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT,related_name="experiencialaboral")
     institucion = models.ForeignKey(Institucion, on_delete=models.RESTRICT, related_name="institucion_experiencia_profesional")
     cargo = models.ForeignKey(RefDet, on_delete=models.RESTRICT, related_name="cargo_experiencia_profesional")
     fecha_desde = models.DateField(verbose_name="Fecha Desde")
@@ -359,6 +444,7 @@ class ExperienciaLaboral(ModeloBase):
         item['institucion_denominacion'] = self.institucion.denominacion if self.institucion else None
         item['cargo_denominacion'] = self.cargo.denominacion if self.cargo else None
         item['empleado_ci'] = self.empleado.ci if self.empleado else None
+        item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
 
         # Fechas formateadas
         item['fecha_desde'] = self.fecha_desde.strftime('%d/%m/%Y') if self.fecha_desde else None
@@ -371,6 +457,11 @@ class ExperienciaLaboral(ModeloBase):
         db_table = "rh_experiencia_laboral"
         verbose_name = "Experiencia Laboral"
         verbose_name_plural = "Experiencias Laborales"
+        permissions = [('view_experiencialaboral_self', 'Puede ver su propia experiencia laboral'),
+                       ('add_experiencialaboral_self', 'Puede agregar su propia experiencia laboral'),
+                       ('change_experiencialaboral_self', 'Puede modificar su propia experiencia laboral'),
+                       ('delete_experiencialaboral_self', 'Puede eliminar su propia experiencia laboral'),
+                      ]
 
 # DOCUMENTOS COMPLEMENTARIOS DEL EMPLEADO = OTROS DOCUMENTOS
 
@@ -403,6 +494,9 @@ class DocumentoComplementario(ModeloBase):
 
     def toJSON(self):
         item = model_to_dict(self, exclude=['archivo_pdf'])
+        # Empleado 
+        item['empleado_ci'] = self.empleado.ci if self.empleado else None
+        item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
 
         # Archivo PDF
         item['archivo_pdf_url'] = self.archivo_pdf.url if self.archivo_pdf else None
@@ -427,6 +521,11 @@ class DocumentoComplementario(ModeloBase):
         db_table = "rh_documento_complementario"
         verbose_name = "Documento Complementario"
         verbose_name_plural = "Documentos Complementarios"
+        permissions = [('view_documentocomplementario_self', 'Puede ver sus propios documentos complementarios'),
+                       ('add_documentocomplementario_self', 'Puede agregar sus propios documentos complementarios'),
+                       ('change_documentocomplementario_self', 'Puede modificar sus propios documentos complementarios'),
+                       ('delete_documentocomplementario_self', 'Puede eliminar sus propios documentos complementarios'),
+                      ]
 
 # HISTORICO DISCIPLINARIO = REGISTRO DISCIPLINARIO = ANTECEDENTES DISCIPLINARIOS
 class HistoricoDisciplinario(ModeloBase):
@@ -434,13 +533,28 @@ class HistoricoDisciplinario(ModeloBase):
         return f'empleado/{instance.empleado.ci}/DOC/DISCIPLINARIO/{filename}'
     empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT)
 
+    tipo_falta = models.ForeignKey(
+        RefDet,
+        verbose_name="Tipo de Falta",
+        on_delete=models.RESTRICT,
+        related_name="tipo_falta_historico",
+        help_text="Ej: Falta Leve, Falta Grave, Falta Muy Grave",
+        null=True,
+    )
+    tipo_sancion = models.ForeignKey(
+        RefDet,
+        verbose_name="Tipo de Sanción",
+        on_delete=models.RESTRICT,
+        related_name="tipo_sancion_historico",
+        help_text="Ej: Amonestación Verbal, Amonestación Escrita, Suspensión, Despido",
+        null=True,
+    )
     tipo_documento = models.ForeignKey(
         RefDet,
         verbose_name="Tipo de Documento",
-        db_column="tipo_documento",
         on_delete=models.RESTRICT,
         related_name="tipo_documento_historico",
-        help_text="Ej: Sanción, Sumario, Amonestación"
+        help_text="Ej: Acta, Resolución, Informe, Notificación, Carta Amonestación"
     )
 
     descripcion = models.CharField(
@@ -480,6 +594,27 @@ class HistoricoDisciplinario(ModeloBase):
         default="S"
     )
 
+    def toJSON(self):
+        item = model_to_dict(self, exclude=['archivo_pdf'])
+        # Empleado 
+        item['empleado_ci'] = self.empleado.ci if self.empleado else None
+        item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
+
+        # Archivo PDF
+        item['archivo_pdf_url'] = self.archivo_pdf.url if self.archivo_pdf else None
+        item['archivo_pdf'] = "PDF" if self.archivo_pdf else None
+
+        # Relaciones
+        item['tipo_falta_denominacion'] = self.tipo_falta.denominacion if self.tipo_falta else None
+        item['tipo_sancion_denominacion'] = self.tipo_sancion.denominacion if self.tipo_sancion else None
+        item['tipo_documento_denominacion'] = self.tipo_documento.denominacion if self.tipo_documento else None
+        item['estado_documento_denominacion'] = self.estado_documento.descripcion if self.estado_documento else None
+
+        # Fecha formateada
+        item['fecha_emision'] = self.fecha_emision.strftime('%d/%m/%Y') if self.fecha_emision else None
+
+        return item
+
     def filename(self):
         return os.path.basename(self.archivo_pdf.name)
 
@@ -494,3 +629,8 @@ class HistoricoDisciplinario(ModeloBase):
         verbose_name = "Histórico Disciplinario"
         verbose_name_plural = "Históricos Disciplinarios"
         ordering = ["-fecha_emision"]
+        permissions = [('view_historicodisciplinario_self', 'Puede ver su propio histórico disciplinario'),
+                       ('add_historicodisciplinario_self', 'Puede agregar su propio histórico disciplinario'),
+                       ('change_historicodisciplinario_self', 'Puede modificar su propio histórico disciplinario'),
+                       ('delete_historicodisciplinario_self', 'Puede eliminar su propio histórico disciplinario'),            
+                      ]

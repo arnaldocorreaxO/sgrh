@@ -41,10 +41,15 @@ class FormacionAcademicaAdmin(ModeloAdminBase):
     # autocomplete_fields = ["empleado",]
     list_filter = ["empleado", ]
 
-
+admin.site.register(CategoriaSalarial, ModeloAdminBase)
+admin.site.register(Nivel, ModeloAdminBase)
+admin.site.register(MatrizSalarial, ModeloAdminBase)
+admin.site.register(Cargo, ModeloAdminBase)
+admin.site.register(Puesto, ModeloAdminBase)
 admin.site.register(Institucion, InstitucionAdmin)
 admin.site.register(Sede, ModeloAdminBase)
 admin.site.register(Dependencia, ModeloAdminBase)
+admin.site.register(DependenciaPosicion, ModeloAdminBase)
 admin.site.register(Empleado, EmpleadoAdmin)
 admin.site.register(EmpleadoPosicion, ModeloAdminBase)
 admin.site.register(FormacionAcademica, FormacionAcademicaAdmin)
@@ -52,3 +57,4 @@ admin.site.register(FormacionAcademica, FormacionAcademicaAdmin)
 admin.site.register(Capacitacion, ModeloAdminBase)
 admin.site.register(DocumentoComplementario, ModeloAdminBase)
 admin.site.register(HistoricoDisciplinario, ModeloAdminBase)
+

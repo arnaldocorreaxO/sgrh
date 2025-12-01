@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Currículum Vitae</title>
+  <link rel="stylesheet" href="{% static 'css/cv.css' %}" />
+</head>
+<body>
+  <div class="cv-container">
+    <header>
+      {% if empleado.usuario.image %}
+        <img src="{{ empleado.usuario.image.url }}" alt="Foto tipo carnet" class="foto-carnet" />
+      {% else %}
+        <img src="{% static 'img/default-user.png' %}" alt="Sin foto" class="foto-carnet" />
+      {% endif %}
+
+      <h1>{{ empleado.full_name }}</h1>
+      <p>{{ empleado.cargo }}</p>
+    </header>
+
+    <section>
+      <h2>Datos Personales</h2>
+      <ul>
+        <li><strong>CI:</strong> {{ empleado.ci }}</li>
+        <li><strong>Email:</strong> {{ empleado.email }}</li>
+        <li><strong>Teléfono:</strong> {{ empleado.telefono }}</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Formación Académica</h2>
+      <ul>
+        {% for f in empleado.formacionacademica.all %}
+          <li>{{ f.titulo_obtenido }} - {{f.denominacion_carrera}} - {{ f.institucion }} ({{ f.anho_graduacion }})</li>
+        {% empty %}
+          <li>No hay registros académicos.</li>
+        {% endfor %}
+      </ul>
+    </section>
+    <section>
+      <h2>Otros Estudios</h2>
+      <ul>
+        {% for c in empleado.capacitacion.all %}
+          <li>{{ c.nombre_capacitacion }} - {{ c.institucion }} (del {{ c.fecha_inicio|date:"d/m/Y" }} al {{ c.fecha_fin|date:"d/m/Y" }})</li>
+        {% empty %}
+          <li>No hay registros de capacitación.</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section>
+      <h2>Experiencia Laboral</h2>
+      <ul>
+        {% for e in empleado.experiencialaboral.all %}
+          <li>
+            <strong>{{ e.cargo }}</strong> en {{ e.institucion }}<br />
+            <em>{{ e.fecha_desde|date:"F Y" }} – {{ e.fecha_hasta|date:"F Y" }}</em><br />
+            {{ e.descripcion }}
+          </li>
+        {% empty %}
+          <li>No hay registros de experiencia laboral.</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+  </div>
+</body>
+</html>

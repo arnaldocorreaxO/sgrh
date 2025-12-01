@@ -1,19 +1,23 @@
 {% extends 'list.html' %}
 {% load static %}
 {% block head_list %}
-<script src="{% static 'capacitacion/js/list.js' %}"></script>
-{% endblock %}
-
+    <link rel="stylesheet"
+          href="{% static 'lib/bootstrap-daterangepicker-3.0.5/daterangepicker.css' %}"/>
+    <script src="{% static 'lib/bootstrap-daterangepicker-3.0.5/spanish.js' %}"></script>
+    <script src="{% static 'lib/bootstrap-daterangepicker-3.0.5/daterangepicker.js' %}"></script>
+    <script src="{% static 'formacion_academica/js/list.js' %}"></script>
+    {% comment %} <script src="{% static 'formacion_academica/js/search_select2.js' %}"></script> {% endcomment %}
+{% endblock head_list %}
 {% block columns %}
-<th scope="col" style="width: 5%;">ID</th>
-<th scope="col" style="width: 23%;">Empleado</th>
-<th scope="col" style="width: 20%;">Nombre del Curso</th>
-<th scope="col" style="width: 15%;">Tipo de Certificación</th>
-<th scope="col" style="width: 20%;">Institución</th>
-<th scope="col" style="width: 10%;">Inicio</th>
-<th scope="col" style="width: 10%;">Fin</th>
-<th scope="col" style="width: 10%;">Archivo</th>
-<th scope="col" style="width: 10%;" class="text-center">Opciones</th>
+    <th scope="col" style="width: 4%;">ID</th>
+    <th scope="col" style="width: 23%;">Empleado</th>
+    <th scope="col" style="width: 22%;">Título</th>
+    <th scope="col" style="width: 25%;">Carrera</th>
+    <th scope="col" style="width: 23%;">Institución</th>
+    <th scope="col" style="width: 10%;">Nivel</th>
+    <th scope="col" style="width: 8%;">Año</th>
+    <th scope="col" style="width: 5%;">Archivo</th>
+    <th scope="col" style="width: 5%;" class="text-center">Opciones</th>
 {% endblock %}
 {% block content_list_before %}
     <div class="row">

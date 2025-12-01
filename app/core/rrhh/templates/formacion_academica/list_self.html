@@ -1,0 +1,15 @@
+{% extends "list.html" %}
+{% load static %}
+{% block head_list %}
+    <script src="{% static 'formacion_academica/js/list_self.js' %}"></script>
+{% endblock head_list %}
+{% block columns %}
+    <th scope="col" style="width: 5%;">ID</th>
+    <th scope="col" style="width: 15%;">Titulo Obtenido</th>
+    <th scope="col" style="width: 25%;">Carrera</th>
+    <th scope="col" style="width: 15%;">Nivel Académico</th>
+    <th scope="col" style="width: 25%;">Institución</th>
+    <th scope="col" style="width: 5%;">Año Graduación</th>
+    <th scope="col" style="width: 5%;">Archivo</th>
+    <th scope="col" style="width: 5%;" class="text-center">Opciones</th>
+{% endblock columns %}

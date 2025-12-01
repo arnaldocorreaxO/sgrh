@@ -1,0 +1,16 @@
+{% extends 'list.html' %}
+{% load static %}
+
+{% block head_list %}
+<script src="{% static 'historico_disciplinario/js/list_self.js' %}"></script>
+{% endblock %}
+
+{% block columns %}
+<th scope="col" style="width: 5%;">ID</th>
+<th scope="col" style="width: 10%;">Tipo de Falta</th>
+<th scope="col" style="width: 10%;">Tipo de Sanción</th>
+<th scope="col" style="width: 10%;">Tipo de Documento</th>
+<th scope="col" style="width: 10%;">Estado</th>
+<th scope="col" style="width: 10%;">Archivo PDF</th>
+<th scope="col" style="width: 10%;" class="text-center">Opciones</th>
+{% endblock %}

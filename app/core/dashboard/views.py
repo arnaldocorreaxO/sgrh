@@ -35,6 +35,7 @@ class DashboardView(LoginRequiredMixin,TemplateView):
         return "hztpanel.html"
 
     def get(self, request, *args, **kwargs):
+        request.session["url_last"] = request.path
         if request.user.is_authenticated:
             request.user.set_group_session()
         return super().get(request, *args, **kwargs)

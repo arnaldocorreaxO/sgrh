@@ -1,0 +1,18 @@
+{% extends 'list.html' %}
+{% load static %}
+
+{% block head_list %}
+<script src="{% static 'experiencia_laboral/js/list.js' %}"></script>
+{% endblock %}
+
+{% block columns %}
+<th scope="col" style="width: 5%;">ID</th>
+<th scope="col" style="width: 15%;">Empleado</th>
+<th scope="col" style="width: 10%;">Cargo</th>
+<th scope="col" style="width: 25%;">Institución</th>
+<th scope="col" style="width: 10%;">Fecha Desde</th>
+<th scope="col" style="width: 10%;">Fecha Hasta</th>
+<th scope="col" style="width: 10%;">Archivo</th>
+<th scope="col" style="width: 10%;" class="text-center">Opciones</th>
+{% endblock %}
+

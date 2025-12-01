@@ -2,7 +2,7 @@ var tblData;
 var input_daterange;
 var columns = [];
 
-capacitacion = {
+historico_disciplinario = {
   list: function (all) {
     const select_empleado = $("#empleado");
     const current_date = new moment().format("YYYY-MM-DD");
@@ -98,11 +98,10 @@ capacitacion = {
       columns: [
         { data: "id" },
         { data: "empleado" },
-        { data: "nombre_capacitacion" },
-        { data: "tipo_certificacion_denominacion" },
-        { data: "institucion_denominacion" },
-        { data: "fecha_inicio" },
-        { data: "fecha_fin" },
+        { data: "tipo_falta_denominacion" },
+        { data: "tipo_sancion_denominacion" },
+        { data: "tipo_documento_denominacion" },
+        { data: "estado_documento_denominacion" },
         { data: "archivo_pdf" },
         { data: "id" },
       ],
@@ -152,13 +151,13 @@ $(function () {
   input_daterange = $("#input_daterange");
   $(".select2").select2({ theme: "bootstrap4", language: "es" });
 
-  capacitacion.list(false);
+  historico_disciplinario.list(false);
 
   $("#btnBuscar").on("click", function () {
-    capacitacion.list(false);
+    historico_disciplinario.list(false);
   });
 
   $("#btnTodos").on("click", function () {
-    capacitacion.list(true);
+    historico_disciplinario.list(true);
   });
 });

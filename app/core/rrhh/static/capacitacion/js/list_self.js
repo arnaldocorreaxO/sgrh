@@ -1,4 +1,4 @@
-var persona = {
+var capacitacion = {
   list: function () {
     $("#data").DataTable({
       responsive: true,
@@ -31,16 +31,17 @@ var persona = {
       order: [[0, "asc"]],
       columns: [
         { data: "id" },
-        { data: "ci" },
-        { data: "nombre" },
-        { data: "apellido" },
-        { data: "edad" },
-        { data: "celular" },
+        { data: "nombre_capacitacion" },
+        { data: "tipo_certificacion_denominacion" },
+        { data: "institucion_denominacion" },
+        { data: "fecha_inicio" },
+        { data: "fecha_fin" },
+        { data: "archivo_pdf" },
         { data: "id" },
       ],
       columnDefs: [
         {
-          targets: [1],
+          targets: [0],
           class: "text-left",
           orderable: true,
           render: function (data, type, row) {
@@ -48,28 +49,36 @@ var persona = {
           },
         },
         {
-          targets: [-1],
+          targets: [-2],
           class: "text-center",
           orderable: false,
           render: function (data, type, row) {
             var buttons = "";
-
-            buttons +=
+            if (row.archivo_pdf_url) {
+              buttons +=
+                '<a href="' +
+                row.archivo_pdf_url +
+                '" class="btn btn-xs btn-danger btn-flat" data-toggle="tooltip" title="Ver PDF" target="_blank">' +
+                '<i class="fas fa-file-pdf"></i></a>';
+            }
+            return buttons;
+          },
+        },
+        {
+          targets: [-1],
+          class: "text-center",
+          orderable: false,
+          render: function (data, type, row) {
+            var buttons =
               '<a href="' +
               pathname +
-              "/cv/pdf/" +
-              row.id +
-              '/" class="btn btn-danger btn btn-xs btn-flat" data-toggle="tooltip" title="Ver CV PDF" target="_blank"><i class="fas fa-file-pdf"></i></a> ';
-            buttons +=
-              '<a href="' +
-              pathname +
-              "/update/" +
+              "update/" +
               row.id +
               '/" class="btn btn-warning btn btn-xs btn-flat" data-toggle="tooltip" title="Editar"><i class="fas fa-edit"></i></a> ';
             buttons +=
               '<a href="' +
               pathname +
-              "/delete/" +
+              "delete/" +
               row.id +
               '/" type="button" class="btn btn-xs btn-danger btn btn-flat" data-toggle="tooltip" title="Eliminar"><i class="fas fa-trash-alt"></i></a>';
             return buttons;
@@ -83,6 +92,6 @@ var persona = {
 
 $(function () {
   $(document).ready(function () {
-    persona.list(false);
+    capacitacion.list(false);
   });
 });

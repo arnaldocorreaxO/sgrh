@@ -51,6 +51,17 @@ class BaseListView(ListView):
         return ordering or self.default_order_fields
 
 
+    # def apply_search_filter(self, queryset, search):
+    #     if search.isnumeric():
+    #         q_numeric = Q()
+    #         for field in self.numeric_fields:
+    #             q_numeric |= Q(**{f"{field}__exact": search})
+    #         return queryset.filter(q_numeric)
+
+    #     q_text = Q()
+    #     for field in self.search_fields:
+    #         q_text |= Q(**{f"{field}__icontains": search})
+    #     return queryset.filter(q_text).exclude(activo=False)
     def apply_search_filter(self, queryset, search):
         if search.isnumeric():
             q_numeric = Q()
@@ -59,6 +70,13 @@ class BaseListView(ListView):
             return queryset.filter(q_numeric)
 
         q_text = Q()
-        for field in self.search_fields:
-            q_text |= Q(**{f"{field}__icontains": search})
+        keywords = search.strip().split()
+
+        for word in keywords:
+            q_word = Q()
+            for field in self.search_fields:
+                q_word |= Q(**{f"{field}__icontains": word})
+            q_text &= q_word  # AND entre palabras, OR entre campos
+
         return queryset.filter(q_text).exclude(activo=False)
+
