@@ -47,14 +47,14 @@
                             <div class="col-md-8">
                                 <!-- Estado -->
                                 <div class="form-group mb-1">
-                                    <label for="{{ form.activo.id_for_label }}">{{ form.activo.label }}*</label>
+                                    <label for="{{ form.activo.id_for_label }}">{{ form.activo.label }}</label>
                                     {{ form.activo }}
                                 </div>
 
                                 <!-- Legajo -->
                                 <div class="form-row g-0">
                                     <div class="form-group col-md-6 mb-1">
-                                        <label for="{{ form.legajo.id_for_label }}">{{ form.legajo.label }}*</label>
+                                        <label for="{{ form.legajo.id_for_label }}">{{ form.legajo.label }}</label>
                                         {{ form.legajo|add_class:'form-control'|attr:'autocomplete:off'|attr:'aria-label:Legajo del empleado' }}
                                     </div>
                                 </div>
@@ -83,7 +83,7 @@
                                     </div>
 
                                     <div class="form-group col-md-6 mb-1">
-                                        <label for="{{ form.ruc.id_for_label }}">{{ form.ruc.label }}</label>
+                                        <label for="{{ form.ruc.id_for_label }}">{{ form.ruc.label }}*</label>
                                         {{ form.ruc|add_class:'form-control'|attr:'autocomplete:off' }}
                                     </div>
                                 </div>
@@ -131,7 +131,7 @@
                                 {{ form.nacionalidad|add_class:'form-control'|attr:'autocomplete:off'}}
                             </div>
                             <div class="form-group col-md-4 mb-1">
-                                <label for="{{ form.ciudad.id_for_label }}">{{form.ciudad.label}}</label>
+                                <label for="{{ form.ciudad.id_for_label }}">{{form.ciudad.label}}*</label>
                                 {{ form.ciudad|add_class:'form-control'|attr:'autocomplete:off'}}
                             </div>
                             <div class="form-group col-md-4 mb-1">

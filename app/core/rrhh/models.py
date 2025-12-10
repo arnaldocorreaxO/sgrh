@@ -27,7 +27,7 @@ class Institucion(ModeloBase):
     tipo_funcion = models.ForeignKey(RefDet, on_delete=models.RESTRICT, related_name="tipo_funcion_institucion",null=True, blank=True)
     
     def __str__(self):  
-        return self.denominacion
+        return F"{self.denominacion} - {self.abreviatura}"
     
     class Meta:
         db_table = "rh_institucion"
