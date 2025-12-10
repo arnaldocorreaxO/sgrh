@@ -23,7 +23,7 @@
                     <input type="hidden" name="action" id="action" value="{{ action }}">
                     {% csrf_token %}
                     <div class="form-group row">
-                        <label>Introduzca su password anterior:</label>
+                        <label>Introduzca su contraseña anterior:</label>
                         <div class="input-group my-group">
                             {{ form.old_password }}
                             <div class="input-group-append">
@@ -34,7 +34,7 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label>Ingrese su password:</label>
+                        <label>Ingrese su contraseña:</label>
                         <div class="input-group my-group">
                             {{ form.new_password1 }}
                             <div class="input-group-append">
@@ -45,7 +45,7 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label>Repita su password:</label>
+                        <label>Repita su contraseña:</label>
                         <div class="input-group my-group">
                             {{ form.new_password2 }}
                             <span class="input-group-btn">
@@ -64,7 +64,7 @@
             </div>
             <div class="card-footer">
                 <button type="submit" class="btn btn-primary btn-flat">
-                    <i class="fas fa-save"></i> Cambiar password
+                    <i class="fas fa-save"></i> Cambiar contraseña
                 </button>
                 <a href="{% url 'dashboard' %}" class="btn btn-danger btn-flat">
                     <i class="fas fa-times"></i> Cancelar
