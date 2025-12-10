@@ -10,11 +10,11 @@
   <div class="cv-container">
     <header>
       {% if foto_url %}
-        <img src="{{ foto_url}}" 
+        <img src="{{foto_url}}" 
         alt="Foto tipo carnet" 
         class="foto-carnet" />
       {% else %}
-        <img src="{{ STATIC_URL }} img/default-user.png" 
+        <img src="{{STATIC_URL}}img/default-user.png" 
         alt="Sin foto" 
         class="foto-carnet" />
       {% endif %}
