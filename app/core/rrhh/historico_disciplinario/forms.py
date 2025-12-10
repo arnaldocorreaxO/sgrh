@@ -16,7 +16,7 @@ class HistoricoDisciplinarioForm(ModelFormEmpleado):
         # Querysets filtrados y ordenados
         self.fields['tipo_falta'].queryset = RefDet.objects.filter(
             refcab__cod_referencia="TIPO_FALTA_DISCIPLINARIA"
-        ).order_by('descripcion')
+        ).order_by('valor_orden')
 
         # Querysets filtrados y ordenados
         self.fields['tipo_sancion'].queryset = RefDet.objects.filter(
@@ -41,6 +41,7 @@ class HistoricoDisciplinarioForm(ModelFormEmpleado):
     class Meta:
         model = HistoricoDisciplinario
         fields = [
+            'empleado',
             'tipo_falta',
             'tipo_sancion',
             'tipo_documento',
@@ -61,6 +62,7 @@ class HistoricoDisciplinarioForm(ModelFormEmpleado):
             'archivo_pdf': ClearableFileInput(attrs={'class': 'form-control-file'}),
         }
         labels = {
+            'empleado': 'Empleado',
             'tipo_falta': 'Tipo de Falta',
             'tipo_sancion': 'Tipo de Sanción',
             'tipo_documento': 'Tipo de Documento',

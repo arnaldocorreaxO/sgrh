@@ -158,7 +158,13 @@ class ExperienciaLaboralUpdate(PermissionMixin,EmpleadoScopedMixin,UpdateView):
 		action = request.POST.get("action", "")
 		try:
 			if action == "edit":
-				form = self.get_form()
+				obj = self.get_object()
+				form = self.form_class(request.POST, request.FILES, instance=obj)
+				  
+				# 🔧 Ajuste dinámico: si es self_view, quitamos el campo empleado del form
+				if self.is_self_view and 'empleado' in form.fields:
+					form.fields.pop('empleado')
+					
 				if form.is_valid():
 					if self.is_self_view:
 						try:

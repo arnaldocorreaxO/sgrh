@@ -65,6 +65,14 @@ class EmpleadoScopedMixin:
 	def is_self_view(self):
 		"""Detecta si la vista es personal (_self)"""
 		return self.request.resolver_match.url_name.endswith("_self")
+	
+	 # 🔧 Aquí quitamos dinámicamente el campo empleado si es self_view
+	def get_form(self, form_class=None):
+		form = super().get_form(form_class)
+		if self.is_self_view:
+			form.fields.pop('empleado', None)
+		return form
+
 
 	# Definir URL de éxito según tipo de vista
 	def get_success_url_for(self, base_name):
@@ -81,7 +89,7 @@ class EmpleadoScopedMixin:
 		try:
 			if getattr(self, "is_self_view", False):
 				# Vista propia: asignar automáticamente el empleado del usuario logueado
-				empleado = Empleado.objects.get(user=self.request.user)
+				empleado = Empleado.objects.get(usuario=self.request.user)
 				form.instance.empleado = empleado
 				print("[asignar_empleado_a_form] Empleado asignado (self_view):", empleado)
 			else:

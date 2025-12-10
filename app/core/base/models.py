@@ -46,6 +46,7 @@ class RefDet(ModeloBase):
     valor_numerico = models.DecimalField(verbose_name="Valor Numérico", max_digits=18, decimal_places=4, null=True, blank=True)   
     valor_fecha = models.DateField(verbose_name="Valor Fecha", null=True, blank=True)
     valor_unico = models.CharField(verbose_name="Valor Único", max_length=25,unique=True) # Valor unico para relacionar en otras tablas
+    valor_orden = models.IntegerField(verbose_name="Valor Orden", null=True, blank=True)
 
     def __str__(self):
         return self.denominacion or ""
