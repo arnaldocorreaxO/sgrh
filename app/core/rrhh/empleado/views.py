@@ -604,6 +604,7 @@ class CVEmpleadoPDFView(View):
 			'foto_url': foto_url,
 			'fecha_generacion': request.timestamp if hasattr(request, 'timestamp') else None,
 		}
+		print(foto_url)
 		html_string = render_to_string(self.template_name, context)
 		html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
 		pdf = html.write_pdf()
