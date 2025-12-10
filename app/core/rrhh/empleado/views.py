@@ -340,23 +340,29 @@ class EmpleadoCreate(CreateView):
 		context["instance"] = None
 		return context
 
-class EmpleadoUpdate(PermissionMixin, EmpleadoScopedMixin, UpdateView):
+class EmpleadoUpdate(PermissionMixin,UpdateView):
+	# class EmpleadoUpdatePerfil(PermissionMixin, UpdateView):
 	model = Empleado
 	form_class = EmpleadoForm
 	template_name = "empleado/create.html"
+	success_url = reverse_lazy("dashboard")
 	permission_required = "change_empleado"
 
 	@method_decorator(csrf_exempt)
 	def dispatch(self, request, *args, **kwargs):
 		self.is_self = self.request.resolver_match.url_name.endswith("_self")
-		self.object = self.get_object()
 		return super().dispatch(request, *args, **kwargs)
-
+	
 	def get_success_url(self):
-		if self.is_self:
-			return reverse_lazy("dashboard")  # o "empleado_perfil_self"
-		return reverse_lazy("empleado_list")
-
+		return reverse_lazy("dashboard") if self.is_self else reverse_lazy("empleado_list")
+	
+	# Obtener empleado asociado al usuario logueado
+	def get_empleado(self):
+		try:
+			return Empleado.objects.get(usuario=self.request.user)
+		except Empleado.DoesNotExist:
+			raise Http404("No se encontró el perfil del empleado asociado al usuario.")
+	
 	def get_object(self, queryset=None):
 		try:
 			if self.is_self:
@@ -364,69 +370,73 @@ class EmpleadoUpdate(PermissionMixin, EmpleadoScopedMixin, UpdateView):
 			return Empleado.objects.get(pk=self.kwargs["pk"])
 		except Empleado.DoesNotExist:
 			raise Http404("No se encontró el perfil del empleado.")
-
+	
+	# Validar datos únicos
 	def validate_data(self):
 		data = {"valid": True}
 		try:
-			tipo = self.request.POST.get("type")
-			obj = self.request.POST.get("obj", "").strip()
+			type = self.request.POST["type"]
+			obj = self.request.POST["obj"].strip()
 			id = self.get_object().id
-			if tipo == "ci":
-				if Empleado.objects.filter(ci__iexact=obj).exclude(id=id).exists():
+			if type == "ci":
+				if Empleado.objects.filter(ci__iexact=obj).exclude(id=id):
 					data["valid"] = False
-			elif tipo == "ruc":
-				if Empleado.objects.filter(ruc__iexact=obj).exclude(id=id).exists():
+			if type == "ruc":
+				if Empleado.objects.filter(ruc__iexact=obj).exclude(id=id):
 					data["valid"] = False
-		except Exception:
+		except:
 			pass
 		return JsonResponse(data)
 
 	def post(self, request, *args, **kwargs):
 		data = {}
-		action = request.POST.get("action", "")
+		action = request.POST.get("action")
 		try:
 			if action == "edit":
-				form = self.get_form()
-				if form.is_valid():
+					with transaction.atomic():
+						empleado = self.get_object()
+						usuario = empleado.usuario
 
-					empleado = form.save(commit=False)
-					usuario = empleado.usuario
+						# Actualizar datos del usuario
+						usuario.first_name = request.POST.get("nombre", "").strip()
+						usuario.last_name = request.POST.get("apellido", "").strip()
+						usuario.dni = request.POST.get("ci", "").strip()
+						usuario.username = usuario.dni
+						usuario.email = request.POST.get("email", "").strip()
 
-					usuario.first_name = request.POST.get("nombre", "").strip()
-					usuario.last_name = request.POST.get("apellido", "").strip()
-					usuario.dni = request.POST.get("ci", "").strip()
-					usuario.username = usuario.dni
-					usuario.email = request.POST.get("email", "").strip()
+						# Manejo de imagen
+						if "image-clear" in request.POST:
+							if usuario.image:
+								usuario.image.delete(save=False)
+							usuario.image = None
+						if "image" in request.FILES:
+							usuario.image = request.FILES["image"]
 
-					if "image-clear" in request.POST and usuario.image:
-						usuario.image.delete(save=False)
-						usuario.image = None
-					if "image" in request.FILES:
-						usuario.image = request.FILES["image"]
+						usuario.save()
 
-					usuario.save()
+						# Asignar grupo si no está
+						group = Group.objects.get(pk=settings.GROUPS.get("empleado"))
+						usuario.groups.set([group])
 
-					group = Group.objects.get(pk=settings.GROUPS.get("empleado"))
-					usuario.groups.add(group)
+						# Actualizar datos del empleado
+						empleado.ci = isNULL(request.POST.get("ci"))
+						empleado.ruc = isNULL(request.POST.get("ruc"))
+						empleado.nombre = isNULL(request.POST.get("nombre"))
+						empleado.apellido = isNULL(request.POST.get("apellido"))
+						empleado.nacionalidad_id = isNULL(request.POST.get("nacionalidad"))
+						empleado.ciudad_id = isNULL(request.POST.get("ciudad"))
+						empleado.barrio_id = isNULL(request.POST.get("barrio"))
+						empleado.direccion = isNULL(request.POST.get("direccion"))
+						empleado.celular = isNULL(request.POST.get("celular"))
+						empleado.telefono = isNULL(request.POST.get("telefono"))
+						empleado.email = isNULL(request.POST.get("email"))
+						empleado.fec_nacimiento = YYYY_MM_DD(isNULL(request.POST.get("fec_nacimiento")))
+						empleado.sexo_id = isNULL(request.POST.get("sexo"))
+						empleado.estado_civil_id = isNULL(request.POST.get("estado_civil"))
+						empleado.save()
 
-					empleado.ci = isNULL(request.POST.get("ci"))
-					empleado.ruc = isNULL(request.POST.get("ruc"))
-					empleado.nombre = isNULL(request.POST.get("nombre"))
-					empleado.apellido = isNULL(request.POST.get("apellido"))
-					empleado.nacionalidad_id = isNULL(request.POST.get("nacionalidad"))
-					empleado.ciudad_id = isNULL(request.POST.get("ciudad"))
-					empleado.barrio_id = isNULL(request.POST.get("barrio"))
-					empleado.direccion = isNULL(request.POST.get("direccion"))
-					empleado.celular = isNULL(request.POST.get("celular"))
-					empleado.telefono = isNULL(request.POST.get("telefono"))
-					empleado.email = isNULL(request.POST.get("email"))
-					empleado.fec_nacimiento = YYYY_MM_DD(isNULL(request.POST.get("fec_nacimiento")))
-					empleado.sexo_id = isNULL(request.POST.get("sexo"))
-					empleado.estado_civil_id = isNULL(request.POST.get("estado_civil"))
+						data["id"] = empleado.id
 
-					empleado.save()
-				else:
-					data["error"] = form.errors
 			elif action == "validate_data":
 				return self.validate_data()
 			else:
@@ -435,13 +445,15 @@ class EmpleadoUpdate(PermissionMixin, EmpleadoScopedMixin, UpdateView):
 			data["error"] = str(e)
 		return HttpResponse(json.dumps(data), content_type="application/json")
 
+
 	def get_context_data(self, **kwargs):
-		context = super().get_context_data(**kwargs)
+		context = super().get_context_data()
 		context["list_url"] = self.get_success_url()
+		context["title"] = f" Perfil de {self.object.nombre} {self.object.apellido}"
 		context["action"] = "edit"
 		context["instance"] = self.object
-		return self.enrich_context_with_empleado(context, prefijo="Editar Perfil")
-
+		return context
+	
 class EmpleadoDelete(PermissionMixin, DeleteView):
 	model = Empleado
 	template_name = "empleado/delete.html"
@@ -467,144 +479,63 @@ class EmpleadoDelete(PermissionMixin, DeleteView):
 		return context
 
 
-class EmpleadoUpdatePerfil(PermissionMixin,UpdateView):
-	# class EmpleadoUpdatePerfil(PermissionMixin, UpdateView):
-	model = Empleado
-	form_class = EmpleadoForm
-	template_name = "empleado/create.html"
-	success_url = reverse_lazy("dashboard")
-	permission_required = "change_empleado"
+# class CVEmpleadoPDFView(View):
+# 	template_name = 'empleado/cv_empleado_pdf.html'
 
-	@method_decorator(csrf_exempt)
-	def dispatch(self, request, *args, **kwargs):
-		# self.object = self.get_object()
-		return super().dispatch(request, *args, **kwargs)
-	
-	# # Sobrescribir get_success_url para redirigir a la misma página
-	# def get_success_url(self):
-	#     return self.request.path
+# 	def get_empleado(self, pk):
+# 		try:
+# 			return Empleado.objects.select_related(
+# 				'nacionalidad', 'ciudad', 'barrio', 'sexo', 'estado_civil'
+# 			).get(pk=pk)
+# 		except Empleado.DoesNotExist:
+# 			raise Http404("No se encontró el empleado.")
 
-	# Obtener empleado asociado al usuario logueado
-	def get_empleado(self):
-		try:
-			return Empleado.objects.get(usuario=self.request.user)
-		except Empleado.DoesNotExist:
-			raise Http404("No se encontró el perfil del empleado asociado al usuario.")
+# 	def get(self, request, pk):
+# 		empleado = self.get_empleado(pk)
+# 		context = {
+# 			'empleado': empleado,
+# 			'usuario': empleado.usuario,
+# 			'fecha_generacion': request.timestamp if hasattr(request, 'timestamp') else None,
+# 		}
+# 		html_string = render_to_string(self.template_name, context)
+# 		html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+# 		pdf = html.write_pdf()
 
-	# Sobrescribir get_object para obtener el empleado del usuario logueado
-	def get_object(self, queryset=None):
-		empleado = self.get_empleado()
-		if empleado:
-			return empleado
-		return Empleado()
-	
-	# Validar datos únicos
-	def validate_data(self):
-		data = {"valid": True}
-		try:
-			type = self.request.POST["type"]
-			obj = self.request.POST["obj"].strip()
-			id = self.get_object().id
-			if type == "ci":
-				if Empleado.objects.filter(ci__iexact=obj).exclude(id=id):
-					data["valid"] = False
-			if type == "ruc":
-				if Empleado.objects.filter(ruc__iexact=obj).exclude(id=id):
-					data["valid"] = False
-		except:
-			pass
-		return JsonResponse(data)
-
-	def post(self, request, *args, **kwargs):
-		data = {}
-		action = request.POST.get("action")
-		try:
-			if action == "edit":
-				with transaction.atomic():
-					empleado = self.get_object()
-					usuario = empleado.usuario
-
-					# Actualizar datos del usuario
-					usuario.first_name = request.POST.get("nombre", "").strip()
-					usuario.last_name = request.POST.get("apellido", "").strip()
-					usuario.dni = request.POST.get("ci", "").strip()
-					usuario.username = usuario.dni
-					usuario.email = request.POST.get("email", "").strip()
-
-					# Manejo de imagen
-					if "image-clear" in request.POST:
-						if usuario.image:
-							usuario.image.delete(save=False)
-						usuario.image = None
-					if "image" in request.FILES:
-						usuario.image = request.FILES["image"]
-
-					usuario.save()
-
-					# Asignar grupo si no está
-					group = Group.objects.get(pk=settings.GROUPS.get("empleado"))
-					usuario.groups.add(group)
-
-					# Actualizar datos del empleado
-					empleado.ci = isNULL(request.POST.get("ci"))
-					empleado.ruc = isNULL(request.POST.get("ruc"))
-					empleado.nombre = isNULL(request.POST.get("nombre"))
-					empleado.apellido = isNULL(request.POST.get("apellido"))
-					empleado.nacionalidad_id = isNULL(request.POST.get("nacionalidad"))
-					empleado.ciudad_id = isNULL(request.POST.get("ciudad"))
-					empleado.barrio_id = isNULL(request.POST.get("barrio"))
-					empleado.direccion = isNULL(request.POST.get("direccion"))
-					empleado.celular = isNULL(request.POST.get("celular"))
-					empleado.telefono = isNULL(request.POST.get("telefono"))
-					empleado.email = isNULL(request.POST.get("email"))
-					empleado.fec_nacimiento = YYYY_MM_DD(isNULL(request.POST.get("fec_nacimiento")))
-					empleado.sexo_id = isNULL(request.POST.get("sexo"))
-					empleado.estado_civil_id = isNULL(request.POST.get("estado_civil"))
-					empleado.save()
-
-					data["id"] = empleado.id
-
-			elif action == "validate_data":
-				return self.validate_data()
-			else:
-				data["error"] = "No ha seleccionado ninguna opción"
-		except Exception as e:
-			data["error"] = str(e)
-		return HttpResponse(json.dumps(data), content_type="application/json")
-
-
-	def get_context_data(self, **kwargs):
-		context = super().get_context_data()
-		context["list_url"] = self.success_url
-		context["title"] = f" Perfil de {self.object.nombre} {self.object.apellido}"
-		context["action"] = "edit"
-		context["instance"] = self.object
-		return context
-
+# 		response = HttpResponse(pdf, content_type='application/pdf')
+# 		response['Content-Disposition'] = f'inline; filename="cv_{empleado.nombre}_{empleado.apellido}.pdf"'
+# 		return response
 
 class CVEmpleadoPDFView(View):
-	template_name = 'empleado/cv_empleado_pdf.html'
+    template_name = 'empleado/cv_empleado_pdf.html'
 
-	def get_empleado(self, pk):
-		try:
-			return Empleado.objects.select_related(
-				'nacionalidad', 'ciudad', 'barrio', 'sexo', 'estado_civil'
-			).get(pk=pk)
-		except Empleado.DoesNotExist:
-			raise Http404("No se encontró el empleado.")
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        self.is_self = self.request.resolver_match.url_name.endswith("_self")
+        return super().dispatch(request, *args, **kwargs)
 
-	def get(self, request, pk):
-		empleado = self.get_empleado(pk)
-		context = {
-			'empleado': empleado,
-			'usuario': empleado.usuario,
-			'fecha_generacion': request.timestamp if hasattr(request, 'timestamp') else None,
-		}
-		html_string = render_to_string(self.template_name, context)
-		html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
-		pdf = html.write_pdf()
+    def get_object(self, queryset=None):
+        try:
+            if self.is_self:
+                return Empleado.objects.select_related(
+                    'nacionalidad', 'ciudad', 'barrio', 'sexo', 'estado_civil'
+                ).get(usuario=self.request.user)
+            return Empleado.objects.select_related(
+                'nacionalidad', 'ciudad', 'barrio', 'sexo', 'estado_civil'
+            ).get(pk=self.kwargs["pk"])
+        except Empleado.DoesNotExist:
+            raise Http404("No se encontró el perfil del empleado.")
 
-		response = HttpResponse(pdf, content_type='application/pdf')
-		response['Content-Disposition'] = f'inline; filename="cv_{empleado.nombre}_{empleado.apellido}.pdf"'
-		return response
+    def get(self, request, *args, **kwargs):
+        empleado = self.get_object()
+        context = {
+            'empleado': empleado,
+            'usuario': empleado.usuario,
+            'fecha_generacion': getattr(request, 'timestamp', None),
+        }
+        html_string = render_to_string(self.template_name, context)
+        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+        pdf = html.write_pdf()
 
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="cv_{empleado.nombre}_{empleado.apellido}.pdf"'
+        return response

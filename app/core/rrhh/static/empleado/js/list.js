@@ -57,19 +57,19 @@ var persona = {
             buttons +=
               '<a href="' +
               pathname +
-              "/cv/pdf/" +
+              "cv/pdf/" +
               row.id +
               '/" class="btn btn-danger btn btn-xs btn-flat" data-toggle="tooltip" title="Ver CV PDF" target="_blank"><i class="fas fa-file-pdf"></i></a> ';
             buttons +=
               '<a href="' +
               pathname +
-              "/update/" +
+              "update/" +
               row.id +
               '/" class="btn btn-warning btn btn-xs btn-flat" data-toggle="tooltip" title="Editar"><i class="fas fa-edit"></i></a> ';
             buttons +=
               '<a href="' +
               pathname +
-              "/delete/" +
+              "delete/" +
               row.id +
               '/" type="button" class="btn btn-xs btn-danger btn btn-flat" data-toggle="tooltip" title="Eliminar"><i class="fas fa-trash-alt"></i></a>';
             return buttons;

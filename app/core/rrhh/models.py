@@ -608,7 +608,7 @@ class HistoricoDisciplinario(ModeloBase):
         item['tipo_falta_denominacion'] = self.tipo_falta.denominacion if self.tipo_falta else None
         item['tipo_sancion_denominacion'] = self.tipo_sancion.denominacion if self.tipo_sancion else None
         item['tipo_documento_denominacion'] = self.tipo_documento.denominacion if self.tipo_documento else None
-        item['estado_documento_denominacion'] = self.estado_documento.descripcion if self.estado_documento else None
+        item['estado_documento_denominacion'] = self.estado_documento.denominacion if self.estado_documento else None
 
         # Fecha formateada
         item['fecha_emision'] = self.fecha_emision.strftime('%d/%m/%Y') if self.fecha_emision else None

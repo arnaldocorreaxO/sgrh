@@ -10,7 +10,7 @@ from core.rrhh.historico_disciplinario.views import *
 urlpatterns = [
     # EMPLEADO
     # Vista general (admin)
-    path("empleado", EmpleadoList.as_view(), name="empleado_list"),
+    path("empleado/", EmpleadoList.as_view(), name="empleado_list"),
     path("empleado/add/", EmpleadoCreate.as_view(), name="empleado_create"),
     path("empleado/update/<int:pk>/", EmpleadoUpdate.as_view(), name="empleado_update"),    
     path("empleado/delete/<int:pk>/", EmpleadoDelete.as_view(), name="empleado_delete"),
@@ -24,6 +24,7 @@ urlpatterns = [
 
     # CV EMPLEADO
     path('empleado/cv/pdf/<int:pk>/', CVEmpleadoPDFView.as_view(), name='cv_empleado_pdf'),
+    path('empleado/self/cv/pdf/', CVEmpleadoPDFView.as_view(), name='cv_empleado_pdf_self'),
     
     # FORMACION
    # Vista general (admin)
@@ -40,7 +41,7 @@ urlpatterns = [
    
     # OTROS ESTUDIOS 
     # Vista general (admin)
-    path("capacitacion", CapacitacionList.as_view(), name="capacitacion_list"),    
+    path("capacitacion/", CapacitacionList.as_view(), name="capacitacion_list"),    
     path("capacitacion/add/", CapacitacionCreate.as_view(), name="capacitacion_create"),
     path("capacitacion/update/<int:pk>/", CapacitacionUpdate.as_view(), name="capacitacion_update"),
     path("capacitacion/delete/<int:pk>/", CapacitacionDelete.as_view(), name="capacitacion_delete"),
@@ -52,7 +53,7 @@ urlpatterns = [
 
     # EXPERENCIA LABORAL
     # Vista general (admin)
-    path("experiencia_laboral", ExperienciaLaboralList.as_view(), name="experiencia_laboral_list"),    
+    path("experiencia_laboral/", ExperienciaLaboralList.as_view(), name="experiencia_laboral_list"),    
     path("experiencia_laboral/add/", ExperienciaLaboralCreate.as_view(), name="experiencia_laboral_create"),
     path("experiencia_laboral/update/<int:pk>/", ExperienciaLaboralUpdate.as_view(), name="experiencia_laboral_update"),
     path("experiencia_laboral/delete/<int:pk>/", ExperienciaLaboralDelete.as_view(), name="experiencia_laboral_delete"),
@@ -64,7 +65,7 @@ urlpatterns = [
     
     # DOCUMENTOS COMPLEMENTARIOS
     # Vista general (admin)
-    path("documento_complementario", DocumentoComplementarioList.as_view(), name="documento_complementario_list"),    
+    path("documento_complementario/", DocumentoComplementarioList.as_view(), name="documento_complementario_list"),    
     path("documento_complementario/add/", DocumentoComplementarioCreate.as_view(), name="documento_complementario_create"),
     path("documento_complementario/update/<int:pk>/", DocumentoComplementarioUpdate.as_view(), name="documento_complementario_update"),
     path("documento_complementario/delete/<int:pk>/", DocumentoComplementarioDelete.as_view(), name="documento_complementario_delete"),
@@ -76,7 +77,7 @@ urlpatterns = [
     
     # HISTORICO DISCIPLINARIO
     # Vista general (admin)
-    path("historico_disciplinario", HistoricoDisciplinarioList.as_view(), name="historico_disciplinario_list"),    
+    path("historico_disciplinario/", HistoricoDisciplinarioList.as_view(), name="historico_disciplinario_list"),    
     path("historico_disciplinario/add/", HistoricoDisciplinarioCreate.as_view(), name="historico_disciplinario_create"),
     path("historico_disciplinario/update/<int:pk>/", HistoricoDisciplinarioUpdate.as_view(), name="historico_disciplinario_update"),
     path("historico_disciplinario/delete/<int:pk>/", HistoricoDisciplinarioDelete.as_view(), name="historico_disciplinario_delete"),

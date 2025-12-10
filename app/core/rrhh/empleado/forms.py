@@ -1,5 +1,5 @@
 from django import forms
-from django.forms import ModelForm
+from django.forms import ModelForm, ValidationError
 from core.base.utils import get_fecha_actual_ymd
 from core.base.forms import readonly_fields
 from core.rrhh.models import Empleado, RefDet, Pais, Ciudad
@@ -132,29 +132,39 @@ class EmpleadoForm(ModelFormEmpleado):
             "nacionalidad": forms.Select(attrs={"class": "form-control select2", "style": "width: 100%;"}),
         }
 
+    # Validación de CI
+    def clean_ci(self):
+        ci = self.cleaned_data.get("ci")
+        if ci and Empleado.objects.filter(ci__iexact=ci).exclude(pk=self.instance.pk).exists():
+            raise ValidationError("Ya existe Empleado con este CI.")
+        return ci
+
+    # Validación de RUC
+    def clean_ruc(self):
+        ruc = self.cleaned_data.get("ruc")
+        if ruc and Empleado.objects.filter(ruc__iexact=ruc).exclude(pk=self.instance.pk).exists():
+            raise ValidationError("Ya existe Empleado con este RUC.")
+        return ruc
+
+
     def save(self, commit=True):
-        data = {}
-        try:
-            if self.is_valid():
-                empleado = super().save(commit=False)
-                usuario = empleado.usuario
+        empleado = super().save(commit=False)
+        usuario = empleado.usuario
 
-                # Manejo de imagen
-                if self.cleaned_data.get("image") is False:  # Checkbox de limpieza marcado
-                    usuario.image.delete(save=False)
-                    usuario.image = None
-                elif self.cleaned_data.get("image"):
-                    usuario.image = self.cleaned_data["image"]
+        # Manejo de imagen
+        if self.cleaned_data.get("image") is False:  # Checkbox de limpieza marcado
+            if usuario.image:
+                usuario.image.delete(save=False)
+            usuario.image = None
+        elif self.cleaned_data.get("image"):
+            usuario.image = self.cleaned_data["image"]
 
-                usuario.save()
-                if commit:
-                    empleado.save()
-                data["id"] = empleado.id
-            else:
-                data["error"] = self.errors
-        except Exception as e:
-            data["error"] = str(e)
-        return data
+        usuario.save()
+        if commit:
+            empleado.save()
+        return empleado  # 🔑 devolver la instancia, no un dict
+
+
 
 
 
