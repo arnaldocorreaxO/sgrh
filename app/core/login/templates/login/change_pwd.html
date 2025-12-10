@@ -14,11 +14,11 @@
                     <div class="contact-image">
                         <i class="{{ dshboard.get_icon }} fa-4x"></i>
                     </div>
-                    <p class="login-box-msg">Reseteo de Password</p>
+                    <p class="login-box-msg">Reseteo de Contraseña</p>
                     <form method="post" id="frmChangePassword" data-url="{% url 'login' %}">
                         {% csrf_token %}
                         <div class="form-group">
-                            <label for="password">Password:</label>
+                            <label for="password">Contraseña:</label>
                             <div class="input-group my-group">
                                 {{ form.password }}
                                 <div class="input-group-append">
@@ -29,7 +29,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="confirmPassword">Repita su password:</label>
+                            <label for="confirmPassword">Repita su contraseña:</label>
                             <div class="input-group my-group">
                                 {{ form.confirmPassword }}
                                 <div class="input-group-append">
