@@ -416,7 +416,8 @@ class EmpleadoUpdate(PermissionMixin,UpdateView):
 
 						# Asignar grupo si no está
 						group = Group.objects.get(pk=settings.GROUPS.get("empleado"))
-						usuario.groups.set([group])
+						# Mantener grupo existente y agregar el de empleado
+						usuario.groups.add(group)
 
 						# Actualizar datos del empleado
 						empleado.ci = isNULL(request.POST.get("ci"))
