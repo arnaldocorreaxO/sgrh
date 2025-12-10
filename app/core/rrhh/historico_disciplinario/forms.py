@@ -21,16 +21,16 @@ class HistoricoDisciplinarioForm(ModelFormEmpleado):
         # Querysets filtrados y ordenados
         self.fields['tipo_sancion'].queryset = RefDet.objects.filter(
             refcab__cod_referencia="TIPO_SANCION_DISCIPLINARIA"
-        ).order_by('descripcion')
+        ).order_by('valor_orden')
 
         # Querysets filtrados y ordenados
         self.fields['tipo_documento'].queryset = RefDet.objects.filter(
             refcab__cod_referencia="TIPO_DOCUMENTO_DISCIPLINARIO"
-        ).order_by('descripcion')
+        ).order_by('valor_orden')
 
         self.fields['estado_documento'].queryset = RefDet.objects.filter(
             refcab__cod_referencia="ESTADO_DOCUMENTO"
-        ).order_by('descripcion')
+        ).order_by('valor_orden')
 
         # Archivo PDF opcional si ya existe
         self.fields['archivo_pdf'].required = False
