@@ -602,7 +602,7 @@ class CVEmpleadoPDFView(View):
 		}
 		html_string = render_to_string(self.template_name, context)
 		html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
-		pdf = html.write_pdf
+		pdf = html.write_pdf()
 
 		response = HttpResponse(pdf, content_type='application/pdf')
 		response['Content-Disposition'] = f'inline; filename="cv_{empleado.nombre}_{empleado.apellido}.pdf"'
