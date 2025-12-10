@@ -9,14 +9,10 @@
 <body>
   <div class="cv-container">
     <header>
-      {% if foto_url %}
-        <img src="{{foto_url}}" 
-        alt="Foto tipo carnet" 
-        class="foto-carnet" />
+      {% if empleado.usuario.image %}
+        <img src="{{ empleado.usuario.image.url }}" alt="Foto tipo carnet" class="foto-carnet" />
       {% else %}
-        <img src="{{STATIC_URL}}img/default-user.png" 
-        alt="Sin foto" 
-        class="foto-carnet" />
+        <img src="{% static 'img/default-user.png' %}" alt="Sin foto" class="foto-carnet" />
       {% endif %}
 
       <h1>{{ empleado.full_name }}</h1>
