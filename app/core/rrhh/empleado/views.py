@@ -595,9 +595,13 @@ class CVEmpleadoPDFView(View):
 
 	def get(self, request, pk):
 		empleado = self.get_empleado(pk)
+		foto_url = None
+		if empleado.usuario.image:
+			foto_url = request.build_absolute_uri(empleado.usuario.image.url)	
 		context = {
 			'empleado': empleado,
 			'usuario': empleado.usuario,
+			'foto_url': foto_url,
 			'fecha_generacion': request.timestamp if hasattr(request, 'timestamp') else None,
 		}
 		html_string = render_to_string(self.template_name, context)
