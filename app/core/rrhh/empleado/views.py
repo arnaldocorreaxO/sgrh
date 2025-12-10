@@ -1,31 +1,34 @@
+# Librerías estándar
 import json
 import json as simplejson
-import math
 from datetime import datetime
 from multiprocessing import context
 
-
-from django.contrib.auth.models import Group
+# Librerías de terceros
 from dateutil.relativedelta import relativedelta
+from weasyprint import HTML
+
+# Django
+from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Q
 from django.http import Http404, HttpResponse, JsonResponse
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from django.views.generic import CreateView, DeleteView, UpdateView, DetailView, View
 
+# Proyecto interno
 from config import settings
-from core.base.views.generics import BaseListView
-from core.rrhh.models import Empleado
-from core.rrhh.empleado.forms import EmpleadoFilterForm, EmpleadoForm
 from core.base.models import Barrio, Ciudad
 from core.base.procedures import sp_identificaciones
 from core.base.utils import YYYY_MM_DD, get_fecha_actual, isNULL
+from core.base.views.generics import BaseListView
+from core.rrhh.models import Empleado
+from core.rrhh.empleado.forms import EmpleadoFilterForm, EmpleadoForm
 from core.security.mixins import PermissionMixin
 from core.user.models import User
-
-
 
 # MSSQL
 def get_datos_persona(request):
@@ -66,14 +69,6 @@ class EmpleadoScopedMixin:
 		"""Detecta si la vista es personal (_self)"""
 		return self.request.resolver_match.url_name.endswith("_self")
 	
-	 # 🔧 Aquí quitamos dinámicamente el campo empleado si es self_view
-	def get_form(self, form_class=None):
-		form = super().get_form(form_class)
-		if self.is_self_view:
-			form.fields.pop('empleado', None)
-		return form
-
-
 	# Definir URL de éxito según tipo de vista
 	def get_success_url_for(self, base_name):
 		return reverse_lazy(f"{base_name}_self") if self.is_self_view else reverse_lazy(base_name)
@@ -114,8 +109,7 @@ class EmpleadoScopedMixin:
 	
 	# Generar título con nombre del empleado
 	def get_titulo_empleado(self, prefijo="Datos"):
-		"""Genera título personalizado con nombre del empleado según el modo de vista"""
-		
+		"""Genera título personalizado con nombre del empleado según el modo de vista"""		
 		if self.is_self_view:
 			try:
 				empleado = Empleado.objects.get(usuario=self.request.user)
@@ -394,6 +388,7 @@ class EmpleadoUpdate(PermissionMixin, EmpleadoScopedMixin, UpdateView):
 			if action == "edit":
 				form = self.get_form()
 				if form.is_valid():
+
 					empleado = form.save(commit=False)
 					usuario = empleado.usuario
 
@@ -585,21 +580,7 @@ class EmpleadoUpdatePerfil(PermissionMixin,UpdateView):
 		context["action"] = "edit"
 		context["instance"] = self.object
 		return context
-	
 
-
-	
-from django.views.generic import DetailView, View
-from django.shortcuts import get_object_or_404
-from django.http import Http404, HttpResponse
-from django.template.loader import render_to_string
-from weasyprint import HTML
-from core.rrhh.models import Empleado
-
-class CVEmpleadoView(DetailView):
-	model = Empleado
-	template_name = 'empleado/cv_empleado.html'
-	context_object_name = 'empleado'
 
 class CVEmpleadoPDFView(View):
 	template_name = 'empleado/cv_empleado_pdf.html'

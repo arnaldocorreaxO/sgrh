@@ -23,7 +23,6 @@ urlpatterns = [
     path("empleado/get_datos_persona/", get_datos_persona, name="get_datos_persona"),
 
     # CV EMPLEADO
-    path('empleado/cv/<int:pk>/', CVEmpleadoView.as_view(), name='cv_empleado'),
     path('empleado/cv/pdf/<int:pk>/', CVEmpleadoPDFView.as_view(), name='cv_empleado_pdf'),
     
     # FORMACION

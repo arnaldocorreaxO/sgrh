@@ -25,7 +25,7 @@ class HistoricoDisciplinarioForm(ModelFormEmpleado):
 
         # Querysets filtrados y ordenados
         self.fields['tipo_documento'].queryset = RefDet.objects.filter(
-            refcab__cod_referencia="TIPO_DOCUMENTO"
+            refcab__cod_referencia="TIPO_DOCUMENTO_DISCIPLINARIO"
         ).order_by('descripcion')
 
         self.fields['estado_documento'].queryset = RefDet.objects.filter(
