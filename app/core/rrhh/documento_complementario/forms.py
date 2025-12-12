@@ -18,7 +18,7 @@ class DocumentoComplementarioForm(ModelFormEmpleado):
 
         # TIPO DE DOCUMENTO
         tipo_documento = forms.ModelChoiceField(
-            queryset=RefDet.objects.filter(refcab__cod_referencia="TIPO_DOCUMENTO"),
+            queryset=RefDet.objects.filter(refcab__cod_referencia="TIPO_DOCUMENTO_COMPLEMENTARIO"),
             empty_label="(Seleccione un tipo)",
             label="Tipo de Documento"
         )
@@ -27,7 +27,7 @@ class DocumentoComplementarioForm(ModelFormEmpleado):
 
         # ESTADO DEL DOCUMENTO
         estado_documento = forms.ModelChoiceField(
-            queryset=RefDet.objects.filter(refcab__cod_referencia="ESTADO_DOCUMENTO"),
+            queryset=RefDet.objects.filter(refcab__cod_referencia="ESTADO_DOCUMENTO_COMPLEMENTARIO"),
             empty_label="(Seleccione un estado)",
             label="Estado del Documento"
         )
@@ -37,11 +37,11 @@ class DocumentoComplementarioForm(ModelFormEmpleado):
         # Configuración dinámica si hay instancia
         if self.instance:
             self.fields["tipo_documento"].queryset = RefDet.objects.filter(
-                refcab__cod_referencia="TIPO_DOCUMENTO"
+                refcab__cod_referencia="TIPO_DOCUMENTO_COMPLEMENTARIO"
             ).order_by('descripcion')
 
             self.fields["estado_documento_empleado"].queryset = RefDet.objects.filter(
-                refcab__cod_referencia="ESTADO_DOCUMENTO"
+                refcab__cod_referencia="ESTADO_DOCUMENTO_COMPLEMENTARIO"
             ).order_by('descripcion')
 
             self.fields['archivo_pdf'].required = False
