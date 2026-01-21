@@ -42,6 +42,7 @@ class FormacionAcademicaAdmin(ModeloAdminBase):
     list_filter = ["empleado", ]
 
 admin.site.register(CategoriaSalarial, ModeloAdminBase)
+admin.site.register(CategoriaSalarialVigencia, ModeloAdminBase)
 admin.site.register(Nivel, ModeloAdminBase)
 admin.site.register(MatrizSalarial, ModeloAdminBase)
 admin.site.register(Cargo, ModeloAdminBase)

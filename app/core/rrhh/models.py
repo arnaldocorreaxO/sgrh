@@ -66,21 +66,34 @@ class Dependencia(ModeloBase):
         ordering = ['id']
 
 class CategoriaSalarial(ModeloBase):
-    codigo = models.CharField(max_length=4)
+    codigo = models.CharField(max_length=4,unique=True)
     moneda = models.ForeignKey(Moneda, on_delete=models.RESTRICT)
-    vigencia = models.DateField(default=timezone.now)
-    denominacion = models.CharField(max_length=150, verbose_name="Denominación")
-    sueldo_basico = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Sueldo Básico")
+    denominacion = models.CharField(max_length=150, verbose_name="Denominación")   
 
     def __str__(self):
-       return f"{self.denominacion} - {self.codigo}"
+       return f"{self.codigo}"
 
     class Meta:
         db_table = "rh_categoria_salarial"
         verbose_name = "Categoría Salarial"
         verbose_name_plural = "Categorías Salariales"
-        unique_together = ("codigo","denominacion", "vigencia")
         ordering = ['id']
+
+class CategoriaSalarialVigencia(ModeloBase):
+    categoria = models.ForeignKey(
+        CategoriaSalarial,
+        on_delete=models.CASCADE,
+        related_name="vigencias"
+    )
+    fecha_vigencia = models.DateField(
+        default=timezone.now,verbose_name="Fecha de Vigencia"        
+    )
+    sueldo_basico = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        db_table = "rh_categoria_salarial_vigencia"
+        ordering = ["-fecha_vigencia"]
+        unique_together = ("categoria", "fecha_vigencia")
 
 # Nivel Jerarquico, Cargo, Puesto
 class Nivel(ModeloBase):
@@ -227,7 +240,7 @@ class DependenciaPosicion(ModeloBase):
     posicion=models.ForeignKey(Puesto, on_delete=models.RESTRICT)
 
     def __str__(self):  
-        return f"{self.dependencia} - {self.posicion}"
+        return f"{self.posicion} - {self.dependencia}"
 
     class Meta:
         db_table = "rh_dependencia_posicion"
