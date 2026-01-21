@@ -121,12 +121,13 @@ class MatrizSalarial(ModeloBase):
     denominacion = models.CharField(max_length=150, verbose_name="Denominación",null=True)
 
     def __str__(self):
-        return f"{self.nivel} - {self.categoria}"
+        return f"{self.nivel} - {self.categoria} -{self.denominacion}"
 
     class Meta:
         db_table = "rh_matriz_salarial"
         verbose_name = "021 - Matriz Salarial"
         verbose_name_plural = "021 - Matrices Salariales"
+        ordering = ['id']
 
 class CargoPuesto(ModeloBase):
     matriz_salarial = models.ForeignKey(MatrizSalarial, on_delete=models.RESTRICT, related_name="matriz_salarial", null=True, blank=True)
