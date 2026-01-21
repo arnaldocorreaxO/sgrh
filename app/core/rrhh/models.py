@@ -121,7 +121,7 @@ class MatrizSalarial(ModeloBase):
     denominacion = models.CharField(max_length=150, verbose_name="Denominación",null=True)
 
     def __str__(self):
-        return f"{self.nivel} - {self.categoria} -{self.denominacion}"
+        return f"{self.categoria} -{self.denominacion}"
 
     class Meta:
         db_table = "rh_matriz_salarial"
