@@ -90,6 +90,9 @@ class CategoriaSalarialVigencia(ModeloBase):
     )
     sueldo_basico = models.DecimalField(max_digits=10, decimal_places=2)
 
+    def __str__(self):
+        return f"{self.categoria.codigo} - {self.fecha_vigencia} - {self.sueldo_basico}"
+
     class Meta:
         db_table = "rh_categoria_salarial_vigencia"
         verbose_name = "20 - Vigencia de Categoría Salarial"
