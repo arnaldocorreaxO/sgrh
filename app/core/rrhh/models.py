@@ -125,6 +125,7 @@ class MatrizSalarial(ModeloBase):
 
     class Meta:
         db_table = "rh_matriz_salarial"
+        unique_together = ("nivel", "categoria")
         verbose_name = "021 - Matriz Salarial"
         verbose_name_plural = "021 - Matrices Salariales"
         ordering = ['-categoria__vigencias__sueldo_basico']
