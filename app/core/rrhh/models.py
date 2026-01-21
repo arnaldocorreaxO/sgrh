@@ -57,7 +57,7 @@ class Dependencia(ModeloBase):
     dependencia_padre = models.ForeignKey('self', on_delete=models.RESTRICT, null=True, blank=True)
 
     def __str__(self):  
-        return self.denonimacion
+        return f"{self.codigo} - {self.denonimacion} - {self.sede.denonimacion}"
 
     class Meta:
         db_table = "rh_dependencia"
