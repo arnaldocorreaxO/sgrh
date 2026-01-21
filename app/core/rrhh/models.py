@@ -38,11 +38,11 @@ class Institucion(ModeloBase):
 class Sede(ModeloBase):
     institucion = models.ForeignKey(Institucion, on_delete=models.RESTRICT)
     codigo = models.CharField(max_length=255, unique=True)
-    denonimacion = models.CharField(max_length=255)
+    denominacion = models.CharField(max_length=255)
     abreviatura = models.CharField(max_length=100)  
 
     def __str__(self):  
-        return self.denonimacion
+        return self.denominacion
 
     class Meta:
         db_table = "rh_sede"
@@ -53,11 +53,11 @@ class Sede(ModeloBase):
 class Dependencia(ModeloBase):
     sede = models.ForeignKey(Sede, on_delete=models.RESTRICT)
     codigo = models.CharField(max_length=255, unique=True)
-    denonimacion = models.CharField(max_length=255)
+    denominacion = models.CharField(max_length=255)
     dependencia_padre = models.ForeignKey('self', on_delete=models.RESTRICT, null=True, blank=True)
 
     def __str__(self):  
-        return f"{self.codigo} - {self.denonimacion} - {self.sede.denonimacion}"
+        return f"{self.codigo} - {self.denominacion} - {self.sede.denominacion}"
 
     class Meta:
         db_table = "rh_dependencia"
@@ -117,7 +117,7 @@ class Nivel(ModeloBase):
 
 class MatrizSalarial(ModeloBase):
     nivel = models.ForeignKey(Nivel, on_delete=models.RESTRICT, related_name="matriz_nivel")
-    categoria = models.ForeignKey(CategoriaSalarial, on_delete=models.RESTRICT, related_name="matriz_categoria",null=True, blank=True)
+    categoria = models.ForeignKey(CategoriaSalarial, on_delete=models.RESTRICT, related_name="matriz_categoria")
     denominacion = models.CharField(max_length=150, verbose_name="Denominación",null=True)
 
     def __str__(self):
@@ -230,8 +230,8 @@ class Empleado(ModeloBase):
 
 # DEPENDENCIA POSICION = CARGO  
 class DependenciaPosicion(ModeloBase):
-    dependencia=models.ForeignKey(Dependencia, on_delete=models.RESTRICT)
     posicion=models.ForeignKey(CargoPuesto, on_delete=models.RESTRICT)
+    dependencia=models.ForeignKey(Dependencia, on_delete=models.RESTRICT)    
 
     def __str__(self):  
         return f"{self.posicion} - {self.dependencia}"
@@ -278,8 +278,8 @@ class EmpleadoPosicion(ModeloBase):
 
     class Meta:
         db_table = "rh_empleado_posicion"
-        verbose_name = "Asignación de Cargo"
-        verbose_name_plural = "Asignaciones de Cargos" 
+        verbose_name = "024 - Asignación de Cargo/Puesto"
+        verbose_name_plural = "024 - Asignaciones de Cargos/Puestos" 
         ordering = ['-fecha_inicio']
 
 # ANTECEDENTES ACADEMICOS = FORMACION ACADEMICA = ESTUDIOS REALIZADOS
