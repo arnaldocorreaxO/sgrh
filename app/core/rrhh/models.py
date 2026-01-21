@@ -31,8 +31,8 @@ class Institucion(ModeloBase):
     
     class Meta:
         db_table = "rh_institucion"
-        verbose_name = "Institución"
-        verbose_name_plural = "Instituciones" 
+        verbose_name = "001 - Institución"
+        verbose_name_plural = "001 -Instituciones" 
 
 # SEDE 
 class Sede(ModeloBase):
@@ -46,8 +46,8 @@ class Sede(ModeloBase):
 
     class Meta:
         db_table = "rh_sede"
-        verbose_name = "Sede"
-        verbose_name_plural = "Sedes" 
+        verbose_name = "002 - Sede"
+        verbose_name_plural = "002 - Sedes" 
 
 # DEPENDENCIA = DEPARTAMENTO, AREA, SECCION
 class Dependencia(ModeloBase):
@@ -61,10 +61,11 @@ class Dependencia(ModeloBase):
 
     class Meta:
         db_table = "rh_dependencia"
-        verbose_name = "Dependencia"
-        verbose_name_plural = "Dependencias" 
+        verbose_name = "003 - Dependencia"
+        verbose_name_plural = "003 - Dependencias" 
         ordering = ['id']
 
+# CATEGORIA SALARIAL
 class CategoriaSalarial(ModeloBase):
     codigo = models.CharField(max_length=4,unique=True)
     moneda = models.ForeignKey(Moneda, on_delete=models.RESTRICT)
@@ -75,7 +76,7 @@ class CategoriaSalarial(ModeloBase):
 
     class Meta:
         db_table = "rh_categoria_salarial"
-        verbose_name = "10 - Categoría Salarial"
+        verbose_name = "010 - Categoría Salarial"
         verbose_name_plural = "010 - Categorías Salariales"
         ordering = ['id']
 
@@ -95,64 +96,49 @@ class CategoriaSalarialVigencia(ModeloBase):
 
     class Meta:
         db_table = "rh_categoria_salarial_vigencia"
-        verbose_name = "20 - Vigencia de Categoría Salarial"
-        verbose_name_plural = "020 - Vigencias de Categorías Salariales"
+        verbose_name = "011 - Vigencia de Categoría Salarial"
+        verbose_name_plural = "011 - Vigencias de Categorías Salariales"
         ordering = ["-fecha_vigencia","-sueldo_basico"]
         unique_together = ("categoria", "fecha_vigencia")
 
 # Nivel Jerarquico, Cargo, Puesto
 class Nivel(ModeloBase):
     denominacion = models.CharField(max_length=150, verbose_name="Denominación")
-    categoria = models.ForeignKey(CategoriaSalarial, on_delete=models.RESTRICT, related_name="nivel_categoria",null=True, blank=True)
+    # categoria = models.ForeignKey(CategoriaSalarial, on_delete=models.RESTRICT, related_name="nivel_categoria",null=True, blank=True)
     
     def __str__(self):
-        return f"{self.denominacion}  - {self.categoria}"
+        return f"{self.denominacion}"
 
     class Meta:
         db_table = "rh_nivel"
-        verbose_name = "100 - Nivel"
-        verbose_name_plural = "100 - Niveles"
+        verbose_name = "020 - Nivel"
+        verbose_name_plural = "020 - Niveles"
         ordering = ['id']
 
 class MatrizSalarial(ModeloBase):
     nivel = models.ForeignKey(Nivel, on_delete=models.RESTRICT, related_name="matriz_nivel")
-    monto_salario = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Monto Salarial")
-    vigencia_inicio = models.DateField(verbose_name="Vigencia Inicio")
-    vigencia_fin = models.DateField(verbose_name="Vigencia Fin", null=True, blank=True)
+    categoria = models.ForeignKey(CategoriaSalarial, on_delete=models.RESTRICT, related_name="matriz_categoria")
     
     def __str__(self):
-        return f"{self.nivel} - {self.nivel.categoria} - {self.monto_salario}"
+        return f"{self.nivel} - {self.categoria}"
+
     class Meta:
         db_table = "rh_matriz_salarial"
-        verbose_name = "Matriz Salarial"
-        verbose_name_plural = "Matriz Salariales"
+        verbose_name = "021 - Matriz Salarial"
+        verbose_name_plural = "021 - Matrices Salariales"
 
-class Cargo(ModeloBase):
-    denominacion = models.CharField(max_length=150, verbose_name="Denominación")
-    nivel = models.ForeignKey(Nivel, on_delete=models.RESTRICT, related_name="nivel_cargo", null=True, blank=True)
+class CargoPuesto(ModeloBase):
+    matriz_salarial = models.ForeignKey(MatrizSalarial, on_delete=models.RESTRICT, related_name="matriz_salarial", null=True, blank=True)
+    denominacion = models.CharField(max_length=150, verbose_name="Denominación")    
     
     def __str__(self):
-        return f"{self.denominacion} - {self.nivel.categoria if self.nivel else ''}"
+        return f"{self.denominacion} - {self.matriz_salarial.categoria if self.matriz_salarial else ''}"
 
     class Meta:
-        db_table = "rh_cargo"
-        verbose_name = "Cargo"
-        verbose_name_plural = "Cargos"
+        db_table = "rh_cargo_puesto"
+        verbose_name = "022 - Cargo Puesto"
+        verbose_name_plural = "022 - Cargos Puestos"
         ordering = ['id']
-
-class Puesto(ModeloBase):
-    cargo = models.ForeignKey(Cargo, on_delete=models.RESTRICT, related_name="puesto_cargo")
-    denominacion = models.CharField(max_length=255, verbose_name="Descripción del Puesto")
-    
-    def __str__(self):
-        return f"{self.cargo} - {self.denominacion}"
-
-    class Meta:
-        db_table = "rh_puesto"
-        verbose_name = "Puesto"
-        verbose_name_plural = "Puestos"
-        ordering = ['id']
-
 
 # EMPLEADO
 class Empleado(ModeloBase):
