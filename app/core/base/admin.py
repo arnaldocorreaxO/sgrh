@@ -25,8 +25,10 @@ def get_list_display():
 
 
 class ModeloAdminBase(admin.ModelAdmin):
+    search_fields = []
     readonly_fields = _readonly_fields
     list_display = _list_display
+    
 
 
 class ParametroAdmin(ModeloAdminBase):
