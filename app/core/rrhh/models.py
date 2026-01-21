@@ -127,7 +127,7 @@ class MatrizSalarial(ModeloBase):
         db_table = "rh_matriz_salarial"
         verbose_name = "021 - Matriz Salarial"
         verbose_name_plural = "021 - Matrices Salariales"
-        ordering = ['-categoria__sueldo_basico']
+        ordering = ['-categoria__vigencias__sueldo_basico']
 
 class CargoPuesto(ModeloBase):
     matriz_salarial = models.ForeignKey(MatrizSalarial, on_delete=models.RESTRICT, related_name="matriz_salarial", null=True, blank=True)
