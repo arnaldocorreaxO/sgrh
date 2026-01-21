@@ -76,7 +76,7 @@ class CategoriaSalarial(ModeloBase):
     class Meta:
         db_table = "rh_categoria_salarial"
         verbose_name = "10 - Categoría Salarial"
-        verbose_name_plural = "10 - Categorías Salariales"
+        verbose_name_plural = "010 - Categorías Salariales"
         ordering = ['id']
 
 class CategoriaSalarialVigencia(ModeloBase):
@@ -93,7 +93,7 @@ class CategoriaSalarialVigencia(ModeloBase):
     class Meta:
         db_table = "rh_categoria_salarial_vigencia"
         verbose_name = "20 - Vigencia de Categoría Salarial"
-        verbose_name_plural = "20 - Vigencias de Categorías Salariales"
+        verbose_name_plural = "020 - Vigencias de Categorías Salariales"
         ordering = ["-fecha_vigencia"]
         unique_together = ("categoria", "fecha_vigencia")
 
