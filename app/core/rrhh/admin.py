@@ -73,7 +73,7 @@ class MatrizSalarialAdmin(admin.ModelAdmin):
     form = MatrizSalarialAdminForm
     readonly_fields = _readonly_fields
     list_display = _list_display
-    search_fields = ["nivel__denominacion", "categoria__denominacion"]
+    search_fields = ["nivel__denominacion", "categoria__denominacion","denominacion"]
     # autocomplete_fields = ["nivel", "categoria"]
     
 
