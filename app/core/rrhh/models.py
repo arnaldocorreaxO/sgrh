@@ -97,7 +97,7 @@ class CategoriaSalarialVigencia(ModeloBase):
         db_table = "rh_categoria_salarial_vigencia"
         verbose_name = "20 - Vigencia de Categoría Salarial"
         verbose_name_plural = "020 - Vigencias de Categorías Salariales"
-        ordering = ["-fecha_vigencia"]
+        ordering = ["-fecha_vigencia","-sueldo_basico"]
         unique_together = ("categoria", "fecha_vigencia")
 
 # Nivel Jerarquico, Cargo, Puesto
