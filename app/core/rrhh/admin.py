@@ -41,6 +41,21 @@ class FormacionAcademicaAdmin(ModeloAdminBase):
     # autocomplete_fields = ["empleado",]
     list_filter = ["empleado", ]
 
+class DependenciaPosicionAdminForm(forms.ModelForm):
+    class Meta:
+        model = DependenciaPosicion
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['posicion'].queryset = CargoPuesto.objects.all().filter(activo=True)
+        self.fields['dependencia'].queryset = Dependencia.objects.all().filter(activo=True)
+
+class DependenciaPosicionAdmin(ModeloAdminBase):
+    form = DependenciaPosicionAdminForm
+    autocomplete_fields = ["posicion", "dependencia"]
+    search_fields = ["posicion__denominacion", "dependencia__nombre"]
+
 admin.site.register(CategoriaSalarial, ModeloAdminBase)
 admin.site.register(CategoriaSalarialVigencia, ModeloAdminBase)
 admin.site.register(Nivel, ModeloAdminBase)
@@ -49,7 +64,7 @@ admin.site.register(CargoPuesto, ModeloAdminBase)
 admin.site.register(Institucion, InstitucionAdmin)
 admin.site.register(Sede, ModeloAdminBase)
 admin.site.register(Dependencia, ModeloAdminBase)
-admin.site.register(DependenciaPosicion, ModeloAdminBase)
+admin.site.register(DependenciaPosicion, DependenciaPosicionAdmin)
 admin.site.register(Empleado, EmpleadoAdmin)
 admin.site.register(EmpleadoPosicion, ModeloAdminBase)
 admin.site.register(FormacionAcademica, FormacionAcademicaAdmin)
