@@ -118,6 +118,7 @@ class Nivel(ModeloBase):
 class MatrizSalarial(ModeloBase):
     nivel = models.ForeignKey(Nivel, on_delete=models.RESTRICT, related_name="matriz_nivel")
     categoria = models.ForeignKey(CategoriaSalarial, on_delete=models.RESTRICT, related_name="matriz_categoria",null=True, blank=True)
+    denominacion = models.CharField(max_length=150, verbose_name="Denominación")
     
     def __str__(self):
         return f"{self.nivel} - {self.categoria}"
