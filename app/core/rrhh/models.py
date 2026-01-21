@@ -117,7 +117,7 @@ class Nivel(ModeloBase):
 
 class MatrizSalarial(ModeloBase):
     nivel = models.ForeignKey(Nivel, on_delete=models.RESTRICT, related_name="matriz_nivel")
-    categoria = models.ForeignKey(CategoriaSalarial, on_delete=models.RESTRICT, related_name="matriz_categoria")
+    categoria = models.ForeignKey(CategoriaSalarial, on_delete=models.RESTRICT, related_name="matriz_categoria",null=True, blank=True)
     
     def __str__(self):
         return f"{self.nivel} - {self.categoria}"
@@ -228,7 +228,7 @@ class Empleado(ModeloBase):
 # DEPENDENCIA POSICION = CARGO  
 class DependenciaPosicion(ModeloBase):
     dependencia=models.ForeignKey(Dependencia, on_delete=models.RESTRICT)
-    posicion=models.ForeignKey(Puesto, on_delete=models.RESTRICT)
+    posicion=models.ForeignKey(CargoPuesto, on_delete=models.RESTRICT)
 
     def __str__(self):  
         return f"{self.posicion} - {self.dependencia}"
