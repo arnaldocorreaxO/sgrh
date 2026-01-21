@@ -237,8 +237,8 @@ class DependenciaPosicion(ModeloBase):
 
     class Meta:
         db_table = "rh_dependencia_posicion"
-        verbose_name = "Dependencia Posicion"
-        verbose_name_plural = "Dependencias Posiciones" 
+        verbose_name = "023 - Cargo/Puesto por Dependencia"
+        verbose_name_plural = "023 - Cargos/Puestos por Dependencias" 
 
 # EMPLEADO POSICION = ASIGNACION DE CARGO PUESTO
 class EmpleadoPosicion(ModeloBase):
@@ -249,7 +249,8 @@ class EmpleadoPosicion(ModeloBase):
     empleado=models.ForeignKey(Empleado, on_delete=models.RESTRICT)
     dependencia_posicion=models.ForeignKey(DependenciaPosicion, on_delete=models.RESTRICT)
     fecha_inicio=models.DateField(verbose_name="Fecha Inicio") 
-    fecha_fin=models.DateField(verbose_name="Fecha Fin", null=True, blank=True)    
+    fecha_fin=models.DateField(verbose_name="Fecha Fin", null=True, blank=True)
+    cargo_actual = models.BooleanField(default=True, verbose_name="Cargo Actual")    
     vinculo_laboral=models.ForeignKey(
         RefDet,on_delete=models.RESTRICT, related_name="vinculo_laboral_empleado_posicion"
     )
@@ -269,6 +270,19 @@ class EmpleadoPosicion(ModeloBase):
     )  
     def __str__(self):
         return f"{self.empleado} - {self.dependencia_posicion}"
+    
+    def save(self, *args, **kwargs):
+        # Si este registro se marca como actual
+        if self.cargo_actual:
+            # Deshabilitar todos los demás cargos del mismo empleado
+            EmpleadoPosicion.objects.filter(
+                empleado=self.empleado,
+                cargo_actual=True
+            ).exclude(id=self.id).update(
+                cargo_actual=False,
+                # fecha_fin=self.fecha_inicio  # opcional: cerrar periodo
+            )
+
     class Meta:
         db_table = "rh_empleado_posicion"
         verbose_name = "Asignación de Cargo"
