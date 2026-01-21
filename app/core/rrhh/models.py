@@ -243,14 +243,14 @@ class DependenciaPosicion(ModeloBase):
 # EMPLEADO POSICION = ASIGNACION DE CARGO PUESTO
 class EmpleadoPosicion(ModeloBase):
     def directory_path(instance, filename):
-        return f'empleado/{instance.empleado.ci}/DOC/RESOLUCION/{filename}'    
+        return f'empleado/{instance.empleado.ci}/DOC/POSICION/{filename}'    
     
     legajo=models.CharField(max_length=4, unique=True)
     empleado=models.ForeignKey(Empleado, on_delete=models.RESTRICT)
     dependencia_posicion=models.ForeignKey(DependenciaPosicion, on_delete=models.RESTRICT)
     fecha_inicio=models.DateField(verbose_name="Fecha Inicio") 
     fecha_fin=models.DateField(verbose_name="Fecha Fin", null=True, blank=True)
-    cargo_actual = models.BooleanField(default=True, verbose_name="Cargo Actual")    
+    cargo_puesto_actual = models.BooleanField(default=True, verbose_name="Es su Cargo/Puesto Actual?")    
     vinculo_laboral=models.ForeignKey(
         RefDet,on_delete=models.RESTRICT, related_name="vinculo_laboral_empleado_posicion"
     )
@@ -259,27 +259,19 @@ class EmpleadoPosicion(ModeloBase):
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
         verbose_name="Archivo PDF",null=True, blank=True
     )
-    estado_empleado_posicion = models.ForeignKey(
-        RefDet,
-        to_field="valor_unico",
-        verbose_name="Estado en la Posición",
-        db_column="estado_empleado_posicion",
-        on_delete=models.RESTRICT,
-        related_name="estado_empleado_posicion",
-        default="S", # Activo
-    )  
+
     def __str__(self):
         return f"{self.empleado} - {self.dependencia_posicion}"
     
     def save(self, *args, **kwargs):
         # Si este registro se marca como actual
-        if self.cargo_actual:
+        if self.cargo_puesto_actual:
             # Deshabilitar todos los demás cargos del mismo empleado
             EmpleadoPosicion.objects.filter(
                 empleado=self.empleado,
-                cargo_actual=True
+                cargo_puesto_actual=True
             ).exclude(id=self.id).update(
-                cargo_actual=False,
+                cargo_puesto_actual=False,
                 # fecha_fin=self.fecha_inicio  # opcional: cerrar periodo
             )
 
