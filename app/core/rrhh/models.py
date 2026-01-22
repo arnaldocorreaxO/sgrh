@@ -279,8 +279,9 @@ class EmpleadoPosicion(ModeloBase):
         # Actualizar el legajo del empleado
         self.empleado.legajo = self.legajo
         self.empleado.save(update_fields=["legajo"])
-
-
+    
+        super().save(*args, **kwargs)
+        
     class Meta:
         db_table = "rh_empleado_posicion"
         verbose_name = "024 - Asignación de Cargo/Puesto"
