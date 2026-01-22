@@ -275,6 +275,10 @@ class EmpleadoPosicion(ModeloBase):
                 cargo_puesto_actual=False,
                 # fecha_fin=self.fecha_inicio  # opcional: cerrar periodo
             )
+        # Actualizar el legajo del empleado
+        self.empleado.legajo = self.legajo
+        self.empleado.save(update_fields=["legajo"])
+
 
     class Meta:
         db_table = "rh_empleado_posicion"
