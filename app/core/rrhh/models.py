@@ -239,7 +239,8 @@ class DependenciaPosicion(ModeloBase):
     class Meta:
         db_table = "rh_dependencia_posicion"
         verbose_name = "023 - Cargo/Puesto por Dependencia"
-        verbose_name_plural = "023 - Cargos/Puestos por Dependencias" 
+        verbose_name_plural = "023 - Cargos/Puestos por Dependencias"
+        ordering = ['id']
 
 # EMPLEADO POSICION = ASIGNACION DE CARGO PUESTO
 class EmpleadoPosicion(ModeloBase):
