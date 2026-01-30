@@ -269,7 +269,8 @@ class EmpleadoCreate(PermissionMixin,CreateView):
 					# Buscar usuario por DNI
 					usuario = User.objects.filter(dni=request.POST['ci']).first()
 					# Obtener datos del formulario
-					activo = isNULL(request.POST.get("activo", False))
+					activo = True if "on" in request.POST['activo'] else False
+
 					ci = isNULL(request.POST["ci"])
 					ruc = isNULL(request.POST["ruc"])
 					nombre = isNULL(request.POST["nombre"])
