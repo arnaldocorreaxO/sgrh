@@ -104,8 +104,8 @@
         {% for c in empleado.capacitacion.all %}
           <li>{{ c.nombre_capacitacion }} - {{ c.institucion }} (del {{ c.fecha_inicio|date:"d/m/Y" }} al {{ c.fecha_fin|date:"d/m/Y" }})
             <br>
-            {% if f.archivo_pdf %}            
-              <a href="{{ f.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
+            {% if c.archivo_pdf %}            
+              <a href="{{ c.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
             {% comment %} {% else %}            
               <small>Sin archivo pdf</small>{% endcomment %}
             {% endif %} 
@@ -126,8 +126,8 @@
             <em>{{ e.fecha_desde|date:"F Y" }} – {{ e.fecha_hasta|date:"F Y" }}</em><br>
             {{ e.descripcion }}
         
-            {% if f.archivo_pdf %}            
-              <a href="{{ f.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
+            {% if e.archivo_pdf %}            
+              <a href="{{ e.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
             {% comment %} {% else %}            
               <small>Sin archivo pdf</small>{% endcomment %}
             {% endif %} 
