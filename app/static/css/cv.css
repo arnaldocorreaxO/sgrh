@@ -147,8 +147,12 @@ body {
   font-size: 14px;
 }
 
-.cv-section {
-  margin-bottom: 35px;
+/* Evitar que una sección se corte entre dos páginas */
+.cv-section,
+.exp-item,
+.trayectoria-item {
+  page-break-inside: avoid;
+  margin-bottom: 15px;
 }
 
 .section-title {
