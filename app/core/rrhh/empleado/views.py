@@ -3,6 +3,7 @@ import json
 import json as simplejson
 from datetime import datetime
 from multiprocessing import context
+from urllib import request
 
 # Librerías de terceros
 from dateutil.relativedelta import relativedelta
@@ -51,6 +52,50 @@ class EmpleadoScopedMixin:
 	Requiere que el modelo tenga un campo 'empleado'.
 	"""
 	model = None  # debe ser definido en la vista 
+
+	def get_queryset(self):
+		assert self.model is not None, "Debes definir 'model' en la vista"
+		
+		usuario = self.request.user
+		qs = self.model.objects.all()
+
+		print(f"\n--- ANALIZANDO ACCESO PARA: {usuario.username} ---")
+
+		# 1. CASO VISTA PERSONAL (_self)
+		if self.is_self_view:
+			empleado = self.get_empleado()
+			print(f"Ruta tomada: VISTA PERSONAL. Empleado: {empleado}")
+			return qs.filter(empleado=empleado) if empleado else self.model.objects.none()
+
+		# 2. CASO ADMIN GLOBAL O SUPERUSER
+		# Verifica si el usuario tiene el flag is_superuser o pertenece al grupo global
+		es_global = usuario.groups.filter(name='ADMIN_RRHH_GLOBAL').exists()
+		
+		if usuario.is_superuser or es_global:
+			print(f"Ruta tomada: ADMIN GLOBAL. (Superuser: {usuario.is_superuser}, Grupo Global: {es_global})")
+			print("RESULTADO: No se aplica filtro de sucursal.")
+			return qs.select_related("empleado") if hasattr(self.model, 'empleado') else qs
+
+		# 3. CASO ADMIN DE SUCURSAL
+		try:
+			# IMPORTANTE: Usamos .select_related('sucursal') para el print
+			empleado_admin = usuario.empleado 
+			sucursal_id = empleado_admin.sucursal_id
+			print(f"Ruta tomada: ADMIN SUCURSAL. Sucursal ID detectado: {sucursal_id}")
+
+			if self.model == Empleado:
+				qs_final = qs.filter(sucursal_id=sucursal_id)
+			else:
+				# Aquí está el filtro clave para ExperienciaLaboral, Capacitacion, etc.
+				qs_final = qs.filter(empleado__sucursal_id=sucursal_id)
+			
+			print(f"Filtro aplicado: empleado__sucursal_id = {sucursal_id}")
+			print(f"Registros finales en QuerySet: {qs_final.count()}")
+			return qs_final.select_related("empleado")
+			
+		except Exception as e:
+			print(f"Ruta tomada: ERROR/DESCONOCIDO. Detalle: {str(e)}")
+			return self.model.objects.none()
 	
 	# Obtener empleado vinculado al usuario actual
 	def get_empleado(self):
@@ -95,18 +140,8 @@ class EmpleadoScopedMixin:
 		except Exception as e:
 			print(f"[asignar_empleado_a_form] Error: {e}")
 
-		return form
-	
-	# Filtrar queryset por empleado si es vista personal
-	def get_queryset(self):
-		"""Filtra por empleado si es vista personal"""
-		assert self.model is not None, "Debes definir 'model' en la vista"
-		qs = self.model.objects.select_related("empleado")
-		if self.is_self_view:
-			empleado = self.get_empleado()
-			return qs.filter(empleado=empleado) if empleado else self.model.objects.none()
-		return qs
-	
+		return form	
+
 	# Generar título con nombre del empleado
 	def get_titulo_empleado(self, prefijo="Datos"):
 		"""Genera título personalizado con nombre del empleado según el modo de vista"""		
@@ -151,6 +186,11 @@ class EmpleadoList(PermissionMixin,BaseListView):
 	numeric_fields = ["id", "ci"]
 	default_order_fields = ["id"]
 
+	def get_queryset(self):
+		# Usamos el manager personalizado que creamos antes
+		# Esto garantiza que el Admin Global vea todo y el de Sucursal solo lo suyo
+		return Empleado.objects.para_usuario(self.request.user)
+
 	@method_decorator(csrf_exempt)
 	def dispatch(self, request, *args, **kwargs):
 		return super().dispatch(request, *args, **kwargs)
@@ -161,6 +201,7 @@ class EmpleadoList(PermissionMixin,BaseListView):
 		try:
 			if action == "search":
 				data = self.handle_search(request)
+				pass
 			else:
 				data["error"] = "No ha ingresado una opción válida"
 		except Exception as e:
@@ -178,7 +219,7 @@ class EmpleadoList(PermissionMixin,BaseListView):
 
 
 # class EmpleadoCreate(PermissionMixin,CreateView):
-class EmpleadoCreate(CreateView):
+class EmpleadoCreate(PermissionMixin,CreateView):
 	model = Empleado
 	template_name = "empleado/create.html"
 	form_class = EmpleadoForm
@@ -193,8 +234,8 @@ class EmpleadoCreate(CreateView):
 		data = {"valid": True}
 		type = self.request.POST["type"]
 		obj = self.request.POST["obj"].strip()
-		print(type)
-		print(obj)
+		# print(type)
+		# print(obj)
 
 		try:
 			type = self.request.POST["type"]
@@ -205,11 +246,11 @@ class EmpleadoCreate(CreateView):
 			if type == "ruc":
 				if Empleado.objects.filter(ruc__iexact=obj):
 					data["valid"] = False
-			if type == "fec_nacimiento":
-				fec_nacimiento = datetime.strptime(
+			if type == "fecha_nacimiento":
+				fecha_nacimiento = datetime.strptime(
 					obj, "%d/%m/%Y"
 				)  # Este del from datetime
-				edad = relativedelta(get_fecha_actual, fec_nacimiento)
+				edad = relativedelta(get_fecha_actual, fecha_nacimiento)
 				if edad.years:
 					if abs(edad.years) < 18:
 						data["valid"] = False
@@ -227,25 +268,47 @@ class EmpleadoCreate(CreateView):
 				with transaction.atomic():
 					# Buscar usuario por DNI
 					usuario = User.objects.filter(dni=request.POST['ci']).first()
-
+					# Obtener datos del formulario
+					activo = isNULL(request.POST.get("activo", False))
+					ci = isNULL(request.POST["ci"])
+					ruc = isNULL(request.POST["ruc"])
+					nombre = isNULL(request.POST["nombre"])
+					apellido = isNULL(request.POST["apellido"])
+					sucursal_id = isNULL(request.POST["sucursal"])
+					nacionalidad_id = isNULL(request.POST["nacionalidad"])
+					ciudad_id = isNULL(request.POST["ciudad"])
+					barrio_id = isNULL(request.POST["barrio"])
+					direccion = isNULL(request.POST["direccion"])
+					celular = isNULL(request.POST["celular"])
+					telefono = isNULL(request.POST["telefono"])
+					email = isNULL(request.POST["email"])
+					fecha_nacimiento = YYYY_MM_DD(isNULL(request.POST["fecha_nacimiento"]))
+					sexo_id = isNULL(request.POST["sexo"])
+					estado_civil_id = isNULL(request.POST["estado_civil"])
+					tipo_sanguineo_id = isNULL(request.POST["tipo_sanguineo"])
+					ci_fecha_vencimiento = YYYY_MM_DD(isNULL(request.POST["ci_fecha_vencimiento"]))	
+					ci_archivo_pdf = request.FILES.get("ci_archivo_pdf")
+					
 					if usuario:
 						# 🔄 Actualizar datos existentes
-						usuario.first_name = request.POST['nombre']
-						usuario.last_name = request.POST['apellido']
-						usuario.email = request.POST['email']
-						usuario.sucursal_id = 1
+						usuario.activo 		= activo
+						usuario.first_name 	= nombre
+						usuario.last_name 	= apellido
+						usuario.email 		= email
+						usuario.sucursal_id = sucursal_id
 						if 'image' in request.FILES:
 							usuario.image = request.FILES['image']
-						usuario.create_or_update_password(request.POST['ci'])  # si aplica
+						usuario.create_or_update_password(ci)  # si aplica
 						usuario.save()
 						print(f"✅ Usuario actualizado: DNI {usuario.dni}")
 					else:
 						# 🆕 Crear nuevo usuario
 						usuario = User()
-						usuario.dni = request.POST['ci']
-						usuario.username = usuario.dni
-						usuario.first_name = request.POST['nombre']
-						usuario.last_name = request.POST['apellido']
+						usuario.activo 		= activo
+						usuario.dni 		= ci
+						usuario.username 	= usuario.dni
+						usuario.first_name 	= nombre
+						usuario.last_name 	= apellido
 						usuario.email = request.POST['email']
 						usuario.sucursal_id = 1
 						if 'image' in request.FILES:
@@ -258,30 +321,63 @@ class EmpleadoCreate(CreateView):
 					group = Group.objects.get(pk=settings.GROUPS.get('empleado'))
 					usuario.groups.add(group)
 								   
-					
 					#INSTANCIAR EMPLEADO
 					empleado = Empleado()
-					empleado.usuario = usuario
-					empleado.ci = isNULL(request.POST["ci"])
-					empleado.ruc = isNULL(request.POST["ruc"])
-					empleado.nombre = isNULL(request.POST["nombre"])
-					empleado.apellido = isNULL(request.POST["apellido"])
-					empleado.nacionalidad_id = isNULL(request.POST["nacionalidad"])
-					empleado.ciudad_id = isNULL(request.POST["ciudad"])
-					empleado.barrio_id = isNULL(request.POST["barrio"])
-					empleado.direccion = isNULL(request.POST["direccion"])
-					empleado.celular = isNULL(request.POST["celular"])
-					empleado.telefono = isNULL(request.POST["telefono"])
-					empleado.email = isNULL(request.POST["email"])
-					empleado.fec_nacimiento = YYYY_MM_DD(isNULL(request.POST["fec_nacimiento"]))
-					empleado.sexo_id = isNULL(request.POST["sexo"])
-					empleado.estado_civil_id = isNULL(request.POST["estado_civil"])                   
+					empleado.activo 	    	= activo
+					empleado.sucursal_id 		= sucursal_id
+					empleado.usuario 		 	= usuario
+					empleado.ci 			 	= ci
+					empleado.ruc 			 	= ruc
+					empleado.nombre 		 	= nombre
+					empleado.apellido 		 	= apellido
+					empleado.nacionalidad_id 	= nacionalidad_id
+					empleado.ciudad_id 		 	= ciudad_id
+					empleado.barrio_id 		 	= barrio_id
+					empleado.direccion 		 	= direccion
+					empleado.celular 		 	= celular
+					empleado.telefono 		 	= telefono
+					empleado.email 			 	= email
+					empleado.fecha_nacimiento  	= fecha_nacimiento
+					empleado.sexo_id 		 	= sexo_id
+					empleado.estado_civil_id	= estado_civil_id
+					empleado.tipo_sanguineo_id	= tipo_sanguineo_id
+					empleado.ci_fecha_vencimiento = ci_fecha_vencimiento
+
+					if ci_archivo_pdf:
+						# Si ya existía un archivo antes, lo borramos del disco
+						if empleado.ci_archivo_pdf:
+							empleado.ci_archivo_pdf.delete(save=False)
+						# Asignamos el nuevo
+						empleado.ci_archivo_pdf = ci_archivo_pdf     
+
 					empleado.save()
-					data["id"] = empleado.id
+					data["id"] 					= empleado.id
 
 				# data = self.get_form().save()
 			elif action == "validate_data":
 				return self.validate_data()
+		
+			elif action == "search_empleado":
+				# 1. Capturar el ID de sucursal (usando el nombre enviado por JS: sucursal_id)
+				sucursal_id = request.POST.get("sucursal_id")
+				print(f"[search_empleado] Sucursal ID recibida: {sucursal_id}")
+				# 2. Filtrar el QuerySet inicial por sucursal si existe
+				if sucursal_id and sucursal_id.isdigit():
+					empleado_qs = Empleado.objects.filter(sucursal_id=sucursal_id, activo=True)
+				else:
+					# Si no hay sucursal (Admin Global), partimos de todos los activos
+					empleado_qs = Empleado.objects.filter(activo=True)
+				
+				# 3. Capturar el término de búsqueda
+				term = request.POST.get("term", "")
+				
+				# 4. Usar tu manager 'search' sobre el queryset ya filtrado por sucursal
+				# Nota: Asegúrate de que tu manager acepte el parámetro request.user si lo usas para seguridad
+				empleados = empleado_qs.search(term,request.user)
+				print(f"[search_empleado] Término de búsqueda: '{term}' - Resultados encontrados: {empleados.count()}")
+				# 5. Formatear para Select2 (Limitamos a 15 para velocidad)
+				data = [{"id": emp.id, "text": str(emp)} for emp in empleados]
+
 			elif action == "search_ciudad":
 				data = []
 				term = request.POST["term"]
@@ -396,13 +492,35 @@ class EmpleadoUpdate(PermissionMixin,UpdateView):
 					with transaction.atomic():
 						empleado = self.get_object()
 						usuario = empleado.usuario
+						# Obtener datos del formulario
+						activo = True if "on" in request.POST['activo'] else False
+						ci = isNULL(request.POST["ci"])
+						ruc = isNULL(request.POST["ruc"])
+						nombre = isNULL(request.POST["nombre"])
+						apellido = isNULL(request.POST["apellido"])
+						sucursal_id = isNULL(request.POST["sucursal"])
+						nacionalidad_id = isNULL(request.POST["nacionalidad"])
+						ciudad_id = isNULL(request.POST["ciudad"])
+						barrio_id = isNULL(request.POST["barrio"])
+						direccion = isNULL(request.POST["direccion"])
+						celular = isNULL(request.POST["celular"])
+						telefono = isNULL(request.POST["telefono"])
+						email = isNULL(request.POST["email"])
+						fecha_nacimiento = YYYY_MM_DD(isNULL(request.POST["fecha_nacimiento"]))
+						sexo_id = isNULL(request.POST["sexo"])
+						estado_civil_id = isNULL(request.POST["estado_civil"])
+						tipo_sanguineo_id = isNULL(request.POST["tipo_sanguineo"])
+						ci_fecha_vencimiento = YYYY_MM_DD(isNULL(request.POST["ci_fecha_vencimiento"]))	
+						ci_archivo_pdf = request.FILES.get("ci_archivo_pdf", None)
 
 						# Actualizar datos del usuario
-						usuario.first_name = request.POST.get("nombre", "").strip()
-						usuario.last_name = request.POST.get("apellido", "").strip()
-						usuario.dni = request.POST.get("ci", "").strip()
-						usuario.username = usuario.dni
-						usuario.email = request.POST.get("email", "").strip()
+						usuario.is_active 	= activo
+						usuario.first_name 	= nombre
+						usuario.last_name 	= apellido
+						usuario.dni 		= ci
+						usuario.username 	= usuario.dni
+						usuario.email 		= email
+						usuario.sucursal_id = sucursal_id
 
 						# Manejo de imagen
 						if "image-clear" in request.POST:
@@ -420,20 +538,25 @@ class EmpleadoUpdate(PermissionMixin,UpdateView):
 						usuario.groups.add(group)
 
 						# Actualizar datos del empleado
-						empleado.ci = isNULL(request.POST.get("ci"))
-						empleado.ruc = isNULL(request.POST.get("ruc"))
-						empleado.nombre = isNULL(request.POST.get("nombre"))
-						empleado.apellido = isNULL(request.POST.get("apellido"))
-						empleado.nacionalidad_id = isNULL(request.POST.get("nacionalidad"))
-						empleado.ciudad_id = isNULL(request.POST.get("ciudad"))
-						empleado.barrio_id = isNULL(request.POST.get("barrio"))
-						empleado.direccion = isNULL(request.POST.get("direccion"))
-						empleado.celular = isNULL(request.POST.get("celular"))
-						empleado.telefono = isNULL(request.POST.get("telefono"))
-						empleado.email = isNULL(request.POST.get("email"))
-						empleado.fec_nacimiento = YYYY_MM_DD(isNULL(request.POST.get("fec_nacimiento")))
-						empleado.sexo_id = isNULL(request.POST.get("sexo"))
-						empleado.estado_civil_id = isNULL(request.POST.get("estado_civil"))
+						empleado.activo 			= activo
+						empleado.sucursal_id 		= sucursal_id
+						empleado.ci 			 	= ci
+						empleado.ruc 			 	= ruc
+						empleado.nombre 		 	= nombre
+						empleado.apellido 		 	= apellido
+						empleado.nacionalidad_id 	= nacionalidad_id
+						empleado.ciudad_id 		 	= ciudad_id
+						empleado.barrio_id 		 	= barrio_id
+						empleado.direccion 		 	= direccion
+						empleado.celular 		 	= celular
+						empleado.telefono 		 	= telefono
+						empleado.email 			 	= email
+						empleado.fecha_nacimiento  	= fecha_nacimiento
+						empleado.sexo_id 		 	= sexo_id
+						empleado.estado_civil_id	= estado_civil_id
+						empleado.tipo_sanguineo_id	= tipo_sanguineo_id
+						empleado.ci_fecha_vencimiento = ci_fecha_vencimiento
+						empleado.ci_archivo_pdf		= ci_archivo_pdf
 						empleado.save()
 
 						data["id"] = empleado.id
@@ -480,63 +603,37 @@ class EmpleadoDelete(PermissionMixin, DeleteView):
 		return context
 
 
-# class CVEmpleadoPDFView(View):
-# 	template_name = 'empleado/cv_empleado_pdf.html'
-
-# 	def get_empleado(self, pk):
-# 		try:
-# 			return Empleado.objects.select_related(
-# 				'nacionalidad', 'ciudad', 'barrio', 'sexo', 'estado_civil'
-# 			).get(pk=pk)
-# 		except Empleado.DoesNotExist:
-# 			raise Http404("No se encontró el empleado.")
-
-# 	def get(self, request, pk):
-# 		empleado = self.get_empleado(pk)
-# 		context = {
-# 			'empleado': empleado,
-# 			'usuario': empleado.usuario,
-# 			'fecha_generacion': request.timestamp if hasattr(request, 'timestamp') else None,
-# 		}
-# 		html_string = render_to_string(self.template_name, context)
-# 		html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
-# 		pdf = html.write_pdf()
-
-# 		response = HttpResponse(pdf, content_type='application/pdf')
-# 		response['Content-Disposition'] = f'inline; filename="cv_{empleado.nombre}_{empleado.apellido}.pdf"'
-# 		return response
-
 class CVEmpleadoPDFView(View):
-    template_name = 'empleado/cv_empleado_pdf.html'
+	template_name = 'empleado/cv_empleado_pdf.html'
 
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        self.is_self = self.request.resolver_match.url_name.endswith("_self")
-        return super().dispatch(request, *args, **kwargs)
+	@method_decorator(csrf_exempt)
+	def dispatch(self, request, *args, **kwargs):
+		self.is_self = self.request.resolver_match.url_name.endswith("_self")
+		return super().dispatch(request, *args, **kwargs)
 
-    def get_object(self, queryset=None):
-        try:
-            if self.is_self:
-                return Empleado.objects.select_related(
-                    'nacionalidad', 'ciudad', 'barrio', 'sexo', 'estado_civil'
-                ).get(usuario=self.request.user)
-            return Empleado.objects.select_related(
-                'nacionalidad', 'ciudad', 'barrio', 'sexo', 'estado_civil'
-            ).get(pk=self.kwargs["pk"])
-        except Empleado.DoesNotExist:
-            raise Http404("No se encontró el perfil del empleado.")
+	def get_object(self, queryset=None):
+		try:
+			if self.is_self:
+				return Empleado.objects.select_related(
+					'nacionalidad', 'ciudad', 'barrio', 'sexo', 'estado_civil'
+				).get(usuario=self.request.user)
+			return Empleado.objects.select_related(
+				'nacionalidad', 'ciudad', 'barrio', 'sexo', 'estado_civil'
+			).get(pk=self.kwargs["pk"])
+		except Empleado.DoesNotExist:
+			raise Http404("No se encontró el perfil del empleado.")
 
-    def get(self, request, *args, **kwargs):
-        empleado = self.get_object()
-        context = {
-            'empleado': empleado,
-            'usuario': empleado.usuario,
-            'fecha_generacion': getattr(request, 'timestamp', None),
-        }
-        html_string = render_to_string(self.template_name, context)
-        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
-        pdf = html.write_pdf()
+	def get(self, request, *args, **kwargs):
+		empleado = self.get_object()
+		context = {
+			'empleado': empleado,
+			'usuario': empleado.usuario,
+			'fecha_generacion': getattr(request, 'timestamp', None),
+		}
+		html_string = render_to_string(self.template_name, context)
+		html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+		pdf = html.write_pdf()
 
-        response = HttpResponse(pdf, content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="cv_{empleado.nombre}_{empleado.apellido}.pdf"'
-        return response
+		response = HttpResponse(pdf, content_type='application/pdf')
+		response['Content-Disposition'] = f'inline; filename="cv_{empleado.nombre}_{empleado.apellido}.pdf"'
+		return response

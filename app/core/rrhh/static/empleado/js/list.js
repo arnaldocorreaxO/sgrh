@@ -1,4 +1,4 @@
-var persona = {
+var empleado = {
   list: function () {
     $("#data").DataTable({
       responsive: true,
@@ -83,6 +83,6 @@ var persona = {
 
 $(function () {
   $(document).ready(function () {
-    persona.list(false);
+    empleado.list(false);
   });
 });

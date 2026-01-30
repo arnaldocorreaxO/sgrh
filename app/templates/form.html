@@ -3,6 +3,7 @@
 {% load security_extras %}
 {% load static %}
 {% block head_list %}
+ <script src="{% static 'js/select2/select2-init.js' %}"></script>
  <!--Librerias utilizadas en todos los forms-->
  <!--Formvalidation Libs-->
  <link rel="stylesheet" href="{% static 'lib/formvalidation-dist-v1.7.0/dist/css/formValidation.min.css' %}">
@@ -45,8 +46,7 @@
                             {% if field|is_checkbox %}
                                 {{ field }}
                             {% else %}
-                                {{ field|add_class:'form-control'|attr:"autocomplete:off" }}
-                            {% endif %}
+                                {{ field|add_class:'form-control'|attr:"autocomplete:off" }}                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>

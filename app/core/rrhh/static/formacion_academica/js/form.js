@@ -61,10 +61,10 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 $(document).ready(function () {
-  $(".select2").select2({
-    theme: "bootstrap4",
-    language: "es",
-  });
+  // $(".select2").select2({
+  //   theme: "bootstrap4",
+  //   language: "es",
+  // });
 
   $('input[name="anio"]').keypress(function (e) {
     return validate_form_text("numbers", e, null);

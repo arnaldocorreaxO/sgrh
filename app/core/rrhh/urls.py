@@ -1,5 +1,6 @@
 from django.urls import path
 
+from core.base import views
 from core.rrhh.empleado.views import *
 from core.rrhh.formacion_academica.views import *
 from core.rrhh.capacitacion.views import *
@@ -8,6 +9,10 @@ from core.rrhh.documento_complementario.views import *
 from core.rrhh.historico_disciplinario.views import *
 
 urlpatterns = [
+    # AJAX REFERENCIAS RefDet
+    path('ajax/empresas/', views.ajax_empresas, name='ajax_empresas'),
+    path('ajax/cargos/', views.ajax_cargos, name='ajax_cargos'),
+    
     # EMPLEADO
     # Vista general (admin)
     path("empleado/", EmpleadoList.as_view(), name="empleado_list"),

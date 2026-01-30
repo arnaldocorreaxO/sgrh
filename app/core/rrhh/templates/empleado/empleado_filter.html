@@ -1,19 +1,20 @@
+    {% load static %}
 
     <div class="row">
+        <div class="col-lg-6">
+            <div class="form-group">
+                <label>Por Sucursal:</label>
+                <div class="input-group mb-3">{{ filter_form.sucursal }}</div>
+            </div>
+        </div>
         <div class="col-lg-6">
             <div class="form-group">
                 <label>Por Empleado:</label>
                 <div class="input-group mb-3">{{ filter_form.empleado }}</div>
             </div>
         </div>
-        <div class="col-lg-6">
-            <div class="form-group">
-                <label>Por Institución:</label>
-                <div class="input-group mb-3">{{ filter_form.institucion }}</div>
-            </div>
-        </div>
     </div>
-    <div class="row">
+    {% comment %} <div class="row">
         <div class="col-lg-6">
             <div class="form-group">
                 <label>Acciones:</label>
@@ -29,5 +30,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> {% endcomment %}
     <hr>
+
+<script src="{% static 'js/select2/empleado.js' %}"></script>

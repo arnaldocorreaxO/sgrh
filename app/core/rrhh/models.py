@@ -4,7 +4,7 @@ from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 
 
-from core.base.models import Barrio, Ciudad, Moneda, Pais, RefDet
+from core.base.models import Barrio, Ciudad, Moneda, Pais, RefDet, Sucursal
 from core.models import ModeloBase
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -13,10 +13,49 @@ from django.forms import model_to_dict
 from core.base.choices import *
 from core.base.utils import calculate_age
 from core.user.models import User
+from core.utils import UploadToPath
 
-def empleado_directory_path(instance, filename, seccion):
-    # seccion: DOCUMENTO, FORMACION, CURSOS, LABORAL, COMPLEMENTARIOS
-    return f'empleado/DOCUMENTO/{instance.empleado.ci}/{seccion}/{filename}'
+# MANAGERS Y QUERYSETS PERSONALIZADOS
+# Para que pueda funcionar .search sobre un queryset filtrado
+class EmpleadoQuerySet(models.QuerySet):
+    def para_usuario(self, usuario):
+        # 1. Superusuario o Admin Global
+        if usuario.is_superuser or usuario.groups.filter(name='ADMIN_RRHH_GLOBAL').exists():
+            return self.all()
+        
+        # 2. Obtener el perfil del consultor
+        try:
+            empleado_consultor = usuario.empleado
+        except AttributeError:
+            return self.none()
+
+        # 3. Admin de Sucursal
+        if usuario.groups.filter(name='ADMIN_RRHH_SUCURSAL').exists():
+            return self.filter(sucursal=empleado_consultor.sucursal)
+
+        # 4. Caso base: Solo a sí mismo
+        return self.filter(id=empleado_consultor.id)
+
+    def search(self, term, user, limit=10):
+        print(f"EmpleadoQuerySet.search: term='{term}' user='{user.username}'")
+        # Ahora 'self' ya tiene el método 'para_usuario'
+        qs = self.para_usuario(user).filter(
+            models.Q(nombre__icontains=term) | 
+            models.Q(apellido__icontains=term) | 
+            models.Q(ci__icontains=term)
+        )
+        return qs[:limit] if limit else qs
+
+class EmpleadoManager(models.Manager):
+    def get_queryset(self):
+        return EmpleadoQuerySet(self.model, using=self._db)
+    
+    # Mapeamos los métodos del manager al queryset para que funcionen desde Empleado.objects...
+    def para_usuario(self, usuario):
+        return self.get_queryset().para_usuario(usuario)
+
+    def search(self, term, user, limit=10):
+        return self.get_queryset().search(term, user, limit)
 
 # INSTITUCION
 class Institucion(ModeloBase):
@@ -27,8 +66,14 @@ class Institucion(ModeloBase):
     tipo_funcion = models.ForeignKey(RefDet, on_delete=models.RESTRICT, related_name="tipo_funcion_institucion",null=True, blank=True)
     
     def __str__(self):  
-        return F"{self.denominacion} - {self.abreviatura}"
+        return f"{self.denominacion} - {self.abreviatura}"
     
+    def search(term):
+        return Institucion.objects.filter(
+            models.Q(denominacion__icontains=term) |
+            models.Q(abreviatura__icontains=term)
+        )[:10]
+
     class Meta:
         db_table = "rh_institucion"
         verbose_name = "001 - Institución"
@@ -145,11 +190,17 @@ class CargoPuesto(ModeloBase):
 
 # EMPLEADO
 class Empleado(ModeloBase):
+    sucursal = models.ForeignKey(Sucursal, verbose_name="Sucursal", on_delete=models.RESTRICT)
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     legajo = models.CharField(
         verbose_name="Legajo", max_length=4, validators=[MinLengthValidator(4)],null=True, blank=True
     )
     ci = models.BigIntegerField(verbose_name="CI", unique=True)
+    ci_fecha_vencimiento = models.DateField(verbose_name="Fecha Vencimiento CI", null=True, blank=True)
+    ci_archivo_pdf = models.FileField(
+        upload_to=UploadToPath('CI'),
+        verbose_name="Archivo Adjunto CI", null=True, blank=True
+    )
     ruc = models.CharField(
         verbose_name="RUC",
         max_length=10,
@@ -179,7 +230,7 @@ class Empleado(ModeloBase):
         verbose_name="Celular", max_length=20
     )
     email = models.CharField(max_length=50, verbose_name="Email")
-    fec_nacimiento = models.DateField(verbose_name="Fecha Nacimiento", null=True)
+    fecha_nacimiento = models.DateField(verbose_name="Fecha Nacimiento", null=True)
     sexo = models.ForeignKey(
         RefDet,
         verbose_name="Sexo",
@@ -194,12 +245,15 @@ class Empleado(ModeloBase):
         on_delete=models.RESTRICT,
         related_name="estado_civil_empleado",
     )
-    # tipo_sanguineo = models.ForeignKey(
-    #     RefDet,
-    #     verbose_name="Tipo Sanguíneo",
-    #     on_delete=models.RESTRICT,
-    #     related_name="tipo_sanguineo_empleado",null=True, blank=True
-    # )
+    tipo_sanguineo = models.ForeignKey(
+        RefDet,
+        verbose_name="Tipo Sanguíneo",
+        on_delete=models.RESTRICT,
+        related_name="tipo_sanguineo_empleado",
+        null=True, blank=True
+    )
+
+    objects = EmpleadoManager() # Asignamos el manager personalizado
 
     def __str__(self):
         return self.full_name
@@ -208,12 +262,71 @@ class Empleado(ModeloBase):
     def full_name(self):
         return f"{self.nombre} {self.apellido}"
 
+    def get_ultimo_cargo(self):
+    # Ordenamos por fecha_inicio descendente (-) y tomamos el primero
+        return self.empleado_posicion.all().order_by('-fecha_inicio').first()    
+
+    @property
+    def cargo_actual(self):
+        # Buscamos en la relación inversa 'empleado_posicion' definida en tu ForeignKey
+        posicion = self.empleado_posicion.order_by('-fecha_inicio').first()
+        if posicion:
+            # Retorna la denominación del cargo (tipo_movimiento o cargo según tu lógica)
+            return posicion.dependencia_posicion.posicion.denominacion
+        return "Funcionario" # Valor por defecto si no hay ninguno activo
+    
+    @property
+    def dependencia_actual(self):
+        # Buscamos en la relación inversa 'empleado_posicion' definida en tu ForeignKey
+        posicion = self.empleado_posicion.order_by('-fecha_inicio').first()
+        if posicion:
+            # Retorna la denominación del cargo (tipo_movimiento o cargo según tu lógica)
+            return posicion.dependencia_posicion.dependencia.denominacion
+        return "Funcionario" # Valor por defecto si no hay ninguno activo
+    
+    @property    
+    def sede_actual(self):
+        # Buscamos en la relación inversa 'empleado_posicion' definida en tu ForeignKey
+        posicion = self.empleado_posicion.order_by('-fecha_inicio').first()
+        if posicion:
+            # Retorna la denominación del cargo (tipo_movimiento o cargo según tu lógica)
+            return posicion.dependencia_posicion.dependencia.sede.denominacion
+        return "Funcionario" # Valor por defecto si no hay ninguno activo
+
     def get_edad(self):
-        return calculate_age(self.fec_nacimiento)
+        return calculate_age(self.fecha_nacimiento)
 
     def toJSON(self):
+        # 1. Convertimos el modelo a diccionario
         item = model_to_dict(self)
+        
+        # 2. Propiedades calculadas y personalizadas
+        item["full_name"] = self.full_name
         item["edad"] = self.get_edad()
+
+        # 3. Procesar Archivos (PDF e Imagen)
+        item["ci_archivo_pdf"] = self.ci_archivo_pdf.url if self.ci_archivo_pdf else ""
+        
+        # Imagen desde el usuario relacionado
+        if self.usuario and self.usuario.image:
+            item["image"] = self.usuario.image.url
+        else:
+            item["image"] = "/static/img/empty.png"
+
+        # 4. Formatear Fechas para que no den error de serialización
+        item["fecha_nacimiento"] = self.fecha_nacimiento.strftime('%d/%m/%Y') if self.fecha_nacimiento else ""
+        item["ci_fecha_vencimiento"] = self.ci_fecha_vencimiento.strftime('%d/%m/%Y') if self.ci_fecha_vencimiento else ""
+
+        # 5. Denominaciones de ForeignKeys (Clave para Reportes y Tablas)
+        item["sucursal_denominacion"] = self.sucursal.denominacion if self.sucursal else ""
+        item["nacionalidad_denominacion"] = self.nacionalidad.denominacion if self.nacionalidad else ""
+        item["ciudad_denominacion"] = self.ciudad.denominacion if self.ciudad else ""
+        
+        # Campos de RefDet (Sexo, Estado Civil, etc.)
+        item["sexo_denominacion"] = self.sexo.denominacion if self.sexo else ""
+        item["estado_civil_denominacion"] = self.estado_civil.denominacion if self.estado_civil else ""
+        item["tipo_sanguineo_denominacion"] = self.tipo_sanguineo.denominacion if self.tipo_sanguineo else ""
+        
         return item
 
     class Meta:
@@ -244,12 +357,13 @@ class DependenciaPosicion(ModeloBase):
 
 # EMPLEADO POSICION = ASIGNACION DE CARGO PUESTO
 class EmpleadoPosicion(ModeloBase):
-    def directory_path(instance, filename):
-        return f'empleado/{instance.empleado.ci}/DOC/POSICION/{filename}'    
-    
-    legajo=models.CharField(max_length=4, unique=True)
-    empleado=models.ForeignKey(Empleado, on_delete=models.RESTRICT)
+    legajo=models.CharField(max_length=4)
+    empleado=models.ForeignKey(Empleado, on_delete=models.RESTRICT,related_name='empleado_posicion')
     dependencia_posicion=models.ForeignKey(DependenciaPosicion, on_delete=models.RESTRICT)
+    tipo_movimiento=models.ForeignKey(
+        RefDet,on_delete=models.RESTRICT, related_name="tipo_movimiento_empleado_posicion"
+    )
+
     fecha_inicio=models.DateField(verbose_name="Fecha Inicio") 
     fecha_fin=models.DateField(verbose_name="Fecha Fin", null=True, blank=True)
     cargo_puesto_actual = models.BooleanField(default=True, verbose_name="Es su Cargo/Puesto Actual?")    
@@ -257,13 +371,40 @@ class EmpleadoPosicion(ModeloBase):
         RefDet,on_delete=models.RESTRICT, related_name="vinculo_laboral_empleado_posicion"
     )
     archivo_pdf = models.FileField(
-        upload_to=directory_path,
+        upload_to=UploadToPath('POSICION'),
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
         verbose_name="Archivo PDF",null=True, blank=True
     )
 
     def __str__(self):
         return f"{self.empleado} - {self.dependencia_posicion}"
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        for field in self._meta.fields:
+            value = getattr(self, field.name)
+            if field.name == 'archivo_pdf':
+                # Manejo de archivo similar a FormacionAcademica
+                item['archivo_pdf_url'] = value.url if value else None
+                item[field.name] = "PDF" if value else None
+            elif isinstance(field, models.DateField):
+                # Formatear fechas para el DataTable (DD/MM/YYYY)
+                item[field.name] = value.strftime('%d/%m/%Y') if value else None
+            elif hasattr(value, 'url'):
+                item[field.name] = value.url if value else None
+            elif hasattr(value, 'name'):
+                item[field.name] = value.name if value else None
+        
+        # Campos personalizados y denominaciones de ForeignKeys
+        item['empleado'] = self.empleado.full_name if self.empleado else None
+        item['dependencia_posicion_denominacion'] = str(self.dependencia_posicion) if self.dependencia_posicion else None
+        item['tipo_movimiento_denominacion'] = self.tipo_movimiento.denominacion if self.tipo_movimiento else None
+        item['vinculo_laboral_denominacion'] = self.vinculo_laboral.denominacion if self.vinculo_laboral else None
+        
+        # Estado del cargo actual (para mostrar 'Sí' o 'No' en la tabla si fuera necesario)
+        item['cargo_puesto_actual_text'] = 'Sí' if self.cargo_puesto_actual else 'No'
+        
+        return item
     
     def save(self, *args, **kwargs):
         # Si este registro se marca como actual
@@ -289,10 +430,7 @@ class EmpleadoPosicion(ModeloBase):
         ordering = ['-fecha_inicio']
 
 # ANTECEDENTES ACADEMICOS = FORMACION ACADEMICA = ESTUDIOS REALIZADOS
-class FormacionAcademica(ModeloBase):
-    def directory_path(instance, filename):
-        return f'empleado/{instance.empleado.ci}/DOC/FORMACION/{filename}'
-    
+class FormacionAcademica(ModeloBase):    
     empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT,related_name="formacionacademica")
     nivel_academico = models.ForeignKey(
         RefDet,
@@ -305,7 +443,7 @@ class FormacionAcademica(ModeloBase):
     denominacion_carrera = models.CharField(max_length=150, verbose_name="Carrera", null=True, blank=True)
     anho_graduacion = models.IntegerField(verbose_name="Año Graduación", null=True, blank=True)
     archivo_pdf = models.FileField(
-        upload_to=directory_path,
+        upload_to=UploadToPath('FORMACION'),
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
         verbose_name="Archivo PDF",null=True, blank=True
     )
@@ -313,7 +451,7 @@ class FormacionAcademica(ModeloBase):
         if self.empleado:
             return f"{self.titulo_obtenido} ({self.empleado.nombre} {self.empleado.apellido})"
         return self.titulo
-
+    
     def toJSON(self):
         item = model_to_dict(self)
         for field in self._meta.fields:
@@ -348,12 +486,8 @@ class FormacionAcademica(ModeloBase):
 
 
 # CURSOS REALIZADOS = CAPACITACION
-class Capacitacion(ModeloBase):
-    def directory_path(instance, filename):
-        return f'empleado/{instance.empleado.ci}/DOC/CAPACITACION/{filename}'
-    
+class Capacitacion(ModeloBase):    
     empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT,related_name='capacitacion')
-
     institucion = models.ForeignKey(
         Institucion,
         on_delete=models.RESTRICT,
@@ -383,7 +517,7 @@ class Capacitacion(ModeloBase):
         blank=True
     )
     archivo_pdf = models.FileField(
-        upload_to= directory_path,
+        upload_to=UploadToPath('CAPACITACION'),
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
         verbose_name="Archivo PDF"
     )
@@ -437,17 +571,15 @@ class Capacitacion(ModeloBase):
 
         return item
 
-class ExperienciaLaboral(ModeloBase):
-    def directory_path(instance, filename):
-        return f'empleado/{instance.empleado.ci}/DOC/LABORALS/{filename}'
-    empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT,related_name="experiencialaboral")
-    institucion = models.ForeignKey(Institucion, on_delete=models.RESTRICT, related_name="institucion_experiencia_profesional")
-    cargo = models.ForeignKey(RefDet, on_delete=models.RESTRICT, related_name="cargo_experiencia_profesional")
+class ExperienciaLaboral(ModeloBase):        
+    empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT,related_name="experiencia_laboral")
+    empresa = models.ForeignKey(RefDet,db_column="empresa_refdet_id", on_delete=models.RESTRICT, related_name="empresa_experiencia_laboral")
+    cargo = models.ForeignKey(RefDet,db_column="cargo_refdet_id", on_delete=models.RESTRICT, related_name="cargo_experiencia_laboral")
     fecha_desde = models.DateField(verbose_name="Fecha Desde")
     fecha_hasta = models.DateField(verbose_name="Fecha Hasta", null=True, blank=True)
     motivo_retiro = models.CharField(max_length=255, verbose_name="Motivo Retiro", null=True, blank=True)
     archivo_pdf = models.FileField(
-        upload_to=directory_path,
+        upload_to=UploadToPath('LABORAL'),
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
         verbose_name="Archivo PDF"
     )
@@ -460,7 +592,7 @@ class ExperienciaLaboral(ModeloBase):
         item['archivo_pdf'] = "PDF" if self.archivo_pdf else None
 
         # Relaciones
-        item['institucion_denominacion'] = self.institucion.denominacion if self.institucion else None
+        item['empresa_denominacion'] = self.empresa.denominacion if self.empresa else None
         item['cargo_denominacion'] = self.cargo.denominacion if self.cargo else None
         item['empleado_ci'] = self.empleado.ci if self.empleado else None
         item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
@@ -485,8 +617,6 @@ class ExperienciaLaboral(ModeloBase):
 # DOCUMENTOS COMPLEMENTARIOS DEL EMPLEADO = OTROS DOCUMENTOS
 
 class DocumentoComplementario(ModeloBase):
-    def directory_path(instance, filename):
-        return f'empleado/{instance.empleado.ci}/DOC/OTROS/{filename}'
     empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT)
     tipo_documento = models.ForeignKey(
         RefDet,
@@ -497,7 +627,7 @@ class DocumentoComplementario(ModeloBase):
     )
     descripcion = models.CharField(max_length=255, verbose_name="Descripción", null=True, blank=True)
     archivo_pdf = models.FileField(
-        upload_to=directory_path,
+        upload_to=UploadToPath('OTROS'),
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
         verbose_name="Archivo PDF"
     )
@@ -548,10 +678,7 @@ class DocumentoComplementario(ModeloBase):
 
 # HISTORICO DISCIPLINARIO = REGISTRO DISCIPLINARIO = ANTECEDENTES DISCIPLINARIOS
 class HistoricoDisciplinario(ModeloBase):
-    def directory_path(instance, filename):
-        return f'empleado/{instance.empleado.ci}/DOC/DISCIPLINARIO/{filename}'
     empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT)
-
     tipo_falta = models.ForeignKey(
         RefDet,
         verbose_name="Tipo de Falta",
@@ -598,7 +725,7 @@ class HistoricoDisciplinario(ModeloBase):
     )
 
     archivo_pdf = models.FileField(
-        upload_to=directory_path,
+        upload_to=UploadToPath('DISCIPLINARIO'),
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
         verbose_name="Documento PDF",null=True, blank=True
     )

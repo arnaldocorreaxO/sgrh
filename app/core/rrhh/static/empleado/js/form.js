@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
           },
         },
       },
-      fec_nacimiento: {
+      fecha_nacimiento: {
         validators: {
           notEmpty: {
             message: "La fecha es obligatoria",
@@ -158,8 +158,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
             url: pathname,
             data: function () {
               return {
-                obj: form.querySelector('[name="fec_nacimiento"]').value,
-                type: "fec_nacimiento",
+                obj: form.querySelector('[name="fecha_nacimiento"]').value,
+                type: "fecha_nacimiento",
                 action: "validate_data",
               };
             },
@@ -193,8 +193,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
       if (!e.result.valid) {
         const messages = [].slice.call(
           form.querySelectorAll(
-            '[data-field="' + e.field + '"][data-validator]'
-          )
+            '[data-field="' + e.field + '"][data-validator]',
+          ),
         );
         messages.forEach((messageEle) => {
           const validator = messageEle.getAttribute("data-validator");
@@ -226,7 +226,7 @@ $(document).ready(function () {
     $("#id_apellido").val("");
     $("#id_direccion").val("");
     $("#id_nacionalidad").val("");
-    $("#fec_nacimiento").val("");
+    $("#fecha_nacimiento").val("");
     $("#id_estado_civil").val("");
     $.ajax({
       url: "/base/persona/get_datos_persona",
@@ -239,23 +239,34 @@ $(document).ready(function () {
         $("#id_apellido").val(data[0].per_apynom);
         $("#id_direccion").val(data[0].per_desdomi);
         $("#id_nacionalidad").val(data[0].per_codpais).trigger("change");
-        $("#fec_nacimiento").val(
-          data[0].per_fchnaci.split("-").reverse().join("/")
+        $("#fecha_nacimiento").val(
+          data[0].per_fchnaci.split("-").reverse().join("/"),
         );
         $("#id_estado_civil").val(data[0].civ_codeciv).trigger("change");
       },
     });
   });
 
-  input_fec_nacimiento = $('input[name="fec_nacimiento"]');
-  input_fec_nacimiento.datetimepicker({
+  input_ci_fecha_vencimiento = $('input[name="ci_fecha_vencimiento"]');
+  input_ci_fecha_vencimiento.datetimepicker({
     format: "DD/MM/YYYY",
     locale: "es",
     keepOpen: false,
-    date: input_fec_nacimiento.val(),
+    date: input_ci_fecha_vencimiento.val(),
   });
 
-  input_fec_nacimiento.on("change.datetimepicker", function () {
-    fv.revalidateField("fec_nacimiento");
+  input_fecha_nacimiento = $('input[name="fecha_nacimiento"]');
+  input_fecha_nacimiento.datetimepicker({
+    format: "DD/MM/YYYY",
+    locale: "es",
+    keepOpen: false,
+    date: input_fecha_nacimiento.val(),
+  });
+
+  input_ci_fecha_vencimiento.on("change.datetimepicker", function () {
+    fv.revalidateField("ci_fecha_vencimiento");
+  });
+  input_fecha_nacimiento.on("change.datetimepicker", function () {
+    fv.revalidateField("fecha_nacimiento");
   });
 });

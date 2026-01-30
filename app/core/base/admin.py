@@ -50,6 +50,7 @@ class MonedaAdmin(ModeloAdminBase):
 
 class RefDetAdmin(ModeloAdminBase):
     list_display = [
+        "id",
         "cod_referencia",
     ] + _list_display
     search_fields = ("refcab__denominacion",)

@@ -42,22 +42,25 @@ class HistoricoDisciplinarioList(PermissionMixin,EmpleadoScopedMixin, BaseListVi
 		return ["historico_disciplinario/list_self.html"] if self.is_self_view else ["historico_disciplinario/list.html"]
 
 	def get_queryset(self):
-		# Optimiza consultas con select_related
-		qs = HistoricoDisciplinario.objects.select_related("empleado")
-		empleado = Empleado.objects.filter(usuario=self.request.user).first()
-		if not empleado:
-			return HistoricoDisciplinario.objects.none()
+		# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
+		qs = super().get_queryset()
 
-		# Filtra por usuario si es vista personal
-		if self.is_self_view:
-			return qs.filter(empleado=empleado)
-
-		# Filtra por ID de empleado si se envía por POST
+		# 2. Capturamos el ID del empleado enviado por el buscador/combo
 		empleado_id = self.request.POST.get("empleado")
-		if empleado_id:
-			return qs.filter(empleado_id=empleado_id)
 
-		return qs
+		# 3. COMPORTAMIENTO ESPECÍFICO:
+		# Solo filtramos y mostramos si se envía un empleado_id.
+		# NOTA: En la vista personal (is_self_view), el Mixin ya hace el trabajo,
+		# así que permitimos que pase sin el requisito del POST.
+		if not self.is_self_view:
+			if empleado_id:
+				qs = qs.filter(empleado_id=empleado_id)
+			else:
+				# Si no hay empleado_id y no es vista personal, devolvemos vacío
+				return self.model.objects.none()
+
+		# 4. Optimización final si hay datos que mostrar
+		return qs.select_related("empleado",)
 
 	def post(self, request, *args, **kwargs):
 		# Maneja acciones POST como búsqueda
@@ -82,7 +85,7 @@ class HistoricoDisciplinarioList(PermissionMixin,EmpleadoScopedMixin, BaseListVi
 		else:
 			context["create_url"] = reverse_lazy(self.create_url_name)
 			context["title"] = "Listado de " + self.context_prefix
-			context["filter_form"] = EmpleadoFilterForm(self.request.GET or None)
+			context["filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
 		return context
 
 class HistoricoDisciplinarioCreate(PermissionMixin,EmpleadoScopedMixin,CreateView):

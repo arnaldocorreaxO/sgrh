@@ -16,15 +16,12 @@ class CapacitacionForm(ModelFormEmpleado):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # INSTITUCION
-        institucion = forms.ModelChoiceField(
-            queryset=Institucion.objects.all(),
-            empty_label="(Seleccione una institución)",
-            label="Institución",
-        )
-        institucion.widget.attrs.update({"class": "form-control select2", "style": "width: 100%;"})
-        self.fields["institucion"] = institucion
-
+        # Empleado dinamico
+        # Se define en base al contexto ModelFormEmpleado si aplica           
+            
+        # Institucion dinamico
+        self.fields["institucion"].queryset = Institucion.objects.none()
+        
         # TIPO DE CERTIFICACIÓN
         tipo_certificacion = forms.ModelChoiceField(
             queryset=RefDet.objects.filter(refcab__cod_referencia__exact="TIPO_CERTIFICACION"),
@@ -37,7 +34,9 @@ class CapacitacionForm(ModelFormEmpleado):
 
         # Configuración dinámica si hay instancia
         if self.instance:
-            self.fields["institucion"].queryset = Institucion.objects.all().order_by('denominacion')
+            if self.instance.institucion_id:
+                self.fields["institucion"].queryset = Institucion.objects.filter(id=self.instance.institucion_id)
+            
             self.fields["tipo_certificacion"].queryset = RefDet.objects.filter(
                 refcab__cod_referencia__exact="TIPO_CERTIFICACION"
             ).order_by('descripcion')

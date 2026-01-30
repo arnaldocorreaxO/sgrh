@@ -5,6 +5,7 @@ from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import CreateView, DeleteView, UpdateView
+from requests import request
 
 from core.base.views.generics import BaseListView
 from core.rrhh.empleado.forms import EmpleadoFilterForm
@@ -42,22 +43,31 @@ class CapacitacionList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 		return ["capacitacion/list_self.html"] if self.is_self_view else ["capacitacion/list.html"]
 
 	def get_queryset(self):
-		# Optimiza consultas con select_related
-		qs = Capacitacion.objects.select_related("empleado", "institucion")
-		empleado = Empleado.objects.filter(usuario=self.request.user).first()
-		if not empleado:
-			return Capacitacion.objects.none()
+		# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
+		qs = super().get_queryset()
 
-		# Filtra por usuario si es vista personal
-		if self.is_self_view:
-			return qs.filter(empleado=empleado)
-
-		# Filtra por ID de empleado si se envía por POST
+		# 2. Capturamos los filtros del formulario
 		empleado_id = self.request.POST.get("empleado")
-		if empleado_id:
-			return qs.filter(empleado_id=empleado_id)
+		sucursal_id = self.request.POST.get("sucursal") # El nombre coincide con el form
 
-		return qs
+		# 3. Comportamiento para vistas que no son "Mi Perfil" (is_self_view)
+		if not self.is_self_view:
+			# Filtro de Sucursal (Prioridad 1)
+			if sucursal_id:
+				# Filtramos por la sucursal seleccionada
+				qs = qs.filter(empleado__sucursal_id=sucursal_id)
+			
+			# Filtro de Empleado (Prioridad 2)
+			if empleado_id:
+				qs = qs.filter(empleado_id=empleado_id)
+			
+			# 4. Seguridad: Si el usuario es GLOBAL pero no eligió nada, 
+			# devolvemos vacío para evitar una carga masiva de toda la empresa.
+			if not empleado_id and not sucursal_id:
+				return self.model.objects.none()
+
+		# 5. Optimización final
+		return qs.select_related("empleado", "empleado__sucursal", "institucion")
 
 	def post(self, request, *args, **kwargs):
 		# Maneja acciones POST como búsqueda
@@ -82,7 +92,7 @@ class CapacitacionList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 		else:
 			context["create_url"] = reverse_lazy(self.create_url_name)
 			context["title"] = "Listado de " + self.context_prefix
-			context["filter_form"] = EmpleadoFilterForm(self.request.GET or None)
+			context["filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
 		return context
 
 class CapacitacionCreate(PermissionMixin,EmpleadoScopedMixin,CreateView):
@@ -107,7 +117,7 @@ class CapacitacionCreate(PermissionMixin,EmpleadoScopedMixin,CreateView):
 		data = {}
 		action = request.POST.get("action", "")
 		try:
-			if action == "add":
+			if action == "add":				
 				form = self.get_form()
 				if form.is_valid():                                       
 					form = self.asignar_empleado_a_form(form)

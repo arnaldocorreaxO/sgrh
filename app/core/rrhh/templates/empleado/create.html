@@ -50,6 +50,11 @@
                                     <label for="{{ form.activo.id_for_label }}">{{ form.activo.label }}</label>
                                     {{ form.activo }}
                                 </div>
+                                <!-- Sucursal -->
+                                <div class="form-group mb-1">
+                                    <label for="{{ form.sucursal.id_for_label }}">{{form.sucursal.label}}*</label>
+                                    {{ form.sucursal|add_class:'form-control'|attr:'autocomplete:off'}} 
+                                </div>
 
                                 <!-- Legajo -->
                                 <div class="form-row g-0">
@@ -57,6 +62,12 @@
                                         <label for="{{ form.legajo.id_for_label }}">{{ form.legajo.label }}</label>
                                         {{ form.legajo|add_class:'form-control'|attr:'autocomplete:off'|attr:'aria-label:Legajo del empleado' }}
                                     </div>
+                               
+                                <!-- Tipo Sanguineo -->
+                                    <div class="form-group col-md-6 mb-1">
+                                        <label for="{{ form.tipo_sanguineo.id_for_label }}">{{form.tipo_sanguineo.label}}*</label>
+                                        {{ form.tipo_sanguineo|add_class:'form-control'|attr:'autocomplete:off'}}
+                                    </div> 
                                 </div>
 
                                 <!-- CI y RUC -->
@@ -86,21 +97,30 @@
                                         <label for="{{ form.ruc.id_for_label }}">{{ form.ruc.label }}*</label>
                                         {{ form.ruc|add_class:'form-control'|attr:'autocomplete:off' }}
                                     </div>
-                                </div>
 
-                                <!-- Nombre y Apellido -->
-                                <div class="form-row g-0">
-                                    <div class="form-group col-md-12 mb-1">
-                                        <label for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}*</label>
-                                        {{ form.nombre|add_class:'form-control'|attr:'autocomplete:off' }}
+                                    <div class="form-group col-md-6 mb-1">
+                                        <label for="{{ form.ci_fecha_vencimiento.id_for_label }}">{{form.ci_fecha_vencimiento.label}}*</label>
+                                        {{ form.ci_fecha_vencimiento|add_class:'form-control'|attr:'autocomplete:off'}}
                                     </div>
 
-                                    <div class="form-group col-md-12 mb-1">
-                                        <label for="{{ form.apellido.id_for_label }}">{{ form.apellido.label }}*</label>
-                                        {{ form.apellido|add_class:'form-control'|attr:'autocomplete:off' }}
+                                    <div class="form-group col-md-6 mb-1">
+                                        <label for="{{ form.ci_archivo_pdf.id_for_label }}">
+                                            {{ form.ci_archivo_pdf.label }}{% if form.ci_archivo_pdf.field.required %}*{% endif %}
+                                        </label>
+                                        
+                                        {# Usamos form-control-file para que se vea bien en Bootstrap 4/5 #}
+                                        {{ form.ci_archivo_pdf|add_class:'form-control-file'|attr:'autocomplete:off' }}
+                                        
+                                        {% if form.ci_archivo_pdf.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.ci_archivo_pdf.errors|first }}
+                                            </div>
+                                        {% endif %}
                                     </div>
+                                    
                                 </div>
-                            </div>
+                        </div>
+
 
                             <!-- 🖼️ Columna derecha: Imagen -->
                             <div class="col-md-4 d-flex flex-column align-items-center">
@@ -118,6 +138,25 @@
                                 <div class="mt-2 w-100">
                                     {{ form.image }}
 
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 📌 Nombre y Apellido -->
+                        <div class="form-row g-0">
+                            <!-- 🧱 Columna izquierda -->
+                            <div class="col-md-12">
+                                <!-- Nombre y Apellido -->
+                                <div class="form-row g-0">
+                                    <div class="form-group col-md-6 mb-1">
+                                        <label for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}*</label>
+                                        {{ form.nombre|add_class:'form-control'|attr:'autocomplete:off' }}
+                                    </div>
+
+                                    <div class="form-group col-md-6 mb-1">
+                                        <label for="{{ form.apellido.id_for_label }}">{{ form.apellido.label }}*</label>
+                                        {{ form.apellido|add_class:'form-control'|attr:'autocomplete:off' }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -167,8 +206,8 @@
                         <!-- 📌 Datos demográficos -->
                         <div class="form-row g-0">
                             <div class="form-group col-md-4 mb-1">
-                                <label for="{{ form.fec_nacimiento.id_for_label }}">{{form.fec_nacimiento.label}}*</label>
-                                {{ form.fec_nacimiento|add_class:'form-control'|attr:'autocomplete:off'}}
+                                <label for="{{ form.fecha_nacimiento.id_for_label }}">{{form.fecha_nacimiento.label}}*</label>
+                                {{ form.fecha_nacimiento|add_class:'form-control'|attr:'autocomplete:off'}}
                             </div>
                             <div class="form-group col-md-4 mb-1">
                                 <label for="{{ form.sexo.id_for_label }}">{{form.sexo.label}}*</label>

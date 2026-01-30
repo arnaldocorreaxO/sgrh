@@ -6,6 +6,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import CreateView, DeleteView, UpdateView
 
+from core.base.models import RefCab, RefDet
 from core.base.views.generics import BaseListView
 from core.rrhh.empleado.forms import EmpleadoFilterForm
 from core.rrhh.experiencia_laboral.forms import ExperienciaLaboralForm
@@ -25,6 +26,8 @@ class ExperienciaLaboralList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	search_fields = [
 		"empleado__nombre",
 		"empleado__apellido",
+		"cargo__denominacion",
+		"empresa__denominacion",
 	]
 	numeric_fields = ["id", "empleado_id"]
 	default_order_fields = ["empleado__apellido", "empleado__nombre"]
@@ -41,22 +44,25 @@ class ExperienciaLaboralList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 		return ["experiencia_laboral/list_self.html"] if self.is_self_view else ["experiencia_laboral/list.html"]
 
 	def get_queryset(self):
-		# Optimiza consultas con select_related
-		qs = ExperienciaLaboral.objects.select_related("empleado", "institucion")
-		empleado = Empleado.objects.filter(usuario=self.request.user).first()
-		if not empleado:
-			return ExperienciaLaboral.objects.none()
+		# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
+		qs = super().get_queryset()
 
-		# Filtra por usuario si es vista personal
-		if self.is_self_view:
-			return qs.filter(empleado=empleado)
-
-		# Filtra por ID de empleado si se envía por POST
+		# 2. Capturamos el ID del empleado enviado por el buscador/combo
 		empleado_id = self.request.POST.get("empleado")
-		if empleado_id:
-			return qs.filter(empleado_id=empleado_id)
 
-		return qs
+		# 3. COMPORTAMIENTO ESPECÍFICO:
+		# Solo filtramos y mostramos si se envía un empleado_id.
+		# NOTA: En la vista personal (is_self_view), el Mixin ya hace el trabajo,
+		# así que permitimos que pase sin el requisito del POST.
+		if not self.is_self_view:
+			if empleado_id:
+				qs = qs.filter(empleado_id=empleado_id)
+			else:
+				# Si no hay empleado_id y no es vista personal, devolvemos vacío
+				return self.model.objects.none()
+
+		# 4. Optimización final si hay datos que mostrar
+		return qs.select_related("empleado", "cargo", "empresa")
 
 	def post(self, request, *args, **kwargs):
 		# Maneja acciones POST como búsqueda
@@ -81,7 +87,7 @@ class ExperienciaLaboralList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 			else:
 				context["create_url"] = reverse_lazy(self.create_url_name)
 				context["title"] = "Listado de " + self.context_prefix
-				context["filter_form"] = EmpleadoFilterForm(self.request.GET or None)
+				context["filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
 			return context
 
 class ExperienciaLaboralCreate(PermissionMixin,EmpleadoScopedMixin,CreateView):
@@ -103,18 +109,27 @@ class ExperienciaLaboralCreate(PermissionMixin,EmpleadoScopedMixin,CreateView):
 		return super().form_valid(form)
 
 	def post(self, request, *args, **kwargs):
+		print(">>> vista: creando formulario (inicio)")
 		data = {}
 		action = request.POST.get("action", "")
 		try:
 			if action == "add":
+				print(">>> POST completo:", request.POST)
 				form = self.get_form()
 				if form.is_valid():                                       
 					form = self.asignar_empleado_a_form(form)
 					form.save()				
 				else:
-					data["error"] = form.errors					
+					data["error"] = form.errors
+					
 			elif action == "validate_data":
 				return self.validate_data()
+			
+			elif action == "search_cargo_refdet":
+				term = request.POST.get("term", "")
+				cargo = RefDet.search(term,'CARGOS')				
+				data = [{"id": cargo.id, "text": str(cargo)} for cargo in cargo]
+
 			else:
 				data["error"] = "No ha seleccionado ninguna opción"
 		except Exception as e:

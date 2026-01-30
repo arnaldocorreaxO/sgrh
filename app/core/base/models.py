@@ -40,8 +40,8 @@ class RefDet(ModeloBase):
     cod_referencia = models.CharField(
         verbose_name="Codigo Referencia", max_length=100
     )
-    denominacion = models.CharField(verbose_name="Denominacion", max_length=50) #Nombre Referencia
-    descripcion = models.CharField(verbose_name="Descripción", max_length=50,null=True,blank=True)#Descripcion Referencia
+    denominacion = models.CharField(verbose_name="Denominacion", max_length=250) #Nombre Referencia
+    descripcion = models.CharField(verbose_name="Descripción", max_length=250,null=True,blank=True)#Descripcion Referencia
     valor_alfanumerico = models.CharField(verbose_name="Valor Alfanumerico", max_length=100, null=True, blank=True)
     valor_numerico = models.DecimalField(verbose_name="Valor Numérico", max_digits=18, decimal_places=4, null=True, blank=True)   
     valor_fecha = models.DateField(verbose_name="Valor Fecha", null=True, blank=True)
@@ -50,6 +50,24 @@ class RefDet(ModeloBase):
 
     def __str__(self):
         return self.denominacion or ""
+    
+    # Buscar referencias por término y código de referencia
+    @staticmethod
+    def search(term, cod_referencia):
+        """
+        Retorna hasta 10 referencias filtradas por código de referencia
+        y coincidencia parcial en denominación o descripción.
+        """
+        return (
+            RefDet.objects.filter(
+                refcab__cod_referencia=cod_referencia
+            )
+            .filter(
+                models.Q(denominacion__icontains=term) |
+                models.Q(descripcion__icontains=term)
+            )
+            .order_by("denominacion")[:10]
+        )
 
     # Generar valor unico automatico si no se ingresa
     def save(self, *args, **kwargs):
@@ -317,7 +335,7 @@ class Empresa(ModeloBase):
     descripcion = models.CharField(
         max_length=200, null=True, blank=True, verbose_name="Descripción"
     )
-    imagen = models.ImageField(
+    logo = models.ImageField(
         null=True, blank=True, upload_to="empresa/%Y/%m/%d", verbose_name="Logo"
     )
     iva = models.DecimalField(
@@ -330,9 +348,9 @@ class Empresa(ModeloBase):
     def getNombreFantasia(self):
         return self.nombre_fantasia
 
-    def get_image(self):
-        if self.imagen:
-            return "{}{}".format(setting.MEDIA_URL, self.imagen)
+    def get_image_logo(self):
+        if self.logo:
+            return "{}{}".format(setting.MEDIA_URL, self.logo)
         return "{}{}".format(setting.STATIC_URL, "img/default/empty.png")
 
     def get_iva(self):
@@ -340,12 +358,12 @@ class Empresa(ModeloBase):
 
     def remove_image(self):
         try:
-            if self.imagen:
-                os.remove(self.imagen.path)
+            if self.logo:
+                os.remove(self.logo.path)
         except:
             pass
         finally:
-            self.imagen = None
+            self.logo = None
 
     def toJSON(self):
         item = model_to_dict(self)

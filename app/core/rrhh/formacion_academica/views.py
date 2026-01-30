@@ -10,7 +10,7 @@ from core.base.views.generics import BaseListView
 from core.rrhh.empleado.forms import EmpleadoFilterForm
 from core.rrhh.formacion_academica.forms import FormacionAcademicaForm
 
-from core.rrhh.models import Empleado, FormacionAcademica
+from core.rrhh.models import Empleado, FormacionAcademica, Institucion
 from core.rrhh.empleado.views import EmpleadoScopedMixin
 from core.security.mixins import PermissionMixin
 
@@ -44,22 +44,24 @@ class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 		return ["formacion_academica/list_self.html"] if self.is_self_view else ["formacion_academica/list.html"]
 
 	def get_queryset(self):
-		# Optimiza consultas con select_related
-		qs = FormacionAcademica.objects.select_related("empleado", "institucion")
-		empleado = Empleado.objects.filter(usuario=self.request.user).first()
-		if not empleado:
-			return FormacionAcademica.objects.none()
-
-		# Filtra por usuario si es vista personal
-		if self.is_self_view:
-			return qs.filter(empleado=empleado)
-
-		# Filtra por ID de empleado si se envía por POST
+		# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
+		qs = super().get_queryset()
+		# 2. Capturamos el ID del empleado enviado por el buscador/combo
 		empleado_id = self.request.POST.get("empleado")
-		if empleado_id:
-			return qs.filter(empleado_id=empleado_id)
+		print(f"Empleado ID recibido para filtrado: {empleado_id}")
+		# 3. COMPORTAMIENTO ESPECÍFICO:
+		# Solo filtramos y mostramos si se envía un empleado_id.
+		# NOTA: En la vista personal (is_self_view), el Mixin ya hace el trabajo,
+		# así que permitimos que pase sin el requisito del POST.
+		if not self.is_self_view:
+			if empleado_id:
+				qs = qs.filter(empleado_id=empleado_id)
+			else:
+				# Si no hay empleado_id y no es vista personal, devolvemos vacío
+				return self.model.objects.none()
 
-		return qs
+		# 4. Optimización final si hay datos que mostrar
+		return qs.select_related("empleado", "institucion", "titulo_obtenido", "nivel_academico")
 
 	def post(self, request, *args, **kwargs):
 		# Maneja acciones POST como búsqueda
@@ -84,10 +86,10 @@ class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 		else:
 			context["create_url"] = reverse_lazy(self.create_url_name)
 			context["title"] = "Listado de " + self.context_prefix
-			context["filter_form"] = EmpleadoFilterForm(self.request.GET or None)
+			context["filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
 		return context
 
-class FormacionAcademicaCreate(PermissionMixin,EmpleadoScopedMixin,CreateView):
+class FormacionAcademicaCreate(EmpleadoScopedMixin,CreateView):
 	model = FormacionAcademica
 	form_class = FormacionAcademicaForm
 	template_name = "formacion_academica/create.html"
@@ -118,8 +120,17 @@ class FormacionAcademicaCreate(PermissionMixin,EmpleadoScopedMixin,CreateView):
 					data["error"] = form.errors					
 			elif action == "validate_data":
 				return self.validate_data()
+			
+			elif action == "search_institucion":
+				term = request.POST.get("term", "")
+				print("Term:", term)
+				instituciones = Institucion.search(term)
+				
+				data = [{"id": institucion.id, "text": str(institucion)} for institucion in instituciones]
+			
 			else:
 				data["error"] = "No ha seleccionado ninguna opción"
+				
 		except Exception as e:
 			data["error"] = str(e)
 		return HttpResponse(json.dumps(data), content_type="application/json")

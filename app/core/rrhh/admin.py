@@ -23,6 +23,14 @@ class InstitucionAdmin(ModeloAdminBase):
     form = InstitucionAdminForm
     search_fields = ["denominacion", "abreviatura",]
 
+
+class EmpleadoAdmin(ModeloAdminBase):
+    list_display =  _list_display
+    search_fields = ("nombre", "apellido", "ci")    
+    autocomplete_fields = ["estado_civil",]
+    def get_queryset(self, request):
+        return Empleado.objects.para_usuario(request.user)
+
 # Formacion Academica Admin
 class FormacionAcademicaAdmin(ModeloAdminBase):
     list_display =  _list_display
@@ -134,13 +142,7 @@ class EmpleadoAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['estado_civil'].queryset = RefDet.objects.filter(refcab__cod_referencia__exact='ESTADO_CIVIL')
-
-class EmpleadoAdmin(ModeloAdminBase):
-    form = EmpleadoAdminForm
-    search_fields = ["nombre", "apellido", "ci"]
-    autocomplete_fields = ["estado_civil"]
-
-
+        # XO
 #Empleado Posicion Admin
 class EmpleadoPosicionAdminForm(forms.ModelForm):
     class Meta:
@@ -152,6 +154,7 @@ class EmpleadoPosicionAdminForm(forms.ModelForm):
         self.fields['empleado'].queryset = Empleado.objects.all().filter(activo=True)
         self.fields['dependencia_posicion'].queryset = DependenciaPosicion.objects.all().filter(activo=True)
         self.fields['vinculo_laboral'].queryset = RefDet.objects.filter(refcab__cod_referencia__exact='VINCULO_LABORAL')
+        self.fields['tipo_movimiento'].queryset = RefDet.objects.filter(refcab__cod_referencia__exact='TIPO_MOVIMIENTO_EMPLEADO_POSICION')
 
 class EmpleadoPosicionAdmin(ModeloAdminBase):    
     form = EmpleadoPosicionAdminForm

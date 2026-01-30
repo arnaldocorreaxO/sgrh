@@ -30,15 +30,14 @@ class FormacionAcademicaForm(ModelFormEmpleado):
         )
         titulo_obtenido.widget.attrs.update({"class": "form-control select2", "style": "width: 100%;"})
         self.fields["titulo_obtenido"] = titulo_obtenido
-        
-        # INSTITUCION (ForeignKey a Institucion, similar a nacionalidad en EmpleadoForm)
-        institucion = forms.ModelChoiceField(
-            queryset=Institucion.objects.filter(tipo_funcion__cod_referencia='TIPO_FUNCION_INSTITUCION_EDUCATIVA'),  # Filtrar solo instituciones educativas
-            empty_label="(Seleccione una institución)",
-            label="Institución",
-        )
-        institucion.widget.attrs.update({"class": "form-control select2", "style": "width: 100%;"})
-        self.fields["institucion"] = institucion
+      
+        # Empleado dinamico
+        # Se define en base al contexto ModelFormEmpleado si aplica           
+            
+        # Institucion dinamico
+        self.fields["institucion"].queryset = Institucion.objects.none()
+        if self.instance and self.instance.institucion_id:
+            self.fields["institucion"].queryset = Institucion.objects.filter(id=self.instance.institucion_id)
 
         anho_graduacion = forms.ChoiceField(
         choices=YEAR_CHOICES,

@@ -22,7 +22,9 @@
     <link rel="stylesheet" href="{% static 'lib/select2-4.0.13/css/select2.min.css' %}">
     <link rel="stylesheet" href="{% static 'lib/select2-4.0.13/css/select2-bootstrap4.min.css' %}">
     <!--BLOCK HEAD LIST-->
-    {% block head_list %}{% endblock %}
+    {% block head_list %}
+     <script src="{% static 'js/select2/select2-init.js' %}"></script>
+    {% endblock %}
 {% endblock %}
 
 {% block content %}

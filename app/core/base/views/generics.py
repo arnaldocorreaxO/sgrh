@@ -15,7 +15,7 @@ class BaseListView(ListView):
             search = request.POST.get("search[value]", "").strip()
             order_fields = self.get_ordering()
 
-            queryset = queryset or self.get_queryset()
+            queryset = queryset if queryset is not None else self.get_queryset()
             queryset = queryset.order_by(*order_fields)
 
             if search:
@@ -51,17 +51,6 @@ class BaseListView(ListView):
         return ordering or self.default_order_fields
 
 
-    # def apply_search_filter(self, queryset, search):
-    #     if search.isnumeric():
-    #         q_numeric = Q()
-    #         for field in self.numeric_fields:
-    #             q_numeric |= Q(**{f"{field}__exact": search})
-    #         return queryset.filter(q_numeric)
-
-    #     q_text = Q()
-    #     for field in self.search_fields:
-    #         q_text |= Q(**{f"{field}__icontains": search})
-    #     return queryset.filter(q_text).exclude(activo=False)
     def apply_search_filter(self, queryset, search):
         if search.isnumeric():
             q_numeric = Q()
