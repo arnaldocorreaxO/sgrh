@@ -3,6 +3,10 @@ var fv;
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("frmForm");
 
+  // Extraer si el archivo es obligatorio (puedes pasar esto desde Django)
+  // O verificar si existe el link de "Ver archivo actual" en el DOM
+  const tieneArchivo = document.querySelector('a[href*=".pdf"]') !== null;
+
   fv = FormValidation.formValidation(form, {
     locale: "es_ES",
     localization: FormValidation.locales.es_ES,
@@ -17,32 +21,45 @@ document.addEventListener("DOMContentLoaded", function () {
       }),
     },
     fields: {
+      empleado: {
+        validators: { notEmpty: { message: "Debe seleccionar un empleado" } },
+      },
+      tipo_falta: {
+        validators: { notEmpty: { message: "Seleccione el tipo de falta" } },
+      },
+      tipo_sancion: {
+        validators: { notEmpty: { message: "Seleccione el tipo de sanción" } },
+      },
       tipo_documento: {
         validators: {
-          notEmpty: {
-            message: "Debe seleccionar un tipo de documento",
-          },
+          notEmpty: { message: "Seleccione el tipo de documento" },
         },
       },
-      estado_documento: {
+      fecha_emision: {
         validators: {
-          notEmpty: {
-            message: "Debe seleccionar el estado del documento",
-          },
+          notEmpty: { message: "Indique la fecha de emisión" },
+          date: { format: "YYYY-MM-DD", message: "Formato de fecha inválido" },
         },
       },
       descripcion: {
         validators: {
           stringLength: {
-            min: 2,
             max: 255,
-            message: "La descripción debe tener entre 2 y 255 caracteres",
+            message: "La descripción no debe exceder los 255 caracteres",
           },
+        },
+      },
+      institucion_emisora: {
+        validators: {
+          // notEmpty: { message: "Indique la Institución Emisora" },
+          stringLength: { max: 150, message: "Máximo 150 caracteres" },
         },
       },
       archivo_pdf: {
         validators: {
+          // Solo obligatorio si no hay un archivo previo cargado
           notEmpty: {
+            enabled: !tieneArchivo,
             message: "Debe subir un archivo PDF",
           },
           file: {
@@ -53,55 +70,30 @@ document.addEventListener("DOMContentLoaded", function () {
           },
         },
       },
+      estado_documento: {
+        validators: {
+          notEmpty: { message: "Seleccione el estado del documento" },
+        },
+      },
     },
-  })
-    .on("core.element.validated", function (e) {
-      if (e.valid) {
-        const groupEle = FormValidation.utils.closest(e.element, ".form-group");
-        if (groupEle) {
-          FormValidation.utils.classSet(groupEle, {
-            "has-success": false,
-          });
-        }
-        FormValidation.utils.classSet(e.element, {
-          "is-valid": false,
-        });
-      }
-      const iconPlugin = fv.getPlugin("icon");
-      const iconElement =
-        iconPlugin && iconPlugin.icons.has(e.element)
-          ? iconPlugin.icons.get(e.element)
-          : null;
-      if (iconElement) {
-        iconElement.style.display = "none";
-      }
-    })
-    .on("core.validator.validated", function (e) {
-      if (!e.result.valid) {
-        const messages = [].slice.call(
-          form.querySelectorAll(
-            '[data-field="' + e.field + '"][data-validator]'
-          )
-        );
-        messages.forEach((messageEle) => {
-          const validator = messageEle.getAttribute("data-validator");
-          messageEle.style.display =
-            validator === e.validator ? "block" : "none";
-        });
-      }
-    })
-    .on("core.form.valid", function () {
-      submit_formdata_with_ajax_form(fv);
-    });
+  }).on("core.form.valid", function () {
+    submit_formdata_with_ajax_form(fv);
+  });
 });
 
 $(document).ready(function () {
-  $(".select2").select2({
-    theme: "bootstrap4",
-    language: "es",
+  // Revalidar selects al cambiar con Select2
+  $(".select2").on("select2:select", function (e) {
+    fv.revalidateField($(this).attr("name"));
   });
 
+  // Revalidar archivo inmediatamente al cambiar
   $('input[name="archivo_pdf"]').on("change", function () {
     fv.revalidateField("archivo_pdf");
+  });
+
+  // Revalidar fecha al cambiar manualmente o por picker
+  $('input[name="fecha_emision"]').on("change", function () {
+    fv.revalidateField("fecha_emision");
   });
 });

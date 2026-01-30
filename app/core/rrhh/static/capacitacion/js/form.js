@@ -2,6 +2,11 @@ var fv;
 
 document.addEventListener("DOMContentLoaded", function (e) {
   const form = document.getElementById("frmForm");
+
+  // Extraer si el archivo es obligatorio (puedes pasar esto desde Django)
+  // O verificar si existe el link de "Ver archivo actual" en el DOM
+  const tieneArchivo = document.querySelector('a[href*=".pdf"]') !== null;
+
   fv = FormValidation.formValidation(form, {
     locale: "es_ES",
     localization: FormValidation.locales.es_ES,
@@ -16,246 +21,109 @@ document.addEventListener("DOMContentLoaded", function (e) {
       }),
     },
     fields: {
-      ci: {
+      empleado: {
         validators: {
-          notEmpty: {},
-          stringLength: {
-            min: 6,
-          },
-          remote: {
-            url: pathname,
-            data: function () {
-              return {
-                obj: form.querySelector('[name="ci"]').value,
-                type: "ci",
-                action: "validate_data",
-              };
-            },
-            message: "El numero de cedula ya se encuentra registrado",
-            method: "POST",
-          },
+          notEmpty: { message: "Debe seleccionar un empleado" },
         },
       },
-      ruc: {
+      institucion: {
         validators: {
-          notEmpty: {},
-          stringLength: {
-            min: 8,
-          },
-          remote: {
-            url: pathname,
-            data: function () {
-              return {
-                obj: form.querySelector('[name="ruc"]').value,
-                type: "ruc",
-                action: "validate_data",
-              };
-            },
-            message: "El numero de RUC ya se encuentra registrado",
-            method: "POST",
-          },
+          notEmpty: { message: "Debe seleccionar una institución" },
         },
       },
-      nombre: {
-        validators: {
-          notEmpty: { message: "El nombre es obligatorio" },
-          stringLength: {
-            min: 2,
-          },
-        },
-      },
-      apellido: {
-        validators: {
-          notEmpty: { message: "El apellido es obligatorio" },
-          stringLength: {
-            min: 2,
-          },
-        },
-      },
-
-      celular: {
+      nombre_capacitacion: {
         validators: {
           notEmpty: {
-            message: "El número de celular es obligatorio",
-          },
-          stringLength: {
-            min: 10,
-            max: 10,
-            message: "El número debe tener exactamente 10 dígitos",
-          },
-          regexp: {
-            regexp: /^[0-9]{10}$/,
-            message: "Solo se permiten números (10 dígitos)",
+            message: "Debe indicar el nombre del curso / capacitación",
           },
         },
       },
-
-      sexo: {
+      tipo_certificacion: {
         validators: {
-          notEmpty: { message: "El campo sexo es obligatorio" },
-          stringLength: {
-            min: 1,
-          },
-          // digits: {},
+          notEmpty: { message: "Debe seleccionar un tipo de certificación" },
         },
       },
-      nacionalidad: {
+      fecha_inicio: {
         validators: {
-          notEmpty: { message: "La nacionalidad es obligatorio" },
-          stringLength: {
-            min: 1,
-          },
-          // digits: {},
-        },
-      },
-      estado_civil: {
-        validators: {
-          notEmpty: { message: "El estado civil es obligatorio" },
-          stringLength: {
-            min: 1,
-          },
-          //   digits: {},
-        },
-      },
-      email: {
-        validators: {
-          notEmpty: { message: "El correo electrónico es obligatorio" },
-          stringLength: {
-            min: 5,
-          },
-          regexp: {
-            regexp: /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/i,
-            message: "El formato email no es correcto",
-          },
-        },
-      },
-      ciudad: {
-        validators: {
-          notEmpty: { message: "La ciudad es obligatoria" },
-          stringLength: {
-            min: 1,
-          },
-        },
-      },
-      direccion: {
-        validators: {
-          notEmpty: { message: "La dirección es obligatoria" },
-          stringLength: {
-            min: 2,
-          },
-        },
-      },
-      fec_nacimiento: {
-        validators: {
-          notEmpty: {
-            message: "La fecha es obligatoria",
-          },
+          notEmpty: { message: "Debe indicar la fecha de inicio" },
           date: {
-            format: "DD/MM/YYYY",
+            format: "YYYY-MM-DD",
             message: "La fecha no es válida",
           },
-          remote: {
-            url: pathname,
-            data: function () {
-              return {
-                obj: form.querySelector('[name="fec_nacimiento"]').value,
-                type: "fec_nacimiento",
-                action: "validate_data",
-              };
+          callback: {
+            message: "La fecha de inicio no puede ser mayor a la de fin",
+            callback: function (input) {
+              const fechaFin = form.querySelector('[name="fecha_fin"]').value;
+              if (fechaFin === "" || input.value === "") {
+                return true;
+              }
+              return new Date(input.value) <= new Date(fechaFin);
             },
-            message: "La fecha de nacimiento no corresponde a un mayor de edad",
-            method: "POST",
+          },
+        },
+      },
+      fecha_fin: {
+        validators: {
+          notEmpty: { message: "Debe indicar la fecha de finalización" },
+          date: {
+            format: "YYYY-MM-DD",
+            message: "La fecha no es válida",
+          },
+          callback: {
+            message:
+              "La fecha de finalización no puede ser menor a la de inicio",
+            callback: function (input) {
+              const fechaInicio = form.querySelector(
+                '[name="fecha_inicio"]',
+              ).value;
+              if (fechaInicio === "" || input.value === "") {
+                return true;
+              }
+              return new Date(input.value) >= new Date(fechaInicio);
+            },
+          },
+        },
+      },
+      observaciones: {
+        validators: {
+          stringLength: {
+            min: 2,
+            max: 255,
+            message: "La descripción debe tener entre 2 y 255 caracteres",
+          },
+        },
+      },
+      archivo_pdf: {
+        validators: {
+          // Solo obligatorio si no hay un archivo previo cargado
+          notEmpty: {
+            enabled: !tieneArchivo,
+            message: "Debe subir un archivo PDF",
+          },
+          file: {
+            extension: "pdf",
+            type: "application/pdf",
+            maxSize: 5 * 1024 * 1024, // 5MB
+            message: "Solo se permite archivos PDF de hasta 5MB",
           },
         },
       },
     },
-  })
-    .on("core.element.validated", function (e) {
-      if (e.valid) {
-        const groupEle = FormValidation.utils.closest(e.element, ".form-group");
-        if (groupEle) {
-          FormValidation.utils.classSet(groupEle, {
-            "has-success": false,
-          });
-        }
-        FormValidation.utils.classSet(e.element, {
-          "is-valid": false,
-        });
-      }
-      const iconPlugin = fv.getPlugin("icon");
-      const iconElement =
-        iconPlugin && iconPlugin.icons.has(e.element)
-          ? iconPlugin.icons.get(e.element)
-          : null;
-      iconElement && (iconElement.style.display = "none");
-    })
-    .on("core.validator.validated", function (e) {
-      if (!e.result.valid) {
-        const messages = [].slice.call(
-          form.querySelectorAll(
-            '[data-field="' + e.field + '"][data-validator]'
-          )
-        );
-        messages.forEach((messageEle) => {
-          const validator = messageEle.getAttribute("data-validator");
-          messageEle.style.display =
-            validator === e.validator ? "block" : "none";
-        });
-      }
-    })
-    .on("core.form.valid", function () {
-      submit_formdata_with_ajax_form(fv);
-    });
+  }).on("core.form.valid", function () {
+    submit_formdata_with_ajax_form(fv);
+  });
 });
 
 $(document).ready(function () {
-  $(".select2").select2({
-    theme: "bootstrap4",
-    language: "es",
+  // --- REGLA DE ORO PARA SELECT2 Y FORMVALIDATION ---
+  // Revalidar el campo cuando Select2 cambie su valor
+  $(".select2").on("select2:select", function (e) {
+    let fieldName = $(this).attr("name");
+    if (fv) {
+      fv.revalidateField(fieldName);
+    }
   });
-
-  $('input[name="celular"]').keypress(function (e) {
-    return validate_form_text("numbers", e, null);
-  });
-
-  $("#btnVerificar").click(function () {
-    var vCi = $("#id_ci").val();
-    // console.log(vCi);
-    $("#id_ruc").val("");
-    $("#id_nombre").val("");
-    $("#id_apellido").val("");
-    $("#id_direccion").val("");
-    $("#id_nacionalidad").val("");
-    $("#fec_nacimiento").val("");
-    $("#id_estado_civil").val("");
-    $.ajax({
-      url: "/base/persona/get_datos_persona",
-      data: {
-        ci: vCi,
-      },
-      success: function (data) {
-        $("#id_ruc").val(data[0].per_ruc);
-        $("#id_nombre").val(data[0].per_nombres);
-        $("#id_apellido").val(data[0].per_apynom);
-        $("#id_direccion").val(data[0].per_desdomi);
-        $("#id_nacionalidad").val(data[0].per_codpais).trigger("change");
-        $("#fec_nacimiento").val(
-          data[0].per_fchnaci.split("-").reverse().join("/")
-        );
-        $("#id_estado_civil").val(data[0].civ_codeciv).trigger("change");
-      },
-    });
-  });
-
-  input_fec_nacimiento = $('input[name="fec_nacimiento"]');
-  input_fec_nacimiento.datetimepicker({
-    format: "DD/MM/YYYY",
-    locale: "es",
-    keepOpen: false,
-    date: input_fec_nacimiento.val(),
-  });
-
-  input_fec_nacimiento.on("change.datetimepicker", function () {
-    fv.revalidateField("fec_nacimiento");
+  $('input[name="archivo_pdf"]').on("change", function () {
+    fv.revalidateField("archivo_pdf");
   });
 });

@@ -5,6 +5,10 @@
 <script src="{% static 'experiencia_laboral/js/list.js' %}"></script>
 {% endblock %}
 
+{% block content_list_before %}
+    {% include 'empleado/empleado_filter.html' %}
+{% endblock %}
+
 {% block columns %}
 <th scope="col" style="width: 5%;">ID</th>
 <th scope="col" style="width: 15%;">Empleado</th>
@@ -14,7 +18,4 @@
 <th scope="col" style="width: 10%;">Fecha Hasta</th>
 <th scope="col" style="width: 10%;">Archivo</th>
 <th scope="col" style="width: 10%;" class="text-center">Opciones</th>
-{% endblock %}
-{% block content_list_before %}
-    {% include 'empleado/empleado_filter.html' %}
 {% endblock %}

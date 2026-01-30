@@ -45,25 +45,18 @@ class CapacitacionList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	def get_queryset(self):
 		# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
 		qs = super().get_queryset()
-
-		# 2. Capturamos los filtros del formulario
+		# 2. Capturamos el ID del empleado enviado por el buscador/combo
 		empleado_id = self.request.POST.get("empleado")
-		sucursal_id = self.request.POST.get("sucursal") # El nombre coincide con el form
-
-		# 3. Comportamiento para vistas que no son "Mi Perfil" (is_self_view)
+		print(f"Empleado ID recibido para filtrado: {empleado_id}")
+		# 3. COMPORTAMIENTO ESPECÍFICO:
+		# Solo filtramos y mostramos si se envía un empleado_id.
+		# NOTA: En la vista personal (is_self_view), el Mixin ya hace el trabajo,
+		# así que permitimos que pase sin el requisito del POST.
 		if not self.is_self_view:
-			# Filtro de Sucursal (Prioridad 1)
-			if sucursal_id:
-				# Filtramos por la sucursal seleccionada
-				qs = qs.filter(empleado__sucursal_id=sucursal_id)
-			
-			# Filtro de Empleado (Prioridad 2)
 			if empleado_id:
 				qs = qs.filter(empleado_id=empleado_id)
-			
-			# 4. Seguridad: Si el usuario es GLOBAL pero no eligió nada, 
-			# devolvemos vacío para evitar una carga masiva de toda la empresa.
-			if not empleado_id and not sucursal_id:
+			else:
+				# Si no hay empleado_id y no es vista personal, devolvemos vacío
 				return self.model.objects.none()
 
 		# 5. Optimización final

@@ -17,41 +17,51 @@ document.addEventListener("DOMContentLoaded", function () {
       }),
     },
     fields: {
-      titulo: {
+      empleado: {
         validators: {
-          notEmpty: { message: "El título es obligatorio" },
-          stringLength: { min: 1 },
+          notEmpty: { message: "Debe seleccionar un empleado" },
         },
       },
-      denominacion_carrera: {
+      nivel_academico: {
         validators: {
-          notEmpty: { message: "La carrera es obligatoria" },
-          stringLength: { min: 1 },
+          notEmpty: { message: "Debe seleccionar el nivel académico" },
         },
       },
       institucion: {
         validators: {
-          notEmpty: { message: "La institución es obligatoria" },
-          stringLength: { min: 1 },
+          notEmpty: { message: "Debe seleccionar una institución" },
         },
       },
-      nivel: {
+      titulo_obtenido: {
         validators: {
-          notEmpty: { message: "El nivel académico es obligatorio" },
+          notEmpty: { message: "Debe seleccionar el título obtenido" },
         },
       },
-      anio: {
+      denominacion_carrera: {
         validators: {
-          notEmpty: { message: "El año de graduación es obligatorio" },
-          regexp: {
-            regexp: /^[0-9]{4}$/,
-            message: "Debe ser un año válido (4 dígitos)",
+          notEmpty: { message: "Debe indicar el nombre de la carrera" },
+          stringLength: {
+            min: 3,
+            max: 150,
+            message: "La carrera debe tener entre 3 y 150 caracteres",
           },
         },
       },
-      archivo: {
+      anho_graduacion: {
         validators: {
-          notEmpty: { message: "Debe adjuntar un archivo" },
+          notEmpty: { message: "Debe seleccionar el año de graduación" },
+          digits: { message: "El año debe contener solo números" },
+        },
+      },
+      archivo_pdf: {
+        validators: {
+          // notEmpty eliminado porque es opcional
+          file: {
+            extension: "pdf",
+            type: "application/pdf",
+            maxSize: 5 * 1024 * 1024, // 5MB
+            message: "Si sube un archivo, debe ser PDF de hasta 5MB",
+          },
         },
       },
     },
@@ -61,12 +71,12 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 $(document).ready(function () {
-  // $(".select2").select2({
-  //   theme: "bootstrap4",
-  //   language: "es",
-  // });
-
-  $('input[name="anio"]').keypress(function (e) {
-    return validate_form_text("numbers", e, null);
+  // --- REGLA DE ORO PARA SELECT2 Y FORMVALIDATION ---
+  // Revalidar el campo cuando Select2 cambie su valor
+  $(".select2").on("select2:select", function (e) {
+    let fieldName = $(this).attr("name");
+    if (fv) {
+      fv.revalidateField(fieldName);
+    }
   });
 });

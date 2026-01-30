@@ -2,6 +2,9 @@ var fv;
 
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("frmForm");
+  // Extraer si el archivo es obligatorio (puedes pasar esto desde Django)
+  // O verificar si existe el link de "Ver archivo actual" en el DOM
+  const tieneArchivo = document.querySelector('a[href*=".pdf"]') !== null;
 
   fv = FormValidation.formValidation(form, {
     locale: "es_ES",
@@ -17,32 +20,34 @@ document.addEventListener("DOMContentLoaded", function () {
       }),
     },
     fields: {
+      empleado: {
+        validators: {
+          notEmpty: { message: "Debe seleccionar un empleado" },
+        },
+      },
       tipo_documento: {
         validators: {
-          notEmpty: {
-            message: "Debe seleccionar un tipo de documento",
-          },
+          notEmpty: { message: "Debe seleccionar el tipo de documento" },
         },
       },
       estado_documento_empleado: {
         validators: {
-          notEmpty: {
-            message: "Debe seleccionar el estado del documento",
-          },
+          notEmpty: { message: "Debe seleccionar el estado del documento" },
         },
       },
       descripcion: {
         validators: {
           stringLength: {
-            min: 2,
             max: 255,
-            message: "La descripción debe tener entre 2 y 255 caracteres",
+            message: "La descripción no puede exceder los 255 caracteres",
           },
         },
       },
       archivo_pdf: {
         validators: {
+          // Solo obligatorio si no hay un archivo previo cargado
           notEmpty: {
+            enabled: !tieneArchivo,
             message: "Debe subir un archivo PDF",
           },
           file: {
@@ -54,49 +59,19 @@ document.addEventListener("DOMContentLoaded", function () {
         },
       },
     },
-  })
-    .on("core.element.validated", function (e) {
-      if (e.valid) {
-        const groupEle = FormValidation.utils.closest(e.element, ".form-group");
-        if (groupEle) {
-          FormValidation.utils.classSet(groupEle, {
-            "has-success": false,
-          });
-        }
-        FormValidation.utils.classSet(e.element, {
-          "is-valid": false,
-        });
-      }
-      const iconPlugin = fv.getPlugin("icon");
-      const iconElement =
-        iconPlugin && iconPlugin.icons.has(e.element)
-          ? iconPlugin.icons.get(e.element)
-          : null;
-      iconElement && (iconElement.style.display = "none");
-    })
-    .on("core.validator.validated", function (e) {
-      if (!e.result.valid) {
-        const messages = [].slice.call(
-          form.querySelectorAll(
-            '[data-field="' + e.field + '"][data-validator]'
-          )
-        );
-        messages.forEach((messageEle) => {
-          const validator = messageEle.getAttribute("data-validator");
-          messageEle.style.display =
-            validator === e.validator ? "block" : "none";
-        });
-      }
-    })
-    .on("core.form.valid", function () {
-      submit_formdata_with_ajax_form(fv);
-    });
+  }).on("core.form.valid", function () {
+    submit_formdata_with_ajax_form(fv);
+  });
 });
 
 $(document).ready(function () {
-  $(".select2").select2({
-    theme: "bootstrap4",
-    language: "es",
+  // --- REGLA DE ORO PARA SELECT2 Y FORMVALIDATION ---
+  // Revalidar el campo cuando Select2 cambie su valor
+  $(".select2").on("select2:select", function (e) {
+    let fieldName = $(this).attr("name");
+    if (fv) {
+      fv.revalidateField(fieldName);
+    }
   });
 
   $('input[name="archivo_pdf"]').on("change", function () {

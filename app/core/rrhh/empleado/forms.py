@@ -78,18 +78,28 @@ class ModelFormEmpleado(ModelForm):
         super().__init__(*args, **kwargs)
 
         if is_self_view:
-            # Ocultar campo empleado en modo self
             self.fields.pop("empleado", None)
         else:
-            # Mostrar campo empleado en modo admin
-            self.fields["empleado"].queryset = Empleado.objects.none()
-            if self.instance and self.instance.empleado_id:
-                self.fields["empleado"].queryset = Empleado.objects.filter(id=self.instance.empleado_id)
-            
-            self.fields["empleado"].widget.attrs.update({
-                "class": "form-control select2",
-                "style": "width: 100%;"
-            })
+            # Si el campo existe, configuramos el queryset dinámico
+            if "empleado" in self.fields:
+                if 'empleado' in self.data:
+                    # CASO POST: Validar el ID que viene del navegador
+                    try:
+                        emp_id = int(self.data.get('empleado'))
+                        self.fields["empleado"].queryset = Empleado.objects.filter(id=emp_id)
+                    except (ValueError, TypeError):
+                        self.fields["empleado"].queryset = Empleado.objects.none()
+                elif self.instance and self.instance.empleado_id:
+                    # CASO EDICIÓN (GET): Mostrar el empleado ya guardado
+                    self.fields["empleado"].queryset = Empleado.objects.filter(id=self.instance.empleado_id)
+                else:
+                    # CASO NUEVO (GET): Empezar vacío para Select2 AJAX
+                    self.fields["empleado"].queryset = Empleado.objects.none()
+
+                self.fields["empleado"].widget.attrs.update({
+                    "class": "form-control select2",
+                    "style": "width: 100%;"
+                })
 
 
 # FORMULARIO EMPLEADO

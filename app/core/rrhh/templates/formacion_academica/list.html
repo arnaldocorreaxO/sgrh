@@ -8,6 +8,11 @@
     <script src="{% static 'formacion_academica/js/list.js' %}"></script>
     {% comment %} <script src="{% static 'formacion_academica/js/search_select2.js' %}"></script> {% endcomment %}
 {% endblock head_list %}
+
+{% block content_list_before %}
+    {% include 'empleado/empleado_filter.html' %}
+{% endblock %}
+
 {% block columns %}
     <th scope="col" style="width: 4%;">ID</th>
     <th scope="col" style="width: 23%;">Empleado</th>
@@ -20,6 +25,3 @@
     <th scope="col" style="width: 5%;" class="text-center">Opciones</th>
 {% endblock %}
 
-{% block content_list_before %}
-    {% include 'empleado/empleado_filter.html' %}
-{% endblock %}
