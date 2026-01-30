@@ -41,6 +41,51 @@ ul {
 li {
   margin-bottom: 8px;
 } */
+/* Estilos específicos para la generación del PDF */
+@page {
+  size: A4;
+  margin: 2cm;
+  /* Pie de página con numeración */
+  @bottom-right {
+    content: "Página " counter(page) " de " counter(pages);
+    font-family: Arial, sans-serif;
+    font-size: 9pt;
+    color: #666;
+  }
+  /* Puedes poner un texto fijo a la izquierda */
+  @bottom-left {
+    content: "Currículum Vitae Institucional";
+    font-family: Arial, sans-serif;
+    font-size: 9pt;
+    color: #666;
+  }
+}
+
+body {
+  font-family: "Helvetica", "Arial", sans-serif;
+  font-size: 11pt;
+  line-height: 1.4;
+  color: #333;
+}
+
+.section-title {
+  border-bottom: 2px solid #2d4154;
+  color: #2d4154;
+  font-size: 14pt;
+  margin-top: 20px;
+  padding-bottom: 5px;
+  text-transform: uppercase;
+}
+
+/* Estilo para los badges en el PDF */
+.badge-danger {
+  background-color: #dc3545;
+  color: white;
+  padding: 2px 8px;
+  text-decoration: none;
+  border-radius: 3px;
+  font-size: 9pt;
+}
 
 /* Estilos para el encabezado de empresa */
 .empresa-header {
@@ -71,12 +116,12 @@ li {
   margin: 0;
 }
 
-body {
+/* body {
   font-family: "Segoe UI", Arial, sans-serif;
   background: #f5f7fa;
   margin: 0;
   padding: 20px;
-}
+} */
 
 .cv-container {
   max-width: 900px;
