@@ -13,8 +13,10 @@ var formacion = {
 
     var parameters = {
       action: "search",
-      Sucursal: select_sucursal.val(),
-      empleado: select_empleado.val(),
+      sucursal:
+        select_sucursal.val() || localStorage.getItem("last_sucursal") || "",
+      empleado:
+        select_empleado.val() || localStorage.getItem("last_empleado") || "",
     };
 
     if (all) {

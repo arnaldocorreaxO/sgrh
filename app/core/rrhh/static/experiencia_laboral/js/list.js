@@ -13,8 +13,10 @@ var experienciaLaboral = {
 
     var parameters = {
       action: "search",
-      sucursal: select_sucursal.val(),
-      empleado: select_empleado.val(),
+      sucursal:
+        select_sucursal.val() || localStorage.getItem("last_sucursal") || "",
+      empleado:
+        select_empleado.val() || localStorage.getItem("last_empleado") || "",
     };
 
     if (all) {

@@ -13,8 +13,10 @@ var historicoDisciplinario = {
 
     var parameters = {
       action: "search",
-      empleado: select_empleado.val(),
-      sucursal: select_sucursal.val(),
+      sucursal:
+        select_sucursal.val() || localStorage.getItem("last_sucursal") || "",
+      empleado:
+        select_empleado.val() || localStorage.getItem("last_empleado") || "",
     };
 
     if (all) {
