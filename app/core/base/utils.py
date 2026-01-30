@@ -1,5 +1,20 @@
 from datetime import date, datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
+def validar_mayor_edad(fecha_str):
+	try:
+		# Convertimos el string a objeto date
+		nacimiento = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+		
+		# OBTENER LA FECHA REAL DE HOY (Se ejecuta cada vez que se llama a la función)
+		hoy = date.today() 
+		
+		# Calculamos la diferencia
+		edad = relativedelta(hoy, nacimiento)
+		
+		return edad.years >= 18
+	except Exception:
+		return False
 
 # LLAMAR SIN PARENTESIS PARA OBTENER LA FECHA Y HORA ACTUAL
 def choice_anho():

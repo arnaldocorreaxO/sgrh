@@ -2,9 +2,7 @@
 import json
 import json as simplejson
 from datetime import datetime
-from multiprocessing import context
-from urllib import request
-
+from datetime import date, datetime
 # Librerías de terceros
 from dateutil.relativedelta import relativedelta
 from weasyprint import HTML
@@ -18,13 +16,13 @@ from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import CreateView, DeleteView, UpdateView, DetailView, View
+from django.views.generic import CreateView, DeleteView, UpdateView,  View
 
 # Proyecto interno
 from config import settings
 from core.base.models import Barrio, Ciudad
 from core.base.procedures import sp_identificaciones
-from core.base.utils import YYYY_MM_DD, get_fecha_actual, isNULL
+from core.base.utils import  get_fecha_actual, get_fecha_actual_ymd, isNULL, validar_mayor_edad
 from core.base.views.generics import BaseListView
 from core.rrhh.models import Empleado
 from core.rrhh.empleado.forms import EmpleadoFilterForm, EmpleadoForm
@@ -216,8 +214,7 @@ class EmpleadoList(PermissionMixin,BaseListView):
 		context["title"] = "Listado de " + self.context_prefix
 		context["filter_form"] = EmpleadoFilterForm(self.request.GET or None)
 		return context
-
-
+		
 # class EmpleadoCreate(PermissionMixin,CreateView):
 class EmpleadoCreate(PermissionMixin,CreateView):
 	model = Empleado
@@ -229,7 +226,7 @@ class EmpleadoCreate(PermissionMixin,CreateView):
 	@method_decorator(csrf_exempt)
 	def dispatch(self, request, *args, **kwargs):
 		return super().dispatch(request, *args, **kwargs)
-
+	
 	def validate_data(self):
 		data = {"valid": True}
 		type = self.request.POST["type"]
@@ -239,7 +236,7 @@ class EmpleadoCreate(PermissionMixin,CreateView):
 
 		try:
 			type = self.request.POST["type"]
-			obj = self.request.POST["obj"].strip()
+			obj = self.request.POST["obj"].strip()			
 			if type == "ci":
 				if Empleado.objects.filter(ci__iexact=obj):
 					data["valid"] = False
@@ -247,15 +244,8 @@ class EmpleadoCreate(PermissionMixin,CreateView):
 				if Empleado.objects.filter(ruc__iexact=obj):
 					data["valid"] = False
 			if type == "fecha_nacimiento":
-				fecha_nacimiento = datetime.strptime(
-					obj, "%d/%m/%Y"
-				)  # Este del from datetime
-				edad = relativedelta(get_fecha_actual, fecha_nacimiento)
-				if edad.years:
-					if abs(edad.years) < 18:
-						data["valid"] = False
-				else:
-					data["valid"] = False
+				data["valid"] = validar_mayor_edad(obj)
+
 		except Exception as e:
 			print(str(e))
 		return JsonResponse(data)
@@ -283,11 +273,11 @@ class EmpleadoCreate(PermissionMixin,CreateView):
 					celular = isNULL(request.POST["celular"])
 					telefono = isNULL(request.POST["telefono"])
 					email = isNULL(request.POST["email"])
-					fecha_nacimiento = YYYY_MM_DD(isNULL(request.POST["fecha_nacimiento"]))
+					fecha_nacimiento = isNULL(request.POST["fecha_nacimiento"])
 					sexo_id = isNULL(request.POST["sexo"])
 					estado_civil_id = isNULL(request.POST["estado_civil"])
 					tipo_sanguineo_id = isNULL(request.POST["tipo_sanguineo"])
-					ci_fecha_vencimiento = YYYY_MM_DD(isNULL(request.POST["ci_fecha_vencimiento"]))	
+					ci_fecha_vencimiento = isNULL(request.POST["ci_fecha_vencimiento"])	
 					ci_archivo_pdf = request.FILES.get("ci_archivo_pdf")
 					
 					if usuario:
@@ -481,6 +471,9 @@ class EmpleadoUpdate(PermissionMixin,UpdateView):
 			if type == "ruc":
 				if Empleado.objects.filter(ruc__iexact=obj).exclude(id=id):
 					data["valid"] = False
+			if type == "fecha_nacimiento":
+				data["valid"] = validar_mayor_edad(obj)
+			
 		except:
 			pass
 		return JsonResponse(data)
@@ -507,12 +500,12 @@ class EmpleadoUpdate(PermissionMixin,UpdateView):
 						celular = isNULL(request.POST["celular"])
 						telefono = isNULL(request.POST["telefono"])
 						email = isNULL(request.POST["email"])
-						fecha_nacimiento = YYYY_MM_DD(isNULL(request.POST["fecha_nacimiento"]))
+						fecha_nacimiento = isNULL(request.POST["fecha_nacimiento"])
 						sexo_id = isNULL(request.POST["sexo"])
 						estado_civil_id = isNULL(request.POST["estado_civil"])
 						tipo_sanguineo_id = isNULL(request.POST["tipo_sanguineo"])
-						ci_fecha_vencimiento = YYYY_MM_DD(isNULL(request.POST["ci_fecha_vencimiento"]))	
-						ci_archivo_pdf = request.FILES.get("ci_archivo_pdf", None)
+						ci_fecha_vencimiento = isNULL(request.POST["ci_fecha_vencimiento"])	
+						ci_archivo_pdf = request.FILES.get("ci_archivo_pdf")
 
 						# Actualizar datos del usuario
 						usuario.is_active 	= activo
@@ -557,7 +550,14 @@ class EmpleadoUpdate(PermissionMixin,UpdateView):
 						empleado.estado_civil_id	= estado_civil_id
 						empleado.tipo_sanguineo_id	= tipo_sanguineo_id
 						empleado.ci_fecha_vencimiento = ci_fecha_vencimiento
-						empleado.ci_archivo_pdf		= ci_archivo_pdf
+						
+						if ci_archivo_pdf:
+							# Si ya existía un archivo antes, lo borramos del disco
+							if empleado.ci_archivo_pdf:
+								empleado.ci_archivo_pdf.delete(save=False)
+							# Asignamos el nuevo
+							empleado.ci_archivo_pdf = ci_archivo_pdf
+						
 						empleado.save()
 
 						data["id"] = empleado.id

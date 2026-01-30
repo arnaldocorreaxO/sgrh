@@ -141,6 +141,16 @@ class EmpleadoForm(forms.ModelForm):
         label="Tipo Sanguíneo",
         widget=forms.Select(attrs={"class": "form-control select2", "style": "width: 100%;"})
     )
+    # Aseguramos que las fechas usen el widget nativo 'date' para HTML5
+    fecha_nacimiento = forms.DateField(
+        label="Fecha de Nacimiento",
+        widget=forms.DateInput(format="%Y-%m-%d",attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    ci_fecha_vencimiento = forms.DateField(
+        label="Fecha Vencimiento CI",
+        widget=forms.DateInput(format="%Y-%m-%d",attrs={'type': 'date', 'class': 'form-control'})
+    )
 
     # Clase interna personalizada para el campo Nacionalidad
     class NacionalidadModelChoiceField(forms.ModelChoiceField):
@@ -172,24 +182,6 @@ class EmpleadoForm(forms.ModelForm):
             "telefono": forms.TextInput(attrs={"placeholder": "Indique un número de teléfono convencional"}),
             "celular": forms.TextInput(attrs={"placeholder": "Indique un número de celular principal"}),
             "email": forms.TextInput(attrs={"placeholder": "Indique un email principal"}),
-            "ci_fecha_vencimiento": forms.DateInput(
-                format="%Y-%m-%d",
-                attrs={
-                    "class": "form-control datetimepicker-input",
-                    "id": "ci_fecha_vencimiento",
-                    "data-toggle": "datetimepicker",
-                    "data-target": "#ci_fecha_vencimiento",
-                },
-            ),
-            "fecha_nacimiento": forms.DateInput(
-                format="%Y-%m-%d",
-                attrs={
-                    "class": "form-control datetimepicker-input",
-                    "id": "fecha_nacimiento",
-                    "data-toggle": "datetimepicker",
-                    "data-target": "#fecha_nacimiento",
-                },
-            ),
             'ci_archivo_pdf': ClearableFileInput(attrs={'class': 'form-control-file'}),
         }
 
@@ -249,167 +241,46 @@ class EmpleadoForm(forms.ModelForm):
                 raise ValidationError('El archivo no debe exceder 5MB.')
         return archivo
 
-def save(self, commit=True):
-    # 1. No llames a is_valid() aquí; el save asume que los datos ya están limpios.
-    # Usamos el save del padre para obtener la instancia del empleado
-    empleado = super().save(commit=False)
+    def save(self, commit=True):
+        # 1. No llames a is_valid() aquí; el save asume que los datos ya están limpios.
+        # Usamos el save del padre para obtener la instancia del empleado
+        empleado = super().save(commit=False)
+        
+        try:
+            # --- Manejo del Usuario Relacionado (Imagen) ---
+            # Usamos getattr por seguridad si la relación es opcional
+            usuario = getattr(empleado, 'usuario', None)
+            
+            if usuario:
+                image_data = self.cleaned_data.get("image")
+                
+                # Caso: Checkbox de borrar imagen marcado (False)
+                if image_data is False:
+                    if usuario.image:
+                        usuario.image.delete(save=False)
+                    usuario.image = None
+                # Caso: Nueva imagen cargada
+                elif image_data:
+                    usuario.image = image_data
+                
+                usuario.save()
+
+            # --- Manejo del PDF (Archivo en el mismo modelo Empleado) ---
+            archivo_pdf_data = self.cleaned_data.get('archivo_pdf')
+            
+            if archivo_pdf_data is False:  # Se marcó "Limpiar" en el widget del PDF
+                if empleado.archivo_pdf:
+                    empleado.archivo_pdf.delete(save=False)
+                empleado.archivo_pdf = None
+            # Si hay un archivo nuevo, super().save(commit=False) ya lo asignó a 'empleado'
+
+            if commit:
+                empleado.save()
+                
+        except Exception as e:
+            # Si usas esto en una vista AJAX, asegúrate de que 'data' sea accesible
+            # o maneja el error según tu lógica de negocio.
+            raise e 
+            
+        return empleado  # 🔑 devolver la instancia, no un dict
     
-    try:
-        # --- Manejo del Usuario Relacionado (Imagen) ---
-        # Usamos getattr por seguridad si la relación es opcional
-        usuario = getattr(empleado, 'usuario', None)
-        
-        if usuario:
-            image_data = self.cleaned_data.get("image")
-            
-            # Caso: Checkbox de borrar imagen marcado (False)
-            if image_data is False:
-                if usuario.image:
-                    usuario.image.delete(save=False)
-                usuario.image = None
-            # Caso: Nueva imagen cargada
-            elif image_data:
-                usuario.image = image_data
-            
-            usuario.save()
-
-        # --- Manejo del PDF (Archivo en el mismo modelo Empleado) ---
-        archivo_pdf_data = self.cleaned_data.get('archivo_pdf')
-        
-        if archivo_pdf_data is False:  # Se marcó "Limpiar" en el widget del PDF
-            if empleado.archivo_pdf:
-                empleado.archivo_pdf.delete(save=False)
-            empleado.archivo_pdf = None
-        # Si hay un archivo nuevo, super().save(commit=False) ya lo asignó a 'empleado'
-
-        if commit:
-            empleado.save()
-            
-    except Exception as e:
-        # Si usas esto en una vista AJAX, asegúrate de que 'data' sea accesible
-        # o maneja el error según tu lógica de negocio.
-        raise e 
-        
-    return empleado  # 🔑 devolver la instancia, no un dict
-    
-# # FORMULARIO EMPLEADO
-# class EmpleadoForm(ModelFormEmpleado):
-#     image = forms.ImageField(
-#         widget=ClearableFileInput(attrs={
-#             'class': 'form-control-file',
-#             'autocomplete': 'off'
-#         }),
-#         label='Imagen',
-#         required=False
-#     )
-
-#     class NacionalidadModelChoiceField(forms.ModelChoiceField):
-#         def label_from_instance(self, obj):
-#             return obj.nacionalidad
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         # Hacer legajo de solo lectura
-#         self.fields["legajo"].disabled = True
-#         # Autofocus en CI
-#         self.fields["ci"].widget.attrs["autofocus"] = True
-#         # Imagen inicial si existe
-#         if self.instance and self.instance.usuario and self.instance.usuario.image:
-#             self.initial['image'] = self.instance.usuario.image
-
-
-#         # Estado civil
-#         estado_civil = forms.ModelChoiceField(
-#             queryset=RefDet.objects.filter(refcab__cod_referencia="ESTADO_CIVIL"),
-#             empty_label="(Ninguno)",
-#             label="Estado Civil"
-#         )
-#         estado_civil.widget.attrs.update({"class": "form-control select2", "style": "width: 100%;"})
-#         self.fields["estado_civil"] = estado_civil
-
-#         # Género
-#         sexo = forms.ModelChoiceField(
-#             queryset=RefDet.objects.filter(refcab__cod_referencia="SEXO"),
-#             empty_label="(Ninguno)"
-#         )
-#         sexo.widget.attrs.update({"class": "form-control select2", "style": "width: 100%;"})
-#         self.fields["sexo"] = sexo
-
-#         # Nacionalidad
-#         nacionalidad = self.NacionalidadModelChoiceField(
-#             queryset=Pais.objects.all(), empty_label="(Ninguno)"
-#         )
-#         nacionalidad.widget.attrs.update({"class": "form-control select2", "style": "width: 100%;"})
-#         self.fields["nacionalidad"] = nacionalidad
-
-#         # Ciudad dinámica
-#         self.fields["ciudad"].queryset = Ciudad.objects.none()
-#         if self.instance and self.instance.ciudad_id:
-#             self.fields["ciudad"].queryset = Ciudad.objects.filter(id=self.instance.ciudad_id)
-        
-
-#     class Meta:
-#         model = Empleado
-#         fields = "__all__"
-#         exclude = readonly_fields
-#         widgets = {
-#             "legajo": forms.TextInput(attrs={"placeholder": "Legajo actual del empleado"}),
-#             "ci": forms.TextInput(attrs={"placeholder": "Ingrese CI"}),
-#             "ruc": forms.TextInput(attrs={"placeholder": "Ingrese RUC"}),
-#             "nombre": forms.TextInput(attrs={"placeholder": "Ingrese nombre"}),
-#             "apellido": forms.TextInput(attrs={"placeholder": "Ingrese apellido"}),
-#             "ciudad": forms.Select(attrs={"class": "custom-select select2", "style": "width: 100%;"}),
-#             "barrio": forms.Select(attrs={"class": "form-control select2", "style": "width: 100%;"}),
-#             "direccion": forms.TextInput(attrs={"placeholder": "Indique una dirección particular"}),
-#             "telefono": forms.TextInput(attrs={"placeholder": "Indique un número de teléfono convencional"}),
-#             "celular": forms.TextInput(attrs={"placeholder": "Indique un número de celular principal"}),
-#             "email": forms.TextInput(attrs={"placeholder": "Indique un email principal"}),
-#             "fec_nacimiento": forms.DateInput(
-#                 format="%Y-%m-%d",
-#                 attrs={
-#                     "class": "form-control datetimepicker-input",
-#                     "id": "fec_nacimiento",
-#                     "value": get_fecha_actual_ymd,
-#                     "data-toggle": "datetimepicker",
-#                     "data-target": "#fec_nacimiento",
-#                 },
-#             ),
-#             "nacionalidad": forms.Select(attrs={"class": "form-control select2", "style": "width: 100%;"}),
-#         }
-
-#     # Validación de CI
-#     def clean_ci(self):
-#         ci = self.cleaned_data.get("ci")
-#         if ci and Empleado.objects.filter(ci__iexact=ci).exclude(pk=self.instance.pk).exists():
-#             raise ValidationError("Ya existe Empleado con este CI.")
-#         return ci
-
-#     # Validación de RUC
-#     def clean_ruc(self):
-#         ruc = self.cleaned_data.get("ruc")
-#         if ruc and Empleado.objects.filter(ruc__iexact=ruc).exclude(pk=self.instance.pk).exists():
-#             raise ValidationError("Ya existe Empleado con este RUC.")
-#         return ruc
-
-
-#     def save(self, commit=True):
-#         empleado = super().save(commit=False)
-#         usuario = empleado.usuario
-
-#         # Manejo de imagen
-#         if self.cleaned_data.get("image") is False:  # Checkbox de limpieza marcado
-#             if usuario.image:
-#                 usuario.image.delete(save=False)
-#             usuario.image = None
-#         elif self.cleaned_data.get("image"):
-#             usuario.image = self.cleaned_data["image"]
-
-#         usuario.save()
-#         if commit:
-#             empleado.save()
-#         return empleado  # 🔑 devolver la instancia, no un dict
-
-
-
-
-

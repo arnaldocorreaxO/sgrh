@@ -137,11 +137,61 @@ document.addEventListener("DOMContentLoaded", function (e) {
           },
         },
       },
+      // Campos de Selección (Select2)
+      sucursal: {
+        validators: { notEmpty: { message: "Seleccione una sucursal" } },
+      },
+      nacionalidad: {
+        validators: { notEmpty: { message: "La nacionalidad es obligatoria" } },
+      },
+      ciudad: {
+        validators: { notEmpty: { message: "La ciudad es obligatoria" } },
+      },
+      sexo: {
+        validators: { notEmpty: { message: "El campo sexo es obligatorio" } },
+      },
+      estado_civil: {
+        validators: { notEmpty: { message: "El estado civil es obligatorio" } },
+      },
       direccion: {
         validators: {
           notEmpty: { message: "La dirección es obligatoria" },
           stringLength: {
             min: 2,
+          },
+        },
+      },
+      ci_fecha_vencimiento: {
+        validators: {
+          notEmpty: {
+            message: "La fecha de vencimiento de la CI es obligatoria",
+          },
+          date: {
+            format: "YYYY-MM-DD", // El estándar de los navegadores para inputs de tipo fecha
+            message: "La fecha no es válida",
+          },
+          callback: {
+            message: "La cédula no puede estar vencida",
+            callback: function (input) {
+              const value = input.value;
+              if (!value) return true;
+
+              // Formato esperado: YYYY-MM-DD
+              const partes = value.split("-");
+              if (partes.length !== 3) return false;
+
+              // Crear fecha local (año, mes-1, día) para evitar problemas de zona horaria
+              const fechaVencimiento = new Date(
+                partes[0],
+                partes[1] - 1,
+                partes[2],
+              );
+
+              const hoy = new Date();
+              hoy.setHours(0, 0, 0, 0);
+
+              return fechaVencimiento >= hoy;
+            },
           },
         },
       },
@@ -151,7 +201,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
             message: "La fecha es obligatoria",
           },
           date: {
-            format: "DD/MM/YYYY",
+            format: "YYYY-MM-DD", // El estándar de los navegadores para inputs de tipo fecha
             message: "La fecha no es válida",
           },
           remote: {
@@ -169,51 +219,12 @@ document.addEventListener("DOMContentLoaded", function (e) {
         },
       },
     },
-  })
-    .on("core.element.validated", function (e) {
-      if (e.valid) {
-        const groupEle = FormValidation.utils.closest(e.element, ".form-group");
-        if (groupEle) {
-          FormValidation.utils.classSet(groupEle, {
-            "has-success": false,
-          });
-        }
-        FormValidation.utils.classSet(e.element, {
-          "is-valid": false,
-        });
-      }
-      const iconPlugin = fv.getPlugin("icon");
-      const iconElement =
-        iconPlugin && iconPlugin.icons.has(e.element)
-          ? iconPlugin.icons.get(e.element)
-          : null;
-      iconElement && (iconElement.style.display = "none");
-    })
-    .on("core.validator.validated", function (e) {
-      if (!e.result.valid) {
-        const messages = [].slice.call(
-          form.querySelectorAll(
-            '[data-field="' + e.field + '"][data-validator]',
-          ),
-        );
-        messages.forEach((messageEle) => {
-          const validator = messageEle.getAttribute("data-validator");
-          messageEle.style.display =
-            validator === e.validator ? "block" : "none";
-        });
-      }
-    })
-    .on("core.form.valid", function () {
-      submit_formdata_with_ajax_form(fv);
-    });
+  }).on("core.form.valid", function () {
+    submit_formdata_with_ajax_form(fv);
+  });
 });
 
 $(document).ready(function () {
-  $(".select2").select2({
-    theme: "bootstrap4",
-    language: "es",
-  });
-
   $('input[name="celular"]').keypress(function (e) {
     return validate_form_text("numbers", e, null);
   });
@@ -239,34 +250,22 @@ $(document).ready(function () {
         $("#id_apellido").val(data[0].per_apynom);
         $("#id_direccion").val(data[0].per_desdomi);
         $("#id_nacionalidad").val(data[0].per_codpais).trigger("change");
-        $("#fecha_nacimiento").val(
-          data[0].per_fchnaci.split("-").reverse().join("/"),
-        );
+        $("#id_fecha_nacimiento").val(data[0].per_fchnaci).trigger("change");
         $("#id_estado_civil").val(data[0].civ_codeciv).trigger("change");
       },
     });
   });
 
-  input_ci_fecha_vencimiento = $('input[name="ci_fecha_vencimiento"]');
-  input_ci_fecha_vencimiento.datetimepicker({
-    format: "DD/MM/YYYY",
-    locale: "es",
-    keepOpen: false,
-    date: input_ci_fecha_vencimiento.val(),
+  // --- REGLA DE ORO PARA SELECT2 Y FORMVALIDATION ---
+  // Revalidar el campo cuando Select2 cambie su valor
+  $(".select2").on("select2:select", function (e) {
+    let fieldName = $(this).attr("name");
+    if (fv) {
+      fv.revalidateField(fieldName);
+    }
   });
 
-  input_fecha_nacimiento = $('input[name="fecha_nacimiento"]');
-  input_fecha_nacimiento.datetimepicker({
-    format: "DD/MM/YYYY",
-    locale: "es",
-    keepOpen: false,
-    date: input_fecha_nacimiento.val(),
-  });
-
-  input_ci_fecha_vencimiento.on("change.datetimepicker", function () {
-    fv.revalidateField("ci_fecha_vencimiento");
-  });
-  input_fecha_nacimiento.on("change.datetimepicker", function () {
-    fv.revalidateField("fecha_nacimiento");
+  $('input[name="ci_archivo_pdf"]').on("change", function () {
+    fv.revalidateField("archivo_pdf");
   });
 });
