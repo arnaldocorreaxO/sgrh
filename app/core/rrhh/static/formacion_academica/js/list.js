@@ -1,13 +1,33 @@
 var tblData;
-var columns = [];
+let columnas = [
+  { data: "id" }, //Siempre con un ID
+];
+
+// Usamos la variable global de la ventana
+if (!window.isSelf) {
+  columnas.push({ data: "empleado" });
+}
+
+columnas.push(
+  { data: "titulo_obtenido__denominacion" }, // 2
+  { data: "denominacion_carrera" }, // 3
+  { data: "institucion__denominacion" }, // 4
+  { data: "nivel_academico__denominacion" }, // 5
+  { data: "anho_graduacion" }, // 6
+  { data: "archivo_pdf" }, // 7 (colArchivoIndice)
+  { data: "id" }, // 8 (last-child)
+);
+
+// Como "archivo_pdf" es la penúltima: esto utilizamos para generar el link del archivo
+const colArchivoIndice = columnas.length - 2;
+const colOpcionesIndice = columnas.length - 1;
+const colAnhoGraduacionIndice = columnas.findIndex(
+  (col) => col.data === "anho_graduacion",
+);
 
 var formacion = {
   list: function (all) {
-    // --- CONFIGURACIÓN DE COLUMNAS ---
-    // Definimos el índice de la columna archivo_pdf (empezando desde 0)
-    const colArchivoIndice = 7;
-
-    const select_sucursal = $('select[name="Sucursal"]');
+    const select_sucursal = $('select[name="sucursal"]');
     const select_empleado = $('select[name="empleado"]');
     const current_date = new moment().format("DD/MM/YYYY");
 
@@ -20,7 +40,7 @@ var formacion = {
     };
 
     if (all) {
-      parameters.Sucursal = "";
+      parameters.sucursal = "";
       parameters.empleado = "";
       if (!select_sucursal.prop("disabled"))
         select_sucursal.val("").trigger("change.select2");
@@ -41,7 +61,7 @@ var formacion = {
         data: parameters,
         headers: { "X-CSRFToken": csrftoken },
       },
-      order: [[1, "asc"]],
+      order: [[colAnhoGraduacionIndice, "desc"]], // Ordenamos por año de graduación descendente
       dom: "Blfrtip",
       buttons: [
         {
@@ -135,17 +155,7 @@ var formacion = {
           },
         },
       ],
-      columns: [
-        { data: "id" }, // 0
-        { data: "empleado" }, // 1
-        { data: "titulo_obtenido_denominacion" }, // 2
-        { data: "denominacion_carrera" }, // 3
-        { data: "institucion_denominacion" }, // 4
-        { data: "nivel_academico_denominacion" }, // 5
-        { data: "anho_graduacion" }, // 6
-        { data: "archivo_pdf" }, // 7 (colArchivoIndice)
-        { data: "id" }, // 8 (last-child)
-      ],
+      columns: columnas,
       columnDefs: [
         {
           targets: [0],

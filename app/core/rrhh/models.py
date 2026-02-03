@@ -299,6 +299,8 @@ class Empleado(ModeloBase):
     def toJSON(self):
         # 1. Convertimos el modelo a diccionario
         item = model_to_dict(self)
+
+        item["legajo"] = self.legajo if self.legajo else 'N/A'
         
         # 2. Propiedades calculadas y personalizadas
         item["full_name"] = self.full_name
@@ -316,16 +318,19 @@ class Empleado(ModeloBase):
         # 4. Formatear Fechas para que no den error de serialización
         item["fecha_nacimiento"] = self.fecha_nacimiento.strftime('%d/%m/%Y') if self.fecha_nacimiento else ""
         item["ci_fecha_vencimiento"] = self.ci_fecha_vencimiento.strftime('%d/%m/%Y') if self.ci_fecha_vencimiento else ""
-
+        # Relaciones
+        # Se usa doble guión '__' para que el nombre en el JSON coincida con el campo del ORM.
+        # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
         # 5. Denominaciones de ForeignKeys (Clave para Reportes y Tablas)
-        item["sucursal_denominacion"] = self.sucursal.denominacion if self.sucursal else ""
-        item["nacionalidad_denominacion"] = self.nacionalidad.denominacion if self.nacionalidad else ""
-        item["ciudad_denominacion"] = self.ciudad.denominacion if self.ciudad else ""
+        item["sucursal__cod"] = self.sucursal.cod if self.sucursal else ""
+        item["sucursal__denominacion"] = self.sucursal.denominacion if self.sucursal else ""
+        item["nacionalidad__denominacion"] = self.nacionalidad.denominacion if self.nacionalidad else ""
+        item["ciudad__denominacion"] = self.ciudad.denominacion if self.ciudad else ""
         
         # Campos de RefDet (Sexo, Estado Civil, etc.)
-        item["sexo_denominacion"] = self.sexo.denominacion if self.sexo else ""
-        item["estado_civil_denominacion"] = self.estado_civil.denominacion if self.estado_civil else ""
-        item["tipo_sanguineo_denominacion"] = self.tipo_sanguineo.denominacion if self.tipo_sanguineo else ""
+        item["sexo__denominacion"] = self.sexo.denominacion if self.sexo else ""
+        item["estado_civil__denominacion"] = self.estado_civil.denominacion if self.estado_civil else ""
+        item["tipo_sanguineo__denominacion"] = self.tipo_sanguineo.denominacion if self.tipo_sanguineo else ""
         
         return item
 
@@ -394,12 +399,14 @@ class EmpleadoPosicion(ModeloBase):
                 item[field.name] = value.url if value else None
             elif hasattr(value, 'name'):
                 item[field.name] = value.name if value else None
-        
+        # Relaciones
+        # Se usa doble guión '__' para que el nombre en el JSON coincida con el campo del ORM.
+        # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
         # Campos personalizados y denominaciones de ForeignKeys
         item['empleado'] = self.empleado.full_name if self.empleado else None
-        item['dependencia_posicion_denominacion'] = str(self.dependencia_posicion) if self.dependencia_posicion else None
-        item['tipo_movimiento_denominacion'] = self.tipo_movimiento.denominacion if self.tipo_movimiento else None
-        item['vinculo_laboral_denominacion'] = self.vinculo_laboral.denominacion if self.vinculo_laboral else None
+        item['dependencia_posicion__denominacion'] = str(self.dependencia_posicion) if self.dependencia_posicion else None
+        item['tipo_movimiento__denominacion'] = self.tipo_movimiento.denominacion if self.tipo_movimiento else None
+        item['vinculo_laboral__denominacion'] = self.vinculo_laboral.denominacion if self.vinculo_laboral else None
         
         # Estado del cargo actual (para mostrar 'Sí' o 'No' en la tabla si fuera necesario)
         item['cargo_puesto_actual_text'] = 'Sí' if self.cargo_puesto_actual else 'No'
@@ -465,9 +472,12 @@ class FormacionAcademica(ModeloBase):
             elif hasattr(value, 'name'):
                 item[field.name] = value.name if value else None
         item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
-        item['institucion_denominacion'] = self.institucion.denominacion if self.institucion else None
-        item['nivel_academico_denominacion'] = self.nivel_academico.denominacion if self.nivel_academico else None
-        item['titulo_obtenido_denominacion'] = self.titulo_obtenido.denominacion if self.titulo_obtenido else None
+        # Relaciones
+        # Se usa doble guión '__' para que el nombre en el JSON coincida con el campo del ORM.
+        # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
+        item['institucion__denominacion'] = self.institucion.denominacion if self.institucion else None
+        item['nivel_academico__denominacion'] = self.nivel_academico.denominacion if self.nivel_academico else None
+        item['titulo_obtenido__denominacion'] = self.titulo_obtenido.denominacion if self.titulo_obtenido else None
         item['denominacion_carrera'] = self.denominacion_carrera if self.denominacion_carrera else None
         # Formatear fecha de graduación
         item['anho_graduacion'] = self.anho_graduacion if self.anho_graduacion else None
@@ -558,11 +568,13 @@ class Capacitacion(ModeloBase):
                 item[field.name] = value.url if value else None
             elif hasattr(value, 'name'):
                 item[field.name] = value.name if value else None
-
+        # Relaciones
+        # Se usa doble guión '__' para que el nombre en el JSON coincida con el campo del ORM.
+        # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
         # Campos relacionados con denominación
-        item['institucion_denominacion'] = self.institucion.denominacion if self.institucion else None
-        item['tipo_certificacion_denominacion'] = self.tipo_certificacion.denominacion if self.tipo_certificacion else None
-        item['empleado_ci'] = self.empleado.ci if self.empleado else None
+        item['institucion__denominacion'] = self.institucion.denominacion if self.institucion else None
+        item['tipo_certificacion__denominacion'] = self.tipo_certificacion.denominacion if self.tipo_certificacion else None
+        item['empleado__ci'] = self.empleado.ci if self.empleado else None
         item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
 
         # Fechas formateadas
@@ -584,26 +596,6 @@ class ExperienciaLaboral(ModeloBase):
         verbose_name="Archivo PDF"
     )
 
-    def toJSON(self):
-        item = model_to_dict(self, exclude=['archivo_pdf'])
-        
-        # Archivo PDF
-        item['archivo_pdf_url'] = self.archivo_pdf.url if self.archivo_pdf else None
-        item['archivo_pdf'] = "PDF" if self.archivo_pdf else None
-
-        # Relaciones
-        item['empresa_denominacion'] = self.empresa.denominacion if self.empresa else None
-        item['cargo_denominacion'] = self.cargo.denominacion if self.cargo else None
-        item['empleado_ci'] = self.empleado.ci if self.empleado else None
-        item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
-
-        # Fechas formateadas
-        item['fecha_desde'] = self.fecha_desde.strftime('%d/%m/%Y') if self.fecha_desde else None
-        item['fecha_hasta'] = self.fecha_hasta.strftime('%d/%m/%Y') if self.fecha_hasta else None
-
-        return item
-
-    
     class Meta:
         db_table = "rh_experiencia_laboral"
         verbose_name = "Experiencia Laboral"
@@ -613,6 +605,29 @@ class ExperienciaLaboral(ModeloBase):
                        ('change_experiencialaboral_self', 'Puede modificar su propia experiencia laboral'),
                        ('delete_experiencialaboral_self', 'Puede eliminar su propia experiencia laboral'),
                       ]
+
+    def toJSON(self):
+        item = model_to_dict(self, exclude=['archivo_pdf'])
+        
+        # Archivo PDF
+        item['archivo_pdf_url'] = self.archivo_pdf.url if self.archivo_pdf else None
+        item['archivo_pdf'] = "PDF" if self.archivo_pdf else None
+
+        # Relaciones
+        # Se usa doble guión '__' para que el nombre en el JSON coincida con el campo del ORM.
+        # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
+        item['empresa__denominacion'] = self.empresa.denominacion if self.empresa else None
+        item['cargo__denominacion'] = self.cargo.denominacion if self.cargo else None
+        item['empleado__ci'] = self.empleado.ci if self.empleado else None
+        item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
+
+        # Fechas formateadas
+        item['fecha_desde'] = self.fecha_desde.strftime('%d/%m/%Y') if self.fecha_desde else None
+        item['fecha_hasta'] = self.fecha_hasta.strftime('%d/%m/%Y') if self.fecha_hasta else None
+
+        return item
+   
+
 
 # DOCUMENTOS COMPLEMENTARIOS DEL EMPLEADO = OTROS DOCUMENTOS
 
@@ -641,10 +656,23 @@ class DocumentoComplementario(ModeloBase):
         default="S", # Activo
     )
 
+    class Meta:
+        db_table = "rh_documento_complementario"
+        verbose_name = "Documento Complementario"
+        verbose_name_plural = "Documentos Complementarios"
+        permissions = [('view_documentocomplementario_self', 'Puede ver sus propios documentos complementarios'),
+                       ('add_documentocomplementario_self', 'Puede agregar sus propios documentos complementarios'),
+                       ('change_documentocomplementario_self', 'Puede modificar sus propios documentos complementarios'),
+                       ('delete_documentocomplementario_self', 'Puede eliminar sus propios documentos complementarios'),
+                      ]
+
     def toJSON(self):
         item = model_to_dict(self, exclude=['archivo_pdf'])
+        # Relaciones
+        # Se usa doble guión '__' para que el nombre en el JSON coincida con el campo del ORM.
+        # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
         # Empleado 
-        item['empleado_ci'] = self.empleado.ci if self.empleado else None
+        item['empleado__ci'] = self.empleado.ci if self.empleado else None
         item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
 
         # Archivo PDF
@@ -652,9 +680,8 @@ class DocumentoComplementario(ModeloBase):
         item['archivo_pdf'] = "PDF" if self.archivo_pdf else None
 
         # Relaciones
-        item['tipo_documento_denominacion'] = self.tipo_documento.denominacion if self.tipo_documento else None
-        item['estado_documento_denominacion'] = self.estado_documento_empleado.descripcion if self.estado_documento_empleado else None
-
+        item['tipo_documento__denominacion'] = self.tipo_documento.denominacion if self.tipo_documento else None
+        item['estado_documento__denominacion'] = self.estado_documento_empleado.denominacion if self.estado_documento_empleado else None
         return item
 
     def filename(self):
@@ -666,15 +693,7 @@ class DocumentoComplementario(ModeloBase):
             return self.archivo_pdf.path  # ruta absoluta en el sistema de archivos
         return None
 
-    class Meta:
-        db_table = "rh_documento_complementario"
-        verbose_name = "Documento Complementario"
-        verbose_name_plural = "Documentos Complementarios"
-        permissions = [('view_documentocomplementario_self', 'Puede ver sus propios documentos complementarios'),
-                       ('add_documentocomplementario_self', 'Puede agregar sus propios documentos complementarios'),
-                       ('change_documentocomplementario_self', 'Puede modificar sus propios documentos complementarios'),
-                       ('delete_documentocomplementario_self', 'Puede eliminar sus propios documentos complementarios'),
-                      ]
+
 
 # HISTORICO DISCIPLINARIO = REGISTRO DISCIPLINARIO = ANTECEDENTES DISCIPLINARIOS
 class HistoricoDisciplinario(ModeloBase):
@@ -742,8 +761,11 @@ class HistoricoDisciplinario(ModeloBase):
 
     def toJSON(self):
         item = model_to_dict(self, exclude=['archivo_pdf'])
-        # Empleado 
-        item['empleado_ci'] = self.empleado.ci if self.empleado else None
+        # Empleado
+        # Relaciones
+        # Se usa doble guión '__' para que el nombre en el JSON coincida con el campo del ORM.
+        # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales. 
+        item['empleado__ci'] = self.empleado.ci if self.empleado else None
         item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
 
         # Archivo PDF
@@ -751,10 +773,10 @@ class HistoricoDisciplinario(ModeloBase):
         item['archivo_pdf'] = "PDF" if self.archivo_pdf else None
 
         # Relaciones
-        item['tipo_falta_denominacion'] = self.tipo_falta.denominacion if self.tipo_falta else None
-        item['tipo_sancion_denominacion'] = self.tipo_sancion.denominacion if self.tipo_sancion else None
-        item['tipo_documento_denominacion'] = self.tipo_documento.denominacion if self.tipo_documento else None
-        item['estado_documento_denominacion'] = self.estado_documento.denominacion if self.estado_documento else None
+        item['tipo_falta__denominacion'] = self.tipo_falta.denominacion if self.tipo_falta else None
+        item['tipo_sancion__denominacion'] = self.tipo_sancion.denominacion if self.tipo_sancion else None
+        item['tipo_documento__denominacion'] = self.tipo_documento.denominacion if self.tipo_documento else None
+        item['estado_documento__denominacion'] = self.estado_documento.denominacion if self.estado_documento else None
 
         # Fecha formateada
         item['fecha_emision'] = self.fecha_emision.strftime('%d/%m/%Y') if self.fecha_emision else None

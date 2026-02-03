@@ -1,27 +1,32 @@
 {% extends 'list.html' %}
 {% load static %}
 {% block head_list %}
-    <link rel="stylesheet"
-          href="{% static 'lib/bootstrap-daterangepicker-3.0.5/daterangepicker.css' %}"/>
-    <script src="{% static 'lib/bootstrap-daterangepicker-3.0.5/spanish.js' %}"></script>
-    <script src="{% static 'lib/bootstrap-daterangepicker-3.0.5/daterangepicker.js' %}"></script>
-    <script src="{% static 'formacion_academica/js/list.js' %}"></script>
-    {% comment %} <script src="{% static 'formacion_academica/js/search_select2.js' %}"></script> {% endcomment %}
-{% endblock head_list %}
+  <script>// Creamos una variable global que el JS externo pueda leer
+    window.isSelf = {{ is_self|yesno:"true,false" }};
+    </script>
+  <script src="{% static 'formacion_academica/js/list.js' %}"></script>
+{% endblock %}
 
+{% comment %}Solo mostramos cuando es ADMIN{% endcomment %}
 {% block content_list_before %}
+  {% if not is_self %}
     {% include 'empleado/empleado_filter.html' %}
+  {% endif %}
 {% endblock %}
 
 {% block columns %}
-    <th scope="col" style="width: 4%;">ID</th>
-    <th scope="col" style="width: 23%;">Empleado</th>
-    <th scope="col" style="width: 22%;">Título</th>
-    <th scope="col" style="width: 25%;">Carrera</th>
-    <th scope="col" style="width: 23%;">Institución</th>
-    <th scope="col" style="width: 10%;">Nivel</th>
-    <th scope="col" style="width: 8%;">Año</th>
-    <th scope="col" style="width: 5%;">Archivo</th>
-    <th scope="col" style="width: 5%;" class="text-center">Opciones</th>
-{% endblock %}
+  <th scope="col" class="text-nowrap" style="width: 1%;">ID</th>
+  {% if not is_self %}
+    <th scope="col" class="text-nowrap">Empleado</th>
+  {% endif %}
 
+  <th scope="col">Título</th>
+  <th scope="col">Carrera</th>
+  <th scope="col">Institución</th>
+
+  <th scope="col" class="text-nowrap" style="width: 1%;">Nivel</th>
+  <th scope="col" class="text-center" style="width: 1%;">Año</th>
+
+  <th scope="col" class="text-center" style="width: 1%;">Archivo</th>
+  <th scope="col" class="text-center text-nowrap" style="width: 1%;">Opciones</th>
+{% endblock %}

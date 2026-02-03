@@ -1,12 +1,31 @@
 var tblData;
-var columns = [];
+
+let columnas = [
+  { data: "id" }, //Siempre con un ID
+];
+
+// Usamos la variable global de la ventana
+if (!window.isSelf) {
+  columnas.push({ data: "empleado" });
+}
+
+columnas.push(
+  { data: "nombre_capacitacion" },
+  { data: "tipo_certificacion__denominacion" },
+  { data: "institucion__denominacion" },
+  { data: "fecha_inicio" },
+  { data: "fecha_fin" },
+  { data: "archivo_pdf" },
+  { data: "id" },
+);
+
+// Como "archivo_pdf" es la penúltima: esto utilizamos para generar el link del archivo
+const colArchivoIndice = columnas.length - 2;
+const colOpcionesIndice = columnas.length - 1;
+const colFechaFinIndice = columnas.findIndex((col) => col.data === "fecha_fin");
 
 var capacitacion = {
   list: function (all) {
-    // --- CONFIGURACIÓN DE COLUMNAS ---
-    // Índice de la columna archivo_pdf (0: ID, 1: Empleado, ..., 7: archivo_pdf)
-    const colArchivoIndice = 7;
-
     const select_sucursal = $('select[name="sucursal"]');
     const select_empleado = $('select[name="empleado"]');
     const current_date = new moment().format("DD/MM/YYYY");
@@ -41,7 +60,7 @@ var capacitacion = {
         data: parameters,
         headers: { "X-CSRFToken": csrftoken },
       },
-      order: [[1, "asc"]],
+      order: [[colFechaFinIndice, "desc"]], // Ordenamos por fecha fin descendente
       dom: "Blfrtip",
       buttons: [
         {
@@ -135,17 +154,18 @@ var capacitacion = {
           },
         },
       ],
-      columns: [
-        { data: "id" }, // 0
-        { data: "empleado" }, // 1
-        { data: "nombre_capacitacion" }, // 2
-        { data: "tipo_certificacion_denominacion" }, // 3
-        { data: "institucion_denominacion" }, // 4
-        { data: "fecha_inicio" }, // 5
-        { data: "fecha_fin" }, // 6
-        { data: "archivo_pdf" }, // 7
-        { data: "id" }, // 8 (Botones)
-      ],
+      columns: columnas, //Definimos mas arriba
+      // columns: [
+      //   { data: "id" }, // 0
+      //   { data: "empleado" }, // 1
+      //   { data: "nombre_capacitacion" }, // 2
+      //   { data: "tipo_certificacion_denominacion" }, // 3
+      //   { data: "institucion_denominacion" }, // 4
+      //   { data: "fecha_inicio" }, // 5
+      //   { data: "fecha_fin" }, // 6
+      //   { data: "archivo_pdf" }, // 7
+      //   { data: "id" }, // 8 (Botones)
+      // ],
       columnDefs: [
         {
           targets: [0],

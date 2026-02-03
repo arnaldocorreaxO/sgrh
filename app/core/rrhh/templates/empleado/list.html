@@ -1,15 +1,24 @@
 {% extends 'list.html' %}
 {% load static %}
 {% block head_list %}
-<script src="{% static 'empleado/js/list.js' %}"></script>
+  <script src="{% static 'empleado/js/list.js' %}"></script>
+{% endblock %}
+
+{% block content_list_before %}
+  {% include 'empleado/empleado_filter.html' %}
 {% endblock %}
 
 {% block columns %}
-<th scope="col" style="width: 5%;">ID</th>
-<th scope="col" style="width: 10%;">CI</th>
-<th scope="col" style="width: 25%;">Nombre</th>
-<th scope="col" style="width: 25%;">Apellido</th>
-<th scope="col" style="width: 10%;">Edad</th>
-<th scope="col" style="width: 15%;">Tel. Contacto</th>
-<th scope="col" style="width: 10%;" class="text-center">Opciones</th>
+  <th scope="col" style="width: 1%;" class="text-nowrap">ID</th>
+  <th scope="col" class="text-nowrap">Sede</th>
+  <th scope="col" class="text-nowrap">CI</th>
+  <th scope="col" class="text-nowrap">Legajo</th>
+
+  <th scope="col">Nombre</th>
+  <th scope="col">Apellido</th>
+
+  <th scope="col" style="width: 1%;" class="text-center">Edad</th>
+  <th scope="col" class="text-nowrap">Tel. Contacto</th>
+
+  <th scope="col" style="width: 1%;" class="text-center text-nowrap">Opciones</th>
 {% endblock %}

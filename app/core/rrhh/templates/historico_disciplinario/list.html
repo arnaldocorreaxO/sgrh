@@ -2,20 +2,32 @@
 {% load static %}
 
 {% block head_list %}
-<script src="{% static 'historico_disciplinario/js/list.js' %}"></script>
+  <script>// Creamos una variable global que el JS externo pueda leer
+    window.isSelf = {{ is_self|yesno:"true,false" }};
+    </script>
+  <script src="{% static 'historico_disciplinario/js/list.js' %}"></script>
 {% endblock %}
 
+{% comment %}Solo mostramos cuando es ADMIN{% endcomment %}
 {% block content_list_before %}
+  {% if not is_self %}
     {% include 'empleado/empleado_filter.html' %}
+  {% endif %}
 {% endblock %}
 
 {% block columns %}
-<th scope="col" style="width: 5%;">ID</th>
-<th scope="col" style="width: 20%;">Empleado</th>
-<th scope="col" style="width: 10%;">Tipo de Falta</th>
-<th scope="col" style="width: 10%;">Tipo de Sanción</th>
-<th scope="col" style="width: 10%;">Tipo de Documento</th>
-<th scope="col" style="width: 10%;">Estado</th>
-<th scope="col" style="width: 10%;">Archivo PDF</th>
-<th scope="col" style="width: 10%;" class="text-center">Opciones</th>
+  <th scope="col" class="text-nowrap" style="width: 1%;">ID</th>
+  {% if not is_self %}
+    <th scope="col" class="text-nowrap">Empleado</th>
+  {% endif %}
+
+  <th scope="col" class="text-nowrap" style="width: 1%;">Tipo de Falta</th>
+  <th scope="col" class="text-nowrap" style="width: 1%;">Tipo de Sanción</th>
+  <th scope="col" class="text-nowrap" style="width: 1%;">Tipo de Documento</th>
+
+  <th scope="col" class="text-center text-nowrap" style="width: 1%;">Estado</th>
+
+  <th scope="col" class="text-center text-nowrap" style="width: 1%;">Archivo PDF</th>
+
+  <th scope="col" class="text-center text-nowrap" style="width: 1%;">Opciones</th>
 {% endblock %}

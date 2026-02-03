@@ -2,20 +2,31 @@
 {% load static %}
 
 {% block head_list %}
-<script src="{% static 'experiencia_laboral/js/list.js' %}"></script>
+  <script>// Creamos una variable global que el JS externo pueda leer
+    window.isSelf = {{ is_self|yesno:"true,false" }};
+    </script>
+  <script src="{% static 'experiencia_laboral/js/list.js' %}"></script>
 {% endblock %}
 
+{% comment %}Solo mostramos cuando es ADMIN{% endcomment %}
 {% block content_list_before %}
+  {% if not is_self %}
     {% include 'empleado/empleado_filter.html' %}
+  {% endif %}
 {% endblock %}
 
 {% block columns %}
-<th scope="col" style="width: 5%;">ID</th>
-<th scope="col" style="width: 15%;">Empleado</th>
-<th scope="col" style="width: 10%;">Cargo</th>
-<th scope="col" style="width: 25%;">Institución</th>
-<th scope="col" style="width: 10%;">Fecha Desde</th>
-<th scope="col" style="width: 10%;">Fecha Hasta</th>
-<th scope="col" style="width: 10%;">Archivo</th>
-<th scope="col" style="width: 10%;" class="text-center">Opciones</th>
+  <th scope="col" class="text-nowrap" style="width: 1%;">ID</th>
+  {% if not is_self %}
+    <th scope="col" class="text-nowrap">Empleado</th>
+  {% endif %}
+
+  <th scope="col">Cargo</th>
+  <th scope="col">Institución</th>
+
+  <th scope="col" class="text-nowrap" style="width: 1%;">Fecha Desde</th>
+  <th scope="col" class="text-nowrap" style="width: 1%;">Fecha Hasta</th>
+
+  <th scope="col" class="text-center" style="width: 1%;">Archivo</th>
+  <th scope="col" class="text-center text-nowrap" style="width: 1%;">Opciones</th>
 {% endblock %}

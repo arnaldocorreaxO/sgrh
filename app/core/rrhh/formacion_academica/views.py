@@ -20,6 +20,7 @@ class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	context_prefix = "Formación Académica"
 	create_url_name = "formacion_academica_create"
 	permission_required = "view_formacionacademica"
+	template_name ="formacion_academica/list.html"
 	
 	# Campos habilitados para búsqueda y ordenamiento
 	search_fields = [
@@ -38,10 +39,6 @@ class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	
 	def get_success_url(self):
 		return self.get_success_url_for("formacion_academica_list")
-
-	def get_template_names(self):
-		# Usa plantilla distinta si es vista personal
-		return ["formacion_academica/list_self.html"] if self.is_self_view else ["formacion_academica/list.html"]
 
 	def get_queryset(self):
 		# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
@@ -79,6 +76,7 @@ class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	def get_context_data(self, **kwargs):
 		# Agrega contexto adicional a la plantilla
 		context = super().get_context_data(**kwargs)
+		
 		if self.is_self_view:
 			context["create_url"] = reverse_lazy(self.create_url_name + "_self")
 			# Enriquecer contexto con datos del empleado

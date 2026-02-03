@@ -1,12 +1,32 @@
 var tblData;
-var columns = [];
+
+let columnas = [
+  { data: "id" }, //Siempre con un ID
+];
+
+// Usamos la variable global de la ventana
+if (!window.isSelf) {
+  columnas.push({ data: "empleado" });
+}
+
+columnas.push(
+  { data: "cargo__denominacion" },
+  { data: "empresa__denominacion" },
+  { data: "fecha_desde" },
+  { data: "fecha_hasta" },
+  { data: "archivo_pdf" },
+  { data: "id" },
+);
+
+// Como "archivo_pdf" es la penúltima: esto utilizamos para generar el link del archivo
+const colArchivoIndice = columnas.length - 2;
+const colOpcionesIndice = columnas.length - 1;
+const colFechaDesdeIndice = columnas.findIndex(
+  (col) => col.data === "fecha_desde",
+);
 
 var experienciaLaboral = {
   list: function (all) {
-    // --- CONFIGURACIÓN DE COLUMNAS ---
-    // 0:id, 1:empleado, 2:cargo, 3:empresa, 4:desde, 5:hasta, 6:archivo_pdf, 7:id(botones)
-    const colArchivoIndice = 6;
-
     const select_sucursal = $('select[name="sucursal"]');
     const select_empleado = $('select[name="empleado"]');
     const current_date = new moment().format("DD/MM/YYYY");
@@ -41,7 +61,7 @@ var experienciaLaboral = {
         data: parameters,
         headers: { "X-CSRFToken": csrftoken },
       },
-      order: [[1, "asc"]],
+      order: [[colFechaDesdeIndice, "desc"]],
       dom: "Blfrtip",
       buttons: [
         {
@@ -136,16 +156,7 @@ var experienciaLaboral = {
           },
         },
       ],
-      columns: [
-        { data: "id" },
-        { data: "empleado" },
-        { data: "cargo_denominacion" },
-        { data: "empresa_denominacion" },
-        { data: "fecha_desde" },
-        { data: "fecha_hasta" },
-        { data: "archivo_pdf" },
-        { data: "id" },
-      ],
+      columns: columnas,
       columnDefs: [
         {
           targets: [0],

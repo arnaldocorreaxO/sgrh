@@ -20,6 +20,7 @@ class HistoricoDisciplinarioList(PermissionMixin,EmpleadoScopedMixin, BaseListVi
 	context_prefix = "Histórico Disciplinario"
 	create_url_name = "historico_disciplinario_create"
 	permission_required = "view_historicodisciplinario"
+	template_name = "historico_disciplinario/list.html"
 	
 	# Campos habilitados para búsqueda y ordenamiento
 	search_fields = [
@@ -36,10 +37,6 @@ class HistoricoDisciplinarioList(PermissionMixin,EmpleadoScopedMixin, BaseListVi
 	
 	def get_success_url(self):
 		return self.get_success_url_for("historico_disciplinario_list")
-
-	def get_template_names(self):
-		# Usa plantilla distinta si es vista personal
-		return ["historico_disciplinario/list_self.html"] if self.is_self_view else ["historico_disciplinario/list.html"]
 
 	def get_queryset(self):
 		# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
@@ -78,6 +75,7 @@ class HistoricoDisciplinarioList(PermissionMixin,EmpleadoScopedMixin, BaseListVi
 	def get_context_data(self, **kwargs):
 		# Agrega contexto adicional a la plantilla
 		context = super().get_context_data(**kwargs)
+
 		if self.is_self_view:
 			context["create_url"] = reverse_lazy(self.create_url_name + "_self")
 			# Enriquecer contexto con datos del empleado

@@ -21,6 +21,7 @@ class CapacitacionList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	context_prefix = "Capacitación"
 	create_url_name = "capacitacion_create"
 	permission_required = "view_capacitacion"
+	template_name = 'capacitacion/list.html'
 	
 	# Campos habilitados para búsqueda y ordenamiento
 	search_fields = [
@@ -38,9 +39,9 @@ class CapacitacionList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	def get_success_url(self):
 		return self.get_success_url_for("capacitacion_list")
 
-	def get_template_names(self):
-		# Usa plantilla distinta si es vista personal
-		return ["capacitacion/list_self.html"] if self.is_self_view else ["capacitacion/list.html"]
+	# def get_template_names(self):
+	# 	# Usa plantilla distinta si es vista personal
+	# 	return ["capacitacion/list_self.html"] if self.is_self_view else ["capacitacion/list.html"]
 
 	def get_queryset(self):
 		# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
@@ -78,6 +79,7 @@ class CapacitacionList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	def get_context_data(self, **kwargs):
 		# Agrega contexto adicional a la plantilla
 		context = super().get_context_data(**kwargs)
+				
 		if self.is_self_view:
 			context["create_url"] = reverse_lazy(self.create_url_name + "_self")
 			# Enriquecer contexto con datos del empleado

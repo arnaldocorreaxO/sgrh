@@ -21,6 +21,7 @@ class ExperienciaLaboralList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	context_prefix = "Experiencia Laboral"
 	create_url_name = "experiencia_laboral_create"
 	permission_required = "view_experiencialaboral"
+	template_name = "experiencia_laboral/list.html"
 	
 	# Campos habilitados para búsqueda y ordenamiento
 	search_fields = [
@@ -38,10 +39,6 @@ class ExperienciaLaboralList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	
 	def get_success_url(self):
 		return self.get_success_url_for("experiencia_laboral_list")
-
-	def get_template_names(self):
-		# Usa plantilla distinta si es vista personal
-		return ["experiencia_laboral/list_self.html"] if self.is_self_view else ["experiencia_laboral/list.html"]
 
 	def get_queryset(self):
 		# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)

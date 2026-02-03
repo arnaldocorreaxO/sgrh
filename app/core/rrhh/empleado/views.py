@@ -184,10 +184,42 @@ class EmpleadoList(PermissionMixin,BaseListView):
 	numeric_fields = ["id", "ci"]
 	default_order_fields = ["id"]
 
+	# def get_queryset(self):
+	# 	# Usamos el manager personalizado que creamos antes
+	# 	# Esto garantiza que el Admin Global vea todo y el de Sucursal solo lo suyo
+	# 	return Empleado.objects.para_usuario(self.request.user)
 	def get_queryset(self):
-		# Usamos el manager personalizado que creamos antes
-		# Esto garantiza que el Admin Global vea todo y el de Sucursal solo lo suyo
-		return Empleado.objects.para_usuario(self.request.user)
+		# 1. Recuperamos el QuerySet base (Seguridad de usuario/sucursal)
+		qs = super().get_queryset()
+
+		# 2. Capturamos los datos del POST
+		sucursal_id = self.request.POST.get("sucursal")
+		empleado_id = self.request.POST.get("empleado")
+
+		# 3. FILTRO OBLIGATORIO: Sucursal
+		# Si viene en el POST, filtramos. Si no, podrías usar la sucursal del usuario
+		if sucursal_id:
+			qs = qs.filter(sucursal_id=sucursal_id)
+		
+		# 4. FILTRO OPCIONAL: Empleado	
+		# Si el usuario seleccionó un empleado específico, filtramos
+		if empleado_id:
+			qs = qs.filter(id=empleado_id)
+			
+			# SI empleado_id es vacío, no agregamos más filtros (mostramos todos los de la sucursal)
+			# Eliminamos el 'return objects.none()' anterior para permitir ver "todos"
+		
+		# NOTA: Si es 'is_self_view', el EmpleadoScopedMixin ya filtró por el ID del usuario actual.
+
+		# 5. Optimización final
+		return qs.select_related(
+			"sucursal",      # Obligatorio para tu filtro por sucursal
+			"usuario",       # Para verificar permisos o perfiles
+			"nacionalidad",  # Evita consultas extra al mostrar el país
+			"ciudad",        # Evita consultas extra al mostrar la ciudad
+			"sexo",          # Tabla RefDet
+			"estado_civil",  # Tabla RefDet
+    	)
 
 	@method_decorator(csrf_exempt)
 	def dispatch(self, request, *args, **kwargs):
@@ -212,7 +244,7 @@ class EmpleadoList(PermissionMixin,BaseListView):
 		context = super().get_context_data(**kwargs)	
 		context["create_url"] = reverse_lazy(self.create_url_name)
 		context["title"] = "Listado de " + self.context_prefix
-		context["filter_form"] = EmpleadoFilterForm(self.request.GET or None)
+		context["filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
 		return context
 		
 # class EmpleadoCreate(PermissionMixin,CreateView):

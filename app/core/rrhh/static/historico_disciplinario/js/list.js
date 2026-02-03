@@ -1,12 +1,28 @@
 var tblData;
-var columns = [];
+let columnas = [
+  { data: "id" }, //Siempre con un ID
+];
+
+// Usamos la variable global de la ventana
+if (!window.isSelf) {
+  columnas.push({ data: "empleado" });
+}
+
+columnas.push(
+  { data: "tipo_falta__denominacion" },
+  { data: "tipo_sancion__denominacion" },
+  { data: "tipo_documento__denominacion" },
+  { data: "estado_documento__denominacion" },
+  { data: "archivo_pdf" },
+  { data: "id" },
+);
+
+// Como "archivo_pdf" es la penúltima: esto utilizamos para generar el link del archivo
+const colArchivoIndice = columnas.length - 2;
+const colOpcionesIndice = columnas.length - 1;
 
 var historicoDisciplinario = {
   list: function (all) {
-    // --- CONFIGURACIÓN DE COLUMNAS ---
-    // 0:id, 1:empleado, 2:falta, 3:sancion, 4:tipo_doc, 5:estado, 6:archivo_pdf, 7:id(botones)
-    const colArchivoIndice = 6;
-
     const select_sucursal = $('select[name="sucursal"]');
     const select_empleado = $('select[name="empleado"]');
     const current_date = new moment().format("DD/MM/YYYY");
@@ -41,7 +57,7 @@ var historicoDisciplinario = {
         data: parameters,
         headers: { "X-CSRFToken": csrftoken },
       },
-      order: [[1, "asc"]],
+      order: [[0, "desc"]],
       dom: "Blfrtip",
       buttons: [
         {
@@ -137,16 +153,7 @@ var historicoDisciplinario = {
           },
         },
       ],
-      columns: [
-        { data: "id" },
-        { data: "empleado" },
-        { data: "tipo_falta_denominacion" },
-        { data: "tipo_sancion_denominacion" },
-        { data: "tipo_documento_denominacion" },
-        { data: "estado_documento_denominacion" },
-        { data: "archivo_pdf" },
-        { data: "id" },
-      ],
+      columns: columnas,
       columnDefs: [
         {
           targets: [0],

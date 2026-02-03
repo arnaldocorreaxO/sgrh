@@ -1,12 +1,27 @@
 var tblData;
-var columns = [];
+let columnas = [
+  { data: "id" }, //Siempre con un ID
+];
+
+// Usamos la variable global de la ventana
+if (!window.isSelf) {
+  columnas.push({ data: "empleado" });
+}
+
+columnas.push(
+  { data: "tipo_documento__denominacion" },
+  { data: "descripcion" },
+  { data: "estado_documento__denominacion" },
+  { data: "archivo_pdf" },
+  { data: "id" },
+);
+
+// Como "archivo_pdf" es la penúltima: esto utilizamos para generar el link del archivo
+const colArchivoIndice = columnas.length - 2;
+const colOpcionesIndice = columnas.length - 1;
 
 var documentoComplementario = {
   list: function (all) {
-    // --- CONFIGURACIÓN DE COLUMNAS ---
-    // 0: ID, 1: Empleado, 2: Tipo Doc, 3: Descripción, 4: Estado, 5: archivo_pdf, 6: Botones
-    const colArchivoIndice = 5;
-
     const select_sucursal = $('select[name="sucursal"]');
     const select_empleado = $('select[name="empleado"]');
     const current_date = new moment().format("DD/MM/YYYY");
@@ -41,7 +56,7 @@ var documentoComplementario = {
         data: parameters,
         headers: { "X-CSRFToken": csrftoken },
       },
-      order: [[0, "asc"]],
+      order: [[0, "desc"]],
       dom: "Blfrtip",
       buttons: [
         {
@@ -135,15 +150,7 @@ var documentoComplementario = {
           },
         },
       ],
-      columns: [
-        { data: "id" },
-        { data: "empleado" },
-        { data: "tipo_documento_denominacion" },
-        { data: "descripcion" },
-        { data: "estado_documento_denominacion" },
-        { data: "archivo_pdf" },
-        { data: "id" },
-      ],
+      columns: columnas,
       columnDefs: [
         {
           targets: [0],

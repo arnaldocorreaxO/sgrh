@@ -20,6 +20,7 @@ class DocumentoComplementarioList(PermissionMixin,EmpleadoScopedMixin, BaseListV
 	context_prefix = "Documentos Complementarios"
 	create_url_name = "documento_complementario_create"
 	permission_required = "view_documentocomplementario"
+	template_name = "documento_complementario/list.html"
 	
 	# Campos habilitados para búsqueda y ordenamiento
 	search_fields = [
@@ -35,10 +36,6 @@ class DocumentoComplementarioList(PermissionMixin,EmpleadoScopedMixin, BaseListV
 	
 	def get_success_url(self):
 		return self.get_success_url_for("documento_complementario_list")
-
-	def get_template_names(self):
-		# Usa plantilla distinta si es vista personal
-		return ["documento_complementario/list_self.html"] if self.is_self_view else ["documento_complementario/list.html"]
 
 	def get_queryset(self):
 		# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
@@ -77,6 +74,7 @@ class DocumentoComplementarioList(PermissionMixin,EmpleadoScopedMixin, BaseListV
 	def get_context_data(self, **kwargs):
 		# Agrega contexto adicional a la plantilla
 		context = super().get_context_data(**kwargs)
+				
 		if self.is_self_view:
 			context["create_url"] = reverse_lazy(self.create_url_name + "_self")
 			# Enriquecer contexto con datos del empleado
