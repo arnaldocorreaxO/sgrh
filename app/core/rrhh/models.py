@@ -42,7 +42,8 @@ class EmpleadoQuerySet(models.QuerySet):
         qs = self.para_usuario(user).filter(
             models.Q(nombre__icontains=term) | 
             models.Q(apellido__icontains=term) | 
-            models.Q(ci__icontains=term)
+            models.Q(ci__icontains=term) |
+            models.Q(legajo__icontains=term)
         )
         return qs[:limit] if limit else qs
 
@@ -252,7 +253,7 @@ class Empleado(ModeloBase):
         related_name="tipo_sanguineo_empleado",
         null=True, blank=True
     )
-
+    # El metodo search está en el EmpleadoQuerySet del EmpleadoManager
     objects = EmpleadoManager() # Asignamos el manager personalizado
 
     def __str__(self):
@@ -260,7 +261,7 @@ class Empleado(ModeloBase):
 
     @property
     def full_name(self):
-        return f"{self.nombre} {self.apellido}"
+        return f"{self.nombre} {self.apellido} - Legajo: {self.legajo if self.legajo else 'N/A'}"
 
     def get_ultimo_cargo(self):
     # Ordenamos por fecha_inicio descendente (-) y tomamos el primero
