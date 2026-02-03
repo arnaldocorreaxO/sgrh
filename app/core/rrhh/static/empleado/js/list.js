@@ -13,7 +13,9 @@ let columnas = [
 ];
 
 // Como "archivo_pdf" es la penúltima: esto utilizamos para generar el link del archivo
-const colArchivoIndice = columnas.length - 2;
+// Archivo Indice y Opciones Indice están en la misma columna en las exportaciones de Excel y PDF
+// pero acá no se usan
+const colArchivoIndice = columnas.length;
 const colOpcionesIndice = columnas.length - 1;
 const colNombreIndice = columnas.findIndex((col) => col.data === "nombre");
 const colApellidoIndice = columnas.findIndex((col) => col.data === "apellido");
