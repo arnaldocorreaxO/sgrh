@@ -244,7 +244,7 @@ class EmpleadoList(PermissionMixin,BaseListView):
 		context = super().get_context_data(**kwargs)	
 		context["create_url"] = reverse_lazy(self.create_url_name)
 		context["title"] = "Listado de " + self.context_prefix
-		context["filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
+		context["empleado_filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
 		return context
 		
 # class EmpleadoCreate(PermissionMixin,CreateView):
@@ -399,7 +399,7 @@ class EmpleadoCreate(PermissionMixin,CreateView):
 				empleados = empleado_qs.search(term,request.user)
 				print(f"[search_empleado] Término de búsqueda: '{term}' - Resultados encontrados: {empleados.count()}")
 				# 5. Formatear para Select2 (Limitamos a 15 para velocidad)
-				data = [{"id": emp.id, "text": str(emp)} for emp in empleados]
+				data = [{"id": emp.id, "text": emp.nombre_apellido_legajo} for emp in empleados]
 
 			elif action == "search_ciudad":
 				data = []

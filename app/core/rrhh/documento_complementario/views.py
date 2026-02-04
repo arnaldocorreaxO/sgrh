@@ -1,5 +1,5 @@
 import json
-
+from datetime import datetime
 from django.http import Http404, HttpResponse, JsonResponse
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
@@ -8,7 +8,7 @@ from django.views.generic import CreateView, DeleteView, UpdateView
 
 from core.base.views.generics import BaseListView
 from core.rrhh.empleado.forms import EmpleadoFilterForm
-from core.rrhh.documento_complementario.forms import DocumentoComplementarioForm
+from core.rrhh.documento_complementario.forms import DocumentoComplementarioFilterForm, DocumentoComplementarioForm
 
 from core.rrhh.models import Empleado, DocumentoComplementario
 from core.rrhh.empleado.views import EmpleadoScopedMixin
@@ -37,26 +37,86 @@ class DocumentoComplementarioList(PermissionMixin,EmpleadoScopedMixin, BaseListV
 	def get_success_url(self):
 		return self.get_success_url_for("documento_complementario_list")
 
+	# def get_queryset(self):
+	# 	# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
+	# 	qs = super().get_queryset()
+
+	# 	# 2. Capturamos el ID del empleado enviado por el buscador/combo
+	# 	empleado_id = self.request.POST.get("empleado")
+
+	# 	# 3. COMPORTAMIENTO ESPECÍFICO:
+	# 	# Solo filtramos y mostramos si se envía un empleado_id.
+	# 	# NOTA: En la vista personal (is_self_view), el Mixin ya hace el trabajo,
+	# 	# así que permitimos que pase sin el requisito del POST.
+	# 	if not self.is_self_view:
+	# 		if empleado_id:
+	# 			qs = qs.filter(empleado_id=empleado_id)
+	# 		else:
+	# 			# Si no hay empleado_id y no es vista personal, devolvemos vacío
+	# 			return self.model.objects.none()
+
+	# 	# 4. Optimización final si hay datos que mostrar
+	# 	return qs.select_related("empleado", )
+
+	
+
 	def get_queryset(self):
-		# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
+		# 1. Recuperamos el QuerySet base (Seguridad de sucursal/usuario definida en su Mixin)
 		qs = super().get_queryset()
 
-		# 2. Capturamos el ID del empleado enviado por el buscador/combo
+		# 2. Capturamos los parámetros enviados por POST desde el DataTable
 		empleado_id = self.request.POST.get("empleado")
+		tipo_doc_id = self.request.POST.get("tipo_documento")
+		rango_fecha = self.request.POST.get("rango_fecha")
 
-		# 3. COMPORTAMIENTO ESPECÍFICO:
-		# Solo filtramos y mostramos si se envía un empleado_id.
-		# NOTA: En la vista personal (is_self_view), el Mixin ya hace el trabajo,
-		# así que permitimos que pase sin el requisito del POST.
+		print(f"Filtros -> Emp: {empleado_id}, Tipo: {tipo_doc_id}, Rango: {rango_fecha}")
+
 		if not self.is_self_view:
-			if empleado_id:
-				qs = qs.filter(empleado_id=empleado_id)
-			else:
-				# Si no hay empleado_id y no es vista personal, devolvemos vacío
+			if not any([empleado_id, tipo_doc_id, rango_fecha]):
+				print("INFO: No hay filtros, retornando vacío")
 				return self.model.objects.none()
 
-		# 4. Optimización final si hay datos que mostrar
-		return qs.select_related("empleado", )
+		# 3. Lógica de Validación de Filtros
+		# Si no es la vista personal (is_self_view), exigimos que exista al menos un filtro.
+		if not getattr(self, 'is_self_view', False):
+			# Verificamos si todos los campos están vacíos
+			if not any([empleado_id, tipo_doc_id, rango_fecha]):
+				return self.model.objects.none()
+
+		# 4. Aplicación de Filtros Dinámicos
+		
+		# Filtro por Empleado (Opcional si hay otros filtros presentes)
+		if empleado_id:
+			qs = qs.filter(empleado_id=empleado_id)
+
+		# Filtro por Tipo de Documento
+		if tipo_doc_id:
+			qs = qs.filter(tipo_documento_id=tipo_doc_id)
+
+		# Filtro por Rango de Fechas (Procesamiento del string de Flatpickr)
+		if rango_fecha and " a " in rango_fecha:
+			try:
+				# Separamos el string: "dd/mm/yyyy a dd/mm/yyyy"
+				partes = rango_fecha.split(" a ")
+				if len(partes) == 2:
+					# .strip() elimina espacios accidentales
+					f_desde_str = partes[0].strip()
+					f_hasta_str = partes[1].strip()
+					
+					# Conversión a objetos date de Python
+					f_desde = datetime.strptime(f_desde_str, '%d/%m/%Y').date()
+					f_hasta = datetime.strptime(f_hasta_str, '%d/%m/%Y').date()
+					
+					# Aplicamos el filtro al campo fecha_documento
+					# Usamos __range por si el campo en la DB es DateTimeField
+					qs = qs.filter(fecha_documento__range=[f_desde, f_hasta])
+			except (ValueError, TypeError, IndexError):
+				# Si el formato de fecha es inválido, ignoramos el filtro de fecha
+				pass
+
+		# 5. Optimización de base de datos (Eager Loading)
+		# Traemos las relaciones de una sola vez para evitar el problema N+1
+		return qs.select_related("empleado", "tipo_documento").order_by('-fecha_documento')
 
 	def post(self, request, *args, **kwargs):
 		# Maneja acciones POST como búsqueda
@@ -82,7 +142,8 @@ class DocumentoComplementarioList(PermissionMixin,EmpleadoScopedMixin, BaseListV
 		else:
 			context["create_url"] = reverse_lazy(self.create_url_name)
 			context["title"] = "Listado de " + self.context_prefix
-			context["filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
+			context["empleado_filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
+			context["documento_complementario_filter_form"] = DocumentoComplementarioFilterForm(self.request.GET or None)
 		return context
 
 class DocumentoComplementarioCreate(PermissionMixin,EmpleadoScopedMixin,CreateView):

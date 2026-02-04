@@ -6,6 +6,31 @@ from core.base.forms import readonly_fields
 from core.rrhh.empleado.forms import ModelFormEmpleado
 from core.rrhh.models import DocumentoComplementario, RefDet
 
+# FORMULARIO FILTRO EMPLEADO
+class DocumentoComplementarioFilterForm(forms.Form):
+
+    tipo_documento = forms.ModelChoiceField(
+        queryset=RefDet.objects.filter(refcab__cod_referencia="TIPO_DOCUMENTO_COMPLEMENTARIO").order_by('descripcion'),
+        required=False,
+        widget=forms.Select(attrs={
+            "class": "form-control select2",
+            "style": "width: 100%;",
+            "id": "id_tipo_documento",
+        })
+    )   
+
+    rango_fecha = forms.CharField(
+        label="Rango de Fechas",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Seleccione periodo...',
+            'autocomplete': 'off',
+            'id': 'id_rango_fecha' # Forzamos el ID para el JS
+        }),
+        required=False
+    )
+    
+
 class DocumentoComplementarioForm(ModelFormEmpleado):
     """
     Formulario optimizado para documentos complementarios.
@@ -41,6 +66,7 @@ class DocumentoComplementarioForm(ModelFormEmpleado):
         exclude = readonly_fields
         fields = [
             'empleado',
+            'fecha_documento',
             'tipo_documento',
             'descripcion',
             'archivo_pdf',
@@ -52,6 +78,10 @@ class DocumentoComplementarioForm(ModelFormEmpleado):
             'estado_documento_empleado': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Breve detalle del documento...'}),
             'archivo_pdf': ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'fecha_documento': forms.DateInput(
+                format="%Y-%m-%d",
+                attrs={'class': 'form-control', 'type': 'date'}
+            ),
         }
         labels = {
             'tipo_documento': 'Categoría de Documento',

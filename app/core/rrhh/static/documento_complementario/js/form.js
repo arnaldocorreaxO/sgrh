@@ -25,6 +25,29 @@ document.addEventListener("DOMContentLoaded", function () {
           notEmpty: { message: "Debe seleccionar un empleado" },
         },
       },
+      fecha_documento: {
+        validators: {
+          notEmpty: { message: "Debe indicar la fecha del documento" },
+          date: {
+            format: "YYYY-MM-DD",
+            message: "La fecha no es válida",
+          },
+          callback: {
+            message: "La fecha no puede ser posterior a la fecha actual",
+            callback: function (input) {
+              if (input.value === "") return true;
+
+              const fechaInput = new Date(input.value);
+              const hoy = new Date();
+
+              // Seteamos la hora de "hoy" a las 00:00:00 para comparar solo fechas
+              hoy.setHours(0, 0, 0, 0);
+
+              return fechaInput <= hoy;
+            },
+          },
+        },
+      },
       tipo_documento: {
         validators: {
           notEmpty: { message: "Debe seleccionar el tipo de documento" },
@@ -76,5 +99,20 @@ $(document).ready(function () {
 
   $('input[name="archivo_pdf"]').on("change", function () {
     fv.revalidateField("archivo_pdf");
+  });
+
+  // Inicializar Flatpickr en el campo de fecha
+  flatpickr('input[name="fecha_documento"]', {
+    locale: "es",
+    dateFormat: "Y-m-d", //Como se guarda el valor en la base de datos
+    altInput: true, // Crea un campo visual mas amigable
+    altFormat: "d/m/Y", //Como se muestra al usuario
+    maxDate: "today",
+    disableMobile: "true", // Siempre usar la version de escritorio
+    allowInput: true, // Permitir escribir manualmente
+    onChange: function (selectedDates, dateStr, instance) {
+      // Revalidar el campo cuando la fecha cambie
+      fv.revalidateField("fecha_documento");
+    },
   });
 });

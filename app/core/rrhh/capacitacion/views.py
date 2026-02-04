@@ -87,7 +87,7 @@ class CapacitacionList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 		else:
 			context["create_url"] = reverse_lazy(self.create_url_name)
 			context["title"] = "Listado de " + self.context_prefix
-			context["filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
+			context["empleado_filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
 		return context
 
 class CapacitacionCreate(PermissionMixin,EmpleadoScopedMixin,CreateView):

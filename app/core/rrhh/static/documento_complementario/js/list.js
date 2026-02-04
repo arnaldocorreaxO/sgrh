@@ -9,6 +9,7 @@ if (!window.isSelf) {
 }
 
 columnas.push(
+  { data: "fecha_documento" },
   { data: "tipo_documento__denominacion" },
   { data: "descripcion" },
   { data: "estado_documento__denominacion" },
@@ -24,6 +25,8 @@ var documentoComplementario = {
   list: function (all) {
     const select_sucursal = $('select[name="sucursal"]');
     const select_empleado = $('select[name="empleado"]');
+    const tipo_documento = $('select[name="tipo_documento"]');
+    const rango_fecha = $('input[name="rango_fecha"]');
     const current_date = new moment().format("DD/MM/YYYY");
 
     var parameters = {
@@ -32,6 +35,8 @@ var documentoComplementario = {
         select_sucursal.val() || localStorage.getItem("last_sucursal") || "",
       empleado:
         select_empleado.val() || localStorage.getItem("last_empleado") || "",
+      tipo_documento: tipo_documento.val() || "",
+      rango_fecha: rango_fecha.val() || "",
     };
 
     if (all) {
@@ -40,6 +45,8 @@ var documentoComplementario = {
       if (!select_sucursal.prop("disabled"))
         select_sucursal.val("").trigger("change.select2");
       select_empleado.val("").trigger("change.select2");
+      tipo_documento.val("").trigger("change.select2");
+      rango_fecha.val("");
     }
 
     tblData = $("#data").DataTable({
@@ -185,9 +192,73 @@ var documentoComplementario = {
 };
 
 $(function () {
-  $(".select2").select2({ theme: "bootstrap4", language: "es" });
-  documentoComplementario.list(false);
-  $('select[name="empleado"]').on("change", function () {
+  // Función para obtener el rango inicial [01/01/YYYY, Hoy]
+  const getRangoDefault = () => {
+    const hoy = new Date();
+    const inicioAnio = new Date(hoy.getFullYear(), 0, 1);
+
+    // Función auxiliar para pad (01, 02, etc)
+    const formatDMY = (date) => {
+      const d = date.getDate().toString().padStart(2, "0");
+      const m = (date.getMonth() + 1).toString().padStart(2, "0");
+      const y = date.getFullYear();
+      return `${d}/${m}/${y}`;
+    };
+
+    const fechaInicioStr = formatDMY(inicioAnio);
+    const fechaFinStr = formatDMY(hoy);
+
+    console.log("Rango Formateado:", `${fechaInicioStr} a ${fechaFinStr}`);
+
+    // Para Flatpickr devolvemos el array de objetos Date
+    return [fechaInicioStr, fechaFinStr];
+  };
+
+  const rangoInput = $("#id_rango_fecha");
+
+  // 1. Inicializar Flatpickr
+  const fp = $("#id_rango_fecha").flatpickr({
+    mode: "range",
+    locale: "es",
+    dateFormat: "d/m/Y",
+    // altInput genera un campo visualmente más limpio y compatible
+    altInput: true,
+    altFormat: "d/m/Y",
+    conjunction: " a ", // <--- CRUCIAL: Define cómo se unen las fechas
+    defaultDate: getRangoDefault(),
+
+    static: true,
+    maxDate: "today",
+    onReady: function (selectedDates, dateStr, instance) {
+      // Estilo para que no parezca deshabilitado y use el ancho completo
+      $(instance.altInput).addClass("form-control bg-white");
+    },
+    onChange: function (selectedDates, dateStr, instance) {
+      if (selectedDates.length === 2) {
+        documentoComplementario.list(false);
+      }
+    },
+  });
+
+  // 2. Eventos para Selectores
+  $('select[name="empleado"], select[name="tipo_documento"]').on(
+    "change",
+    function () {
+      documentoComplementario.list(false);
+    },
+  );
+
+  // --- Tu lógica de Reset ---
+  $("#btnResetFiltros").on("click", function () {
+    $('select[name="empleado"], select[name="tipo_documento"]')
+      .val(null)
+      .trigger("change.select2");
+    if (fp) {
+      fp.setDate(getRangoDefault()); // Esto forzará de nuevo el rango completo
+    }
     documentoComplementario.list(false);
   });
+
+  // 4. Carga inicial de la tabla
+  documentoComplementario.list(false);
 });

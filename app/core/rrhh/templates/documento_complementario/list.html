@@ -11,7 +11,8 @@
 {% comment %}Solo mostramos cuando es ADMIN{% endcomment %}
 {% block content_list_before %}
   {% if not is_self %}
-    {% include 'empleado/empleado_filter.html' %}
+    {% include 'empleado/filter.html' %}
+    {% include 'documento_complementario/filter.html' %}
   {% endif %}
 {% endblock %}
 
@@ -20,6 +21,8 @@
   {% if not is_self %}
     <th scope="col" class="text-nowrap">Empleado</th>
   {% endif %}
+
+  <th scope="col" class="text-nowrap" style="width: 1%;">Fecha Documento</th>
 
   <th scope="col" class="text-nowrap" style="width: 1%;">Tipo Documento</th>
 

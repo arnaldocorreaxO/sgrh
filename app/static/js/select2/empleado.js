@@ -99,8 +99,8 @@ $(document).ready(function () {
     select_sucursal.val(null).trigger("change.select2");
     select_empleado.val(null).trigger("change.select2");
 
-    if (typeof capacitacion !== "undefined") {
-      capacitacion.list(false);
-    }
+    // if (typeof capacitacion !== "undefined") {
+    //   capacitacion.list(false);
+    // }
   });
 });

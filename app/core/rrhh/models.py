@@ -257,10 +257,14 @@ class Empleado(ModeloBase):
     objects = EmpleadoManager() # Asignamos el manager personalizado
 
     def __str__(self):
-        return self.full_name
+        return self.nombre_apellido
 
     @property
-    def full_name(self):
+    def nombre_apellido(self):
+        return f"{self.nombre} {self.apellido}"
+    
+    @property
+    def nombre_apellido_legajo(self):
         return f"{self.nombre} {self.apellido} - Legajo: {self.legajo if self.legajo else 'N/A'}"
 
     def get_ultimo_cargo(self):
@@ -304,7 +308,8 @@ class Empleado(ModeloBase):
         item["legajo"] = self.legajo if self.legajo else 'N/A'
         
         # 2. Propiedades calculadas y personalizadas
-        item["full_name"] = self.full_name
+        item["nombre_apellido"] = self.nombre_apellido
+        item["nombre_apellido_legajo"] = self.nombre_apellido_legajo
         item["edad"] = self.get_edad()
 
         # 3. Procesar Archivos (PDF e Imagen)
@@ -404,7 +409,7 @@ class EmpleadoPosicion(ModeloBase):
         # Se usa doble guión '__' para que el nombre en el JSON coincida con el campo del ORM.
         # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
         # Campos personalizados y denominaciones de ForeignKeys
-        item['empleado'] = self.empleado.full_name if self.empleado else None
+        item['empleado'] = self.empleado.nombre_apellido if self.empleado else None
         item['dependencia_posicion__denominacion'] = str(self.dependencia_posicion) if self.dependencia_posicion else None
         item['tipo_movimiento__denominacion'] = self.tipo_movimiento.denominacion if self.tipo_movimiento else None
         item['vinculo_laboral__denominacion'] = self.vinculo_laboral.denominacion if self.vinculo_laboral else None
@@ -472,7 +477,7 @@ class FormacionAcademica(ModeloBase):
                 item[field.name] = value.url if value else None
             elif hasattr(value, 'name'):
                 item[field.name] = value.name if value else None
-        item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
+        item['empleado'] = self.empleado.nombre_apellido if self.empleado else None #Empleado nombre completo
         # Relaciones
         # Se usa doble guión '__' para que el nombre en el JSON coincida con el campo del ORM.
         # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
@@ -576,7 +581,7 @@ class Capacitacion(ModeloBase):
         item['institucion__denominacion'] = self.institucion.denominacion if self.institucion else None
         item['tipo_certificacion__denominacion'] = self.tipo_certificacion.denominacion if self.tipo_certificacion else None
         item['empleado__ci'] = self.empleado.ci if self.empleado else None
-        item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
+        item['empleado'] = self.empleado.nombre_apellido if self.empleado else None #Empleado nombre completo
 
         # Fechas formateadas
         item['fecha_inicio'] = self.fecha_inicio.strftime('%d/%m/%Y') if self.fecha_inicio else None
@@ -620,7 +625,7 @@ class ExperienciaLaboral(ModeloBase):
         item['empresa__denominacion'] = self.empresa.denominacion if self.empresa else None
         item['cargo__denominacion'] = self.cargo.denominacion if self.cargo else None
         item['empleado__ci'] = self.empleado.ci if self.empleado else None
-        item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
+        item['empleado'] = self.empleado.nombre_apellido if self.empleado else None #Empleado nombre completo
 
         # Fechas formateadas
         item['fecha_desde'] = self.fecha_desde.strftime('%d/%m/%Y') if self.fecha_desde else None
@@ -634,6 +639,7 @@ class ExperienciaLaboral(ModeloBase):
 
 class DocumentoComplementario(ModeloBase):
     empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT)
+    fecha_documento = models.DateField(verbose_name="Fecha del Documento", null=True, blank=True,default=timezone.now)
     tipo_documento = models.ForeignKey(
         RefDet,
         verbose_name="Tipo Documento",
@@ -674,7 +680,10 @@ class DocumentoComplementario(ModeloBase):
         # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
         # Empleado 
         item['empleado__ci'] = self.empleado.ci if self.empleado else None
-        item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
+        item['empleado'] = self.empleado.nombre_apellido if self.empleado else None #Empleado nombre completo
+
+        #Fecha formateada
+        item['fecha_documento'] = self.fecha_documento.strftime('%d/%m/%Y') if self.fecha_documento else None
 
         # Archivo PDF
         item['archivo_pdf_url'] = self.archivo_pdf.url if self.archivo_pdf else None
@@ -767,7 +776,7 @@ class HistoricoDisciplinario(ModeloBase):
         # Se usa doble guión '__' para que el nombre en el JSON coincida con el campo del ORM.
         # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales. 
         item['empleado__ci'] = self.empleado.ci if self.empleado else None
-        item['empleado'] = self.empleado.full_name if self.empleado else None #Empleado nombre completo
+        item['empleado'] = self.empleado.nombre_apellido if self.empleado else None #Empleado nombre completo
 
         # Archivo PDF
         item['archivo_pdf_url'] = self.archivo_pdf.url if self.archivo_pdf else None
