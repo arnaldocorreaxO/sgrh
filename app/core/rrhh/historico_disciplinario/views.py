@@ -195,7 +195,7 @@ class HistoricoDisciplinarioUpdate(PermissionMixin,EmpleadoScopedMixin,UpdateVie
 		#Titulo con el nombre del empleado
 		return self.enrich_context_with_empleado(context, prefijo="Modificar Histórico Disciplinario")
 
-class HistoricoDisciplinarioDelete(EmpleadoScopedMixin, DeleteView):
+class HistoricoDisciplinarioDelete(PermissionMixin,EmpleadoScopedMixin, DeleteView):
 	model = HistoricoDisciplinario
 	template_name = "historico_disciplinario/delete.html"
 	permission_required = "delete_historicodisciplinario"

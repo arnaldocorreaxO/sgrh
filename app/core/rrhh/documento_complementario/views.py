@@ -255,7 +255,7 @@ class DocumentoComplementarioUpdate(PermissionMixin,EmpleadoScopedMixin,UpdateVi
 		#Titulo con el nombre del empleado
 		return self.enrich_context_with_empleado(context, prefijo="Modificar Documentos Complementarios")
 
-class DocumentoComplementarioDelete(EmpleadoScopedMixin, DeleteView):
+class DocumentoComplementarioDelete(PermissionMixin,EmpleadoScopedMixin, DeleteView):
 	model = DocumentoComplementario
 	template_name = "documento_complementario/delete.html"
 	permission_required = "delete_documentocomplementario"

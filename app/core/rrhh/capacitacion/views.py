@@ -199,7 +199,7 @@ class CapacitacionUpdate(PermissionMixin,EmpleadoScopedMixin,UpdateView):
 		#Titulo con el nombre del empleado
 		return self.enrich_context_with_empleado(context, prefijo="Modificar Capacitación")
 
-class CapacitacionDelete(EmpleadoScopedMixin, DeleteView):
+class CapacitacionDelete(PermissionMixin,EmpleadoScopedMixin, DeleteView):
 	model = Capacitacion
 	template_name = "capacitacion/delete.html"
 	permission_required = "delete_capacitacion"

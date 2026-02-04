@@ -205,7 +205,7 @@ class ExperienciaLaboralUpdate(PermissionMixin,EmpleadoScopedMixin,UpdateView):
 		#Titulo con el nombre del empleado
 		return self.enrich_context_with_empleado(context, prefijo="Modificar Experiencia Laboral")
 
-class ExperienciaLaboralDelete(EmpleadoScopedMixin, DeleteView):
+class ExperienciaLaboralDelete(PermissionMixin,EmpleadoScopedMixin, DeleteView):
 	model = ExperienciaLaboral
 	template_name = "experiencia_laboral/delete.html"
 	permission_required = "delete_experiencialaboral"
