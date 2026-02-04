@@ -21,7 +21,7 @@ columnas.push(
 const colArchivoIndice = columnas.length - 2;
 const colOpcionesIndice = columnas.length - 1;
 
-var documentoComplementario = {
+var registros = {
   list: function (all) {
     const select_sucursal = $('select[name="sucursal"]');
     const select_empleado = $('select[name="empleado"]');
@@ -235,7 +235,7 @@ $(function () {
     },
     onChange: function (selectedDates, dateStr, instance) {
       if (selectedDates.length === 2) {
-        documentoComplementario.list(false);
+        registros.list(false);
       }
     },
   });
@@ -244,7 +244,7 @@ $(function () {
   $('select[name="empleado"], select[name="tipo_documento"]').on(
     "change",
     function () {
-      documentoComplementario.list(false);
+      registros.list(false);
     },
   );
 
@@ -256,9 +256,9 @@ $(function () {
     if (fp) {
       fp.setDate(getRangoDefault()); // Esto forzará de nuevo el rango completo
     }
-    documentoComplementario.list(false);
+    registros.list(false);
   });
 
   // 4. Carga inicial de la tabla
-  documentoComplementario.list(false);
+  registros.list(false);
 });

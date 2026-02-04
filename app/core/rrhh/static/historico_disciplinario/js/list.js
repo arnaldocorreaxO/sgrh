@@ -21,7 +21,7 @@ columnas.push(
 const colArchivoIndice = columnas.length - 2;
 const colOpcionesIndice = columnas.length - 1;
 
-var historicoDisciplinario = {
+var registros = {
   list: function (all) {
     const select_sucursal = $('select[name="sucursal"]');
     const select_empleado = $('select[name="empleado"]');
@@ -187,9 +187,17 @@ var historicoDisciplinario = {
 };
 
 $(function () {
-  $(".select2").select2({ theme: "bootstrap4", language: "es" });
-  historicoDisciplinario.list(false);
-  $('select[name="empleado"]').on("change", function () {
-    historicoDisciplinario.list(false);
-  });
+  // Carga inicial (usará los valores restaurados por empleado.js)
+  registros.list(false);
+
+  // Evento de refresco automático
+  $('select[name="sucursal"], select[name="empleado"]').on(
+    "change",
+    function () {
+      // Solo recargamos si no es una limpieza masiva para evitar doble petición
+      if (typeof tblData !== "undefined") {
+        registros.list(false);
+      }
+    },
+  );
 });

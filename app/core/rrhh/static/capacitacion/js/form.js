@@ -70,16 +70,55 @@ document.addEventListener("DOMContentLoaded", function (e) {
             message: "La fecha no es válida",
           },
           callback: {
-            message:
-              "La fecha de finalización no puede ser menor a la de inicio",
             callback: function (input) {
+              const value = input.value;
+              if (!value) return true;
+
+              // 1. Obtener "Hoy" sin horas
+              const hoy = new Date();
+              hoy.setHours(0, 0, 0, 0);
+
+              // 2. Parsear Fecha Fin (Evita desfases de zona horaria)
+              const partesFin = value.split("-");
+              const fFin = new Date(
+                partesFin[0],
+                partesFin[1] - 1,
+                partesFin[2],
+              );
+              fFin.setHours(0, 0, 0, 0);
+
+              // 3. Validar contra Fecha de Inicio
               const fechaInicio = form.querySelector(
                 '[name="fecha_inicio"]',
               ).value;
-              if (fechaInicio === "" || input.value === "") {
-                return true;
+              if (fechaInicio !== "") {
+                const partesInicio = fechaInicio.split("-");
+                const fInicio = new Date(
+                  partesInicio[0],
+                  partesInicio[1] - 1,
+                  partesInicio[2],
+                );
+                fInicio.setHours(0, 0, 0, 0);
+
+                if (fFin < fInicio) {
+                  return {
+                    valid: false,
+                    message:
+                      "La fecha de finalización no puede ser menor a la de inicio",
+                  };
+                }
               }
-              return new Date(input.value) >= new Date(fechaInicio);
+
+              // 4. Validar contra Fecha Actual
+              if (fFin > hoy) {
+                return {
+                  valid: false,
+                  message:
+                    "La fecha de finalización no puede ser mayor a la fecha actual",
+                };
+              }
+
+              return { valid: true };
             },
           },
         },

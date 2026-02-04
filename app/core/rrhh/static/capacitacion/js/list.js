@@ -24,7 +24,7 @@ const colArchivoIndice = columnas.length - 2;
 const colOpcionesIndice = columnas.length - 1;
 const colFechaFinIndice = columnas.findIndex((col) => col.data === "fecha_fin");
 
-var capacitacion = {
+var registros = {
   list: function (all) {
     const select_sucursal = $('select[name="sucursal"]');
     const select_empleado = $('select[name="empleado"]');
@@ -155,17 +155,6 @@ var capacitacion = {
         },
       ],
       columns: columnas, //Definimos mas arriba
-      // columns: [
-      //   { data: "id" }, // 0
-      //   { data: "empleado" }, // 1
-      //   { data: "nombre_capacitacion" }, // 2
-      //   { data: "tipo_certificacion_denominacion" }, // 3
-      //   { data: "institucion_denominacion" }, // 4
-      //   { data: "fecha_inicio" }, // 5
-      //   { data: "fecha_fin" }, // 6
-      //   { data: "archivo_pdf" }, // 7
-      //   { data: "id" }, // 8 (Botones)
-      // ],
       columnDefs: [
         {
           targets: [0],
@@ -200,7 +189,7 @@ var capacitacion = {
 
 $(function () {
   // Carga inicial (usará los valores restaurados por empleado.js)
-  capacitacion.list(false);
+  registros.list(false);
 
   // Evento de refresco automático
   $('select[name="sucursal"], select[name="empleado"]').on(
@@ -208,7 +197,7 @@ $(function () {
     function () {
       // Solo recargamos si no es una limpieza masiva para evitar doble petición
       if (typeof tblData !== "undefined") {
-        capacitacion.list(false);
+        registros.list(false);
       }
     },
   );

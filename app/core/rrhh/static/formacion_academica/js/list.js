@@ -25,7 +25,7 @@ const colAnhoGraduacionIndice = columnas.findIndex(
   (col) => col.data === "anho_graduacion",
 );
 
-var formacion = {
+var registros = {
   list: function (all) {
     const select_sucursal = $('select[name="sucursal"]');
     const select_empleado = $('select[name="empleado"]');
@@ -189,9 +189,17 @@ var formacion = {
 };
 
 $(function () {
-  $(".select2").select2({ theme: "bootstrap4", language: "es" });
-  formacion.list(false);
-  $('select[name="empleado"]').on("change", function () {
-    formacion.list(false);
-  });
+  // Carga inicial (usará los valores restaurados por empleado.js)
+  registros.list(false);
+
+  // Evento de refresco automático
+  $('select[name="sucursal"], select[name="empleado"]').on(
+    "change",
+    function () {
+      // Solo recargamos si no es una limpieza masiva para evitar doble petición
+      if (typeof tblData !== "undefined") {
+        registros.list(false);
+      }
+    },
+  );
 });

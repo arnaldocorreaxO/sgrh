@@ -101,18 +101,18 @@ $(document).ready(function () {
     fv.revalidateField("archivo_pdf");
   });
 
-  // Inicializar Flatpickr en el campo de fecha
-  flatpickr('input[name="fecha_documento"]', {
-    locale: "es",
-    dateFormat: "Y-m-d", //Como se guarda el valor en la base de datos
-    altInput: true, // Crea un campo visual mas amigable
-    altFormat: "d/m/Y", //Como se muestra al usuario
-    maxDate: "today",
-    disableMobile: "true", // Siempre usar la version de escritorio
-    allowInput: true, // Permitir escribir manualmente
-    onChange: function (selectedDates, dateStr, instance) {
-      // Revalidar el campo cuando la fecha cambie
-      fv.revalidateField("fecha_documento");
-    },
-  });
+  // // Inicializar Flatpickr en el campo de fecha
+  // flatpickr('input[name="fecha_documento"]', {
+  //   locale: "es",
+  //   dateFormat: "Y-m-d", //Como se guarda el valor en la base de datos
+  //   altInput: true, // Crea un campo visual mas amigable
+  //   altFormat: "d/m/Y", //Como se muestra al usuario
+  //   maxDate: "today",
+  //   disableMobile: "true", // Siempre usar la version de escritorio
+  //   allowInput: true, // Permitir escribir manualmente
+  //   onChange: function (selectedDates, dateStr, instance) {
+  //     // Revalidar el campo cuando la fecha cambie
+  //     fv.revalidateField("fecha_documento");
+  //   },
+  // });
 });

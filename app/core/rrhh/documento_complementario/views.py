@@ -37,28 +37,6 @@ class DocumentoComplementarioList(PermissionMixin,EmpleadoScopedMixin, BaseListV
 	def get_success_url(self):
 		return self.get_success_url_for("documento_complementario_list")
 
-	# def get_queryset(self):
-	# 	# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
-	# 	qs = super().get_queryset()
-
-	# 	# 2. Capturamos el ID del empleado enviado por el buscador/combo
-	# 	empleado_id = self.request.POST.get("empleado")
-
-	# 	# 3. COMPORTAMIENTO ESPECÍFICO:
-	# 	# Solo filtramos y mostramos si se envía un empleado_id.
-	# 	# NOTA: En la vista personal (is_self_view), el Mixin ya hace el trabajo,
-	# 	# así que permitimos que pase sin el requisito del POST.
-	# 	if not self.is_self_view:
-	# 		if empleado_id:
-	# 			qs = qs.filter(empleado_id=empleado_id)
-	# 		else:
-	# 			# Si no hay empleado_id y no es vista personal, devolvemos vacío
-	# 			return self.model.objects.none()
-
-	# 	# 4. Optimización final si hay datos que mostrar
-	# 	return qs.select_related("empleado", )
-
-	
 
 	def get_queryset(self):
 		# 1. Recuperamos el QuerySet base (Seguridad de sucursal/usuario definida en su Mixin)
@@ -82,6 +60,9 @@ class DocumentoComplementarioList(PermissionMixin,EmpleadoScopedMixin, BaseListV
 			# Verificamos si todos los campos están vacíos
 			if not any([empleado_id, tipo_doc_id, rango_fecha]):
 				return self.model.objects.none()
+		else:	
+			# En vista personal, retornamos el QuerySet sin filtrar
+			return qs
 
 		# 4. Aplicación de Filtros Dinámicos
 		

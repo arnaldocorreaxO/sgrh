@@ -20,7 +20,7 @@ const colOpcionesIndice = columnas.length - 1;
 const colNombreIndice = columnas.findIndex((col) => col.data === "nombre");
 const colApellidoIndice = columnas.findIndex((col) => col.data === "apellido");
 
-var empleado = {
+var registros = {
   list: function (all) {
     const select_sucursal = $('select[name="sucursal"]');
     const select_empleado = $('select[name="empleado"]');
@@ -198,7 +198,7 @@ var empleado = {
 
 $(function () {
   // Carga inicial (usará los valores restaurados por empleado.js)
-  empleado.list(false);
+  registros.list(false);
 
   // Evento de refresco automático
   $('select[name="sucursal"], select[name="empleado"]').on(
@@ -206,7 +206,7 @@ $(function () {
     function () {
       // Solo recargamos si no es una limpieza masiva para evitar doble petición
       if (typeof tblData !== "undefined") {
-        empleado.list(false);
+        registros.list(false);
       }
     },
   );
