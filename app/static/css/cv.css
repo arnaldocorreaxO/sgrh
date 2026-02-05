@@ -175,19 +175,19 @@ body {
 
 .cargo {
   margin: 5px 0 0;
-  color: #1abc9c; /* Usando tu color de énfasis para el cargo */
+  color: #2d4154; /* Usando tu color de énfasis para el cargo */
   font-weight: bold;
   font-size: 18px;
 }
 .dependencia {
   margin: 5px 0 0;
-  color: #1abc9c; /* Usando tu color de énfasis para el cargo */
+  color: #2d4154; /* Usando tu color de énfasis para el cargo */
   font-weight: bold;
   font-size: 14px;
 }
 .sede {
   margin: 5px 0 0;
-  color: #1abc9c; /* Usando tu color de énfasis para el cargo */
+  color: #2d4154; /* Usando tu color de énfasis para el cargo */
   font-weight: bold;
   font-size: 14px;
 }
