@@ -181,7 +181,7 @@ class EmpleadoList(PermissionMixin,BaseListView):
 	permission_required = "view_empleado"
 
 	search_fields = ["ci", "nombre", "apellido"]
-	numeric_fields = ["id", "ci"]
+	numeric_fields = ["id", "ci","legajo"]
 	default_order_fields = ["id"]
 
 	# def get_queryset(self):
