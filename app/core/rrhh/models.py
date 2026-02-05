@@ -309,7 +309,7 @@ class Empleado(ModeloBase):
         posicion = self.empleado_posicion.order_by('-fecha_inicio').first()
         if posicion:
             # Retorna la denominación del cargo (tipo_movimiento o cargo según tu lógica)
-            return posicion.dependencia_posicion.dependencia.sede.denominacion
+            return posicion.dependencia_posicion.dependencia.sucursal_institucion.denominacion
         return "Funcionario" # Valor por defecto si no hay ninguno activo
 
     def get_edad(self):
