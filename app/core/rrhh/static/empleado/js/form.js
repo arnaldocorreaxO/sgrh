@@ -2,6 +2,11 @@ var fv;
 
 document.addEventListener("DOMContentLoaded", function (e) {
   const form = document.getElementById("frmForm");
+
+  // Extraer si el archivo es obligatorio (puedes pasar esto desde Django)
+  // O verificar si existe el link de "Ver archivo actual" en el DOM
+  const tieneArchivo = document.querySelector('a[href*=".pdf"]') !== null;
+
   fv = FormValidation.formValidation(form, {
     locale: "es_ES",
     localization: FormValidation.locales.es_ES,
@@ -218,6 +223,21 @@ document.addEventListener("DOMContentLoaded", function (e) {
           },
         },
       },
+      ci_archivo_pdf: {
+        validators: {
+          // Solo obligatorio si no hay un archivo previo cargado
+          notEmpty: {
+            enabled: !tieneArchivo,
+            message: "Debe subir un archivo PDF",
+          },
+          file: {
+            extension: "pdf",
+            type: "application/pdf",
+            maxSize: 5 * 1024 * 1024, // 5MB
+            message: "Solo se permite archivos PDF de hasta 5MB",
+          },
+        },
+      },
     },
   }).on("core.form.valid", function () {
     submit_formdata_with_ajax_form(fv);
@@ -266,6 +286,6 @@ $(document).ready(function () {
   });
 
   $('input[name="ci_archivo_pdf"]').on("change", function () {
-    fv.revalidateField("archivo_pdf");
+    fv.revalidateField("ci_archivo_pdf");
   });
 });

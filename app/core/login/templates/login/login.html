@@ -1,54 +1,413 @@
 {% extends 'login/base.html' %}
 {% load static %}
 {% load widget_tweaks %}
+
 {% block head_login %}
-    <script src="{% static 'login/js/login.js' %}"></script>
+  <script src="{% static 'login/js/login.js' %}"></script>
+  <style>
+    /* Fondo inspirado en QTS (QNAP) */
+    body {
+      background: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Overlay sutil para mejorar legibilidad */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.2);
+      z-index: 0;
+    }
+    
+    .login-box {
+      position: relative;
+      z-index: 1;
+      width: 380px;
+    }
+    
+    /* Card estilo QNAP: Blanco puro, bordes suaves y sombra profunda */
+    .login-card-body {
+      background: rgba(255, 255, 255, 0.92) !important;
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      padding: 2.5rem !important;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Logo/Icono circular estilo App */
+    .contact-image {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #007bff 0%, #00a8ff 100%);
+      border-radius: 20px; /* Bordes redondeados tipo iOS/QNAP */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem auto;
+      box-shadow: 0 8px 15px rgba(0, 123, 255, 0.3);
+    }
+    
+    .contact-image i {
+      color: white;
+      font-size: 2.5rem;
+    }
+    
+    .login-box-msg {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 1.5rem;
+    }
+    
+    /* Inputs limpios */
+    .form-control {
+      border: 1px solid #ced4da !important;
+      border-radius: 6px !important;
+      padding: 12px 15px !important;
+      height: auto !important;
+      background: #f8f9fa !important;
+      transition: all 0.3s;
+    }
+    
+    .form-control:focus {
+      background: #fff !important;
+      border-color: #007bff !important;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
+    }
+    
+    /* Botón QNAP: Azul corporativo vibrante */
+    .btn-qnap {
+      background-color: #007bff;
+      border: none;
+      border-radius: 6px;
+      padding: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: all 0.3s;
+    }
+    
+    .btn-qnap:hover {
+      background-color: #0056b3;
+      transform: translateY(-1px);
+      box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+    
+    /* Estilo para el botón de mostrar contraseña */
+    .btnShowPassword {
+      background: #e9ecef !important;
+      border: 1px solid #ced4da !important;
+      border-left: none !important;
+      color: #495057 !important;
+    }
+    
+    .desc {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .desc a {
+      color: #007bff;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    
+    .desc a:hover {
+      text-decoration: underline;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="login-box">
+    <div class="card-body login-card-body">
+      <div class="contact-image">
+        <i class="{{ dshboard.get_icon }}"></i>
+      </div>
+      <p class="login-box-msg text-center">SGL Legajo Digital</p>
+
+      <form method="post" id="frmLogin">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}" />
+
+        <div class="form-group">
+          <label class="text-muted small font-weight-bold">USUARIO</label>
+          {{ form.username|add_class:'form-control'|attr:'placeholder:Introduzca el nombre de usuario' }}
+        </div>
+
+        <div class="form-group">
+          <label class="text-muted small font-weight-bold">CONTRASEÑA</label>
+          <div class="input-group">
+            {{ form.password|add_class:'form-control'|attr:'placeholder:Introduzca la contraseña' }}
+            <div class="input-group-append">
+              <button class="btn btnShowPassword" type="button"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-4">
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary btn-block btn-qnap">Iniciar sesión</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="mt-4 text-center">
+        <p class="desc mb-1">¿Olvidó su contraseña?</p>
+        <p class="desc">
+          <a href="{% url 'reset_password' %}">Restablecer ahora</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="text-center mt-3 text-white-50 small">
+      <p>© 2026 GTIC Systems, Inc. Todos los derechos reservados.</p>
+    </div>
+  </div>
+
+  <script type="application/javascript">
+        var errors = "";
+        {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %} errors += "{{ error }}\n"; {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %} errors += "{{ error }}\n"; {% endfor %}
+            
+            Swal.fire({
+                icon: 'info',
+                title: 'Aviso del sistema',
+                text: errors,
+                confirmButtonColor: '#007bff'
+            });
+        {% endif %}
+    </script>
+{% endblock %}
+
+{% comment %}FUTURISTA{% endcomment %}
+{% comment %} {% extends 'login/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block head_login %}
+  <script src="{% static 'login/js/login.js' %}"></script>
+  <style>
+    /* Fondo Futurista Dinámico */
+    body {
+      background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Contenedor con efecto Cristal (Glassmorphism) */
+    .login-card-body {
+      background: rgba(255, 255, 255, 0.05) !important;
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 212, 255, 0.2);
+      color: #fff !important;
+    }
+    
+    .login-box {
+      width: 400px;
+    }
+    
+    /* Icono con Brillo Neón */
+    .contact-image i {
+      color: #00d4ff;
+      text-shadow: 0 0 20px #00d4ff, 0 0 40px #00d4ff;
+      margin-bottom: 20px;
+      transition: 0.3s;
+    }
+    
+    /* Inputs Estilizados */
+    .form-control {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      color: #00d4ff !important;
+      border-radius: 8px !important;
+    }
+    
+    .form-control:focus {
+      border-color: #00d4ff !important;
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.4) !important;
+    }
+    
+    /* Botón de Ingreso "Pulse" */
+    .btn-futuristic {
+      background: linear-gradient(45deg, #00d4ff, #005f73);
+      border: none;
+      color: white;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      transition: 0.4s;
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    }
+    
+    .btn-futuristic:hover {
+      box-shadow: 0 0 25px #00d4ff;
+      transform: translateY(-2px);
+    }
+    
+    .login-box-msg {
+      font-weight: 200;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #8892b0;
+    }
+    
+    /* Links y texto inferior */
+    .desc a {
+      color: #00d4ff;
+      transition: 0.3s;
+    }
+    .desc a:hover {
+      text-shadow: 0 0 10px #00d4ff;
+      text-decoration: none;
+    }
+    
+    /* Animación de entrada */
+    .login-box {
+      animation: fadeIn 1.2s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="login-box">
+    <div class="card bg-transparent border-0">
+      <div class="card-body login-card-body text-center">
+        <div class="contact-image mb-4">
+          <i class="{{ dshboard.get_icon }} fa-4x"></i>
+        </div>
+        <p class="login-box-msg">ACCESO AL SISTEMA</p>
+
+        <form method="post" id="frmLogin" class="text-left">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next }}" />
+
+          <div class="form-group">
+            <label class="text-info"><i class="fas fa-user-shield"></i> Usuario</label>
+            {{ form.username|add_class:'form-control shadow-none' }}
+          </div>
+
+          <div class="form-group">
+            <label class="text-info"><i class="fas fa-lock"></i> Contraseña</label>
+            <div class="input-group">
+              {{ form.password|add_class:'form-control shadow-none' }}
+              <div class="input-group-append">
+                <button class="btn btn-dark btnShowPassword btn-flat border-left-0" style="background: rgba(255,255,255,0.1);" type="button"><i class="fas fa-eye text-info"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-4">
+            <div class="col-12">
+              <button type="submit" class="btn btn-futuristic btn-block btn-flat py-2"><i class="fas fa-terminal"></i> AUTENTICAR</button>
+            </div>
+          </div>
+        </form>
+
+        <p class="mt-4 desc small">
+          <i class="fas fa-info-circle"></i> Terminal de recuperación:
+          <a href="{% url 'reset_password' %}">INICIAR RESET_KEY</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/javascript">
+        var errors = "";
+        {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %} errors += "{{ error }}\n"; {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %} errors += "{{ error }}\n"; {% endfor %}
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'ACCESS DENIED',
+                text: errors,
+                background: '#1b2735',
+                color: '#fff',
+                confirmButtonColor: '#00d4ff'
+            });
+        {% endif %}
+    </script>
+{% endblock %}
+{% endcomment %}
+
+{% comment %}ORIGINAL{% endcomment %}
+{% comment %} {% extends 'login/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block head_login %}
+  <script src="{% static 'login/js/login.js' %}"></script>
 {% endblock %}
 {% block content %}
-    <div class="login-box">
-        <div class="login-box-body">
-            <div class="card">
-                <div class="card-body login-card-body">
-                    <div class="contact-image">
-                        <i class="{{ dshboard.get_icon }} fa-4x"></i>
-                    </div>
-                    <p class="login-box-msg">Inicio de Sesión</p>
-                    <form method="post" id="frmLogin">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ next }}">
-                        <div class="form-group">
-                            <label>Usuario:</label>
-                            {{ form.username }}
-                        </div>
-                        <div class="form-group">
-                            <label>Contraseña:</label>
-                            <div class="input-group my-group">
-                                {{ form.password }}
-                                <div class="input-group-append">
-                                    <button class="btn btn-dark btnShowPassword btn-flat" type="button">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <button type="submit" class="btn btn-dark btn-block btn-flat">
-                                    <i class="fas fa-sign-in-alt"></i> Ingresar
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                    <p class="mt-3 text-center desc">
-                        Si has olvidado tu contraseña <a href="{% url 'reset_password' %}">da click aqui <i
-                            class="fas fa-key"></i></a>
-                    </p>
-                </div>
+  <div class="login-box">
+    <div class="login-box-body">
+      <div class="card">
+        <div class="card-body login-card-body">
+          <div class="contact-image">
+            <i class="{{ dshboard.get_icon }} fa-4x"></i>
+          </div>
+          <p class="login-box-msg">Inicio de Sesión</p>
+          <form method="post" id="frmLogin">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}" />
+            <div class="form-group">
+              <label>Usuario:</label>
+              {{ form.username }}
             </div>
+            <div class="form-group">
+              <label>Contraseña:</label>
+              <div class="input-group my-group">
+                {{ form.password }}
+                <div class="input-group-append">
+                  <button class="btn btn-dark btnShowPassword btn-flat" type="button"><i class="fas fa-eye"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-lg-12">
+                <button type="submit" class="btn btn-dark btn-block btn-flat"><i class="fas fa-sign-in-alt"></i> Ingresar</button>
+              </div>
+            </div>
+          </form>
+          <p class="mt-3 text-center desc">
+            Si has olvidado tu contraseña <a href="{% url 'reset_password' %}">da click aqui <i class="fas fa-key"></i></a>
+          </p>
         </div>
+      </div>
     </div>
-    <script type="application/javascript">
+  </div>
+  <script type="application/javascript">
         var errors = "";
         {% if form.errors %}
             {% for field in form %}
@@ -66,4 +425,4 @@
             });
         {% endif %}
     </script>
-{% endblock %}
+{% endblock %} {% endcomment %}

@@ -470,24 +470,7 @@ class EmpleadoPosicion(ModeloBase):
         # Guardamos los cambios realizados en el empleado (legajo y sucursal)
         self.empleado.save(update_fields=["legajo", "sucursal"])
     
-        super().save(*args, **kwargs)
-    
-    # def save(self, *args, **kwargs):
-    #     # Si este registro se marca como actual
-    #     if self.cargo_puesto_actual:
-    #         # Deshabilitar todos los demás cargos del mismo empleado
-    #         EmpleadoPosicion.objects.filter(
-    #             empleado=self.empleado,
-    #             cargo_puesto_actual=True
-    #         ).exclude(id=self.id).update(
-    #             cargo_puesto_actual=False,
-    #             # fecha_fin=self.fecha_inicio  # opcional: cerrar periodo
-    #         )
-    #     # Actualizar el legajo del empleado
-    #     self.empleado.legajo = self.legajo
-    #     self.empleado.save(update_fields=["legajo"])
-    
-    #     super().save(*args, **kwargs)
+        super().save(*args, **kwargs)    
         
     class Meta:
         db_table = "rh_empleado_posicion"

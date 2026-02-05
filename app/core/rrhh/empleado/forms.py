@@ -266,12 +266,12 @@ class EmpleadoForm(forms.ModelForm):
                 usuario.save()
 
             # --- Manejo del PDF (Archivo en el mismo modelo Empleado) ---
-            archivo_pdf_data = self.cleaned_data.get('archivo_pdf')
+            archivo_pdf_data = self.cleaned_data.get('ci_archivo_pdf')
             
             if archivo_pdf_data is False:  # Se marcó "Limpiar" en el widget del PDF
-                if empleado.archivo_pdf:
-                    empleado.archivo_pdf.delete(save=False)
-                empleado.archivo_pdf = None
+                if empleado.ci_archivo_pdf:
+                    empleado.ci_archivo_pdf.delete(save=False)
+                empleado.ci_archivo_pdf = None
             # Si hay un archivo nuevo, super().save(commit=False) ya lo asignó a 'empleado'
 
             if commit:

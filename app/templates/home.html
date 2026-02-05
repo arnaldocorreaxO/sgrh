@@ -32,6 +32,69 @@
     <link rel="stylesheet" href="{% static 'lib/sweetalert2-9.10.0/sweetalert2.min.css' %}" />
     <script src="{% static 'lib/jquery-loading-overlay-1.5.3/loadingoverlay.min.js' %}"></script>
     <script src="{% static 'js/functions.js' %}"></script>
+
+    <style>
+      /* SOBREESCRITURA DE COLORES CORPORATIVOS PRIMARY
+               Identidad Visual: QNAP Contemporary Blue
+            */
+      
+      :root {
+        --qnap-gradient: linear-gradient(135deg, #007bff 0%, #00a8ff 100%);
+        --qnap-solid: #007bff;
+        --qnap-shadow: rgba(0, 123, 255, 0.3);
+      }
+      
+      /* 1. Navbar Primary (Barra Superior) */
+      .navbar-primary,
+      .bg-primary {
+        background: var(--qnap-gradient) !important;
+        border: none !important;
+      }
+      
+      /* 2. Sidebar Dark Primary (Menú Lateral) */
+      /* Cambia el color del ítem activo en el menú */
+      .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active {
+        background: var(--qnap-gradient) !important;
+        box-shadow: 0 4px 12px var(--qnap-shadow);
+        color: #fff !important;
+      }
+      
+      /* 3. Cards Primary */
+      .card-primary:not(.card-outline) > .card-header {
+        background: var(--qnap-gradient) !important;
+      }
+      
+      .card-primary.card-outline {
+        border-top: 3px solid var(--qnap-solid) !important;
+      }
+      
+      /* 4. Botones Primary */
+      .btn-primary {
+        background: var(--qnap-gradient) !important;
+        border: none !important;
+        box-shadow: 0 2px 6px var(--qnap-shadow);
+        transition: all 0.3s ease;
+      }
+      
+      .btn-primary:hover,
+      .btn-primary:active,
+      .btn-primary:focus {
+        background: var(--qnap-gradient) !important;
+        box-shadow: 0 5px 15px rgba(0, 168, 255, 0.5) !important;
+        transform: translateY(-1px);
+        opacity: 0.9;
+      }
+      
+      /* 5. Otros elementos Primary (Badges, inputs focus, etc.) */
+      .badge-primary {
+        background: var(--qnap-gradient) !important;
+      }
+      
+      .page-item.active .page-link {
+        background: var(--qnap-gradient) !important;
+        border-color: var(--qnap-solid) !important;
+      }
+    </style>
     <!-- Block head -->
     {% block head %}
 
