@@ -2,7 +2,7 @@ from django import forms
 from django.forms import ModelForm
 from core.base.models import RefDet
 from core.rrhh.empleado.forms import ModelFormEmpleado
-from core.rrhh.models import Dependencia, DependenciaPosicion, EmpleadoPosicion
+from core.rrhh.models import CategoriaSalarial, Dependencia, DependenciaPosicion, EmpleadoPosicion
 
 # FORMULARIO FILTRO EMPLEADO
 class EmpleadoPosicionFilterForm(forms.Form):
@@ -64,12 +64,18 @@ class EmpleadoPosicionForm(ModelFormEmpleado):
             refcab__cod_referencia="TIPO_MOVIMIENTO_EMPLEADO_POSICION"
         ).order_by('denominacion')
 
+        self.fields["categoria_salarial"].queryset = CategoriaSalarial.objects.all().order_by('denominacion')
+
+        
         self.fields["vinculo_laboral"].queryset = RefDet.objects.filter(
             refcab__cod_referencia="VINCULO_LABORAL"
         ).order_by('denominacion')
         
         # Estilo específico para el checkbox
-        self.fields['cargo_puesto_actual'].widget.attrs['class'] = 'form-check-input'
+        self.fields['cargo_puesto_actual'].widget.attrs.update({
+                'class': 'form-check-input ml-2', # 'ml-2' añade margen a la izquierda si el label va antes
+                'style': 'cursor: pointer; margin-right: 10px;' # Esto es infalible
+            })
 
         # --- LÓGICA PARA CAMPO DEPENDENCIA_POSICION (Rehidratación para AJAX) ---
         if 'dependencia_posicion' in self.data:
@@ -87,11 +93,15 @@ class EmpleadoPosicionForm(ModelFormEmpleado):
                 "class": "form-control select2",
                 "style": "width: 100%;"
             })
+        self.fields["categoria_salarial"].widget.attrs.update({
+                "class": "form-control select2",
+                "style": "width: 100%;"
+            })
 
     class Meta:
         model = EmpleadoPosicion
         fields = [
-            'empleado', 'legajo', 'dependencia_posicion', 
+            'empleado', 'legajo', 'dependencia_posicion', 'categoria_salarial',
             'tipo_movimiento', 'vinculo_laboral', 'fecha_inicio', 
             'fecha_fin', 'cargo_puesto_actual', 'archivo_pdf'
         ]

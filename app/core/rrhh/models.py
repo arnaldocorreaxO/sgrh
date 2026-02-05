@@ -391,6 +391,9 @@ class EmpleadoPosicion(ModeloBase):
     legajo=models.CharField(max_length=4)
     empleado=models.ForeignKey(Empleado, on_delete=models.RESTRICT,related_name='empleado_posicion')
     dependencia_posicion=models.ForeignKey(DependenciaPosicion, on_delete=models.RESTRICT)
+    categoria_salarial=models.ForeignKey(
+        CategoriaSalarial,on_delete=models.RESTRICT, related_name="categoria_salarial_empleado_posicion",null=True, blank=True
+    )
     tipo_movimiento=models.ForeignKey(
         RefDet,on_delete=models.RESTRICT, related_name="tipo_movimiento_empleado_posicion"
     )

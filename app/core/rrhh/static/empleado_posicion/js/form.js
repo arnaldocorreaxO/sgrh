@@ -35,6 +35,13 @@ document.addEventListener("DOMContentLoaded", function (e) {
           },
         },
       },
+      categoria_salarial: {
+        validators: {
+          notEmpty: {
+            message: "Debe seleccionar la categoria salarial actual",
+          },
+        },
+      },
       dependencia_posicion: {
         validators: {
           notEmpty: { message: "Debe seleccionar la dependencia y cargo" },
