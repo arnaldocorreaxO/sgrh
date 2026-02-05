@@ -1,0 +1,33 @@
+{% extends 'list.html' %}
+{% load static %}
+
+{% block head_list %}
+  <script src="{% static 'empleado_posicion/js/list.js' %}"></script>
+{% endblock %}
+
+{% block content_list_before %}
+  {# Filtro administrativo para búsqueda por Sucursal, Empleado y Rango de Fechas #}
+  {% include 'empleado/filter.html' %}
+  {% include 'empleado_posicion/filter.html' %}
+{% endblock %}
+
+{% block columns %}
+  <th scope="col" class="text-nowrap" style="width: 1%;">ID</th>
+
+  <th scope="col" class="text-nowrap">Empleado</th>
+
+  <th scope="col">
+    Dependencia / <br />Cargo-Puesto
+  </th>
+
+  <th scope="col" class="text-nowrap" style="width: 1%;">
+    Tipo <br />Movimiento
+  </th>
+
+  <th scope="col" class="text-nowrap" style="width: 1%;">Inicio</th>
+  <th scope="col" class="text-nowrap" style="width: 1%;">Fin</th>
+
+  <th scope="col" class="text-center" style="width: 1%;">Actual</th>
+  <th scope="col" class="text-center" style="width: 1%;">Archivo</th>
+  <th scope="col" class="text-center text-nowrap" style="width: 1%;">Opciones</th>
+{% endblock %}

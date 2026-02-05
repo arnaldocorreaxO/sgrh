@@ -1,0 +1,24 @@
+{% load static %}
+<div class="row">
+  <div class="col-lg-6">
+    <div class="form-group">
+      <label>Dependencia Superior</label>
+      <div class="input-group mb-3">{{ empleado_posicion_filter_form.dependencia_padre }}</div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="form-group">
+      <label>Dependencia Inferior</label>
+      <div class="input-group mb-3">{{ empleado_posicion_filter_form.dependencia_hija }}</div>
+    </div>
+  </div>
+  {% comment %} <div class="col-lg-6">
+    <div class="form-group">
+      <label>Rango de Fecha:</label>
+      <div class="input-group mb-3">{{ empleado_posicion_filter_form.rango_fecha }}</div>
+    </div>
+  </div> {% endcomment %}
+</div>
+
+<script src="{% static 'js/select2/dependencia_padre.js' %}"></script>
+<script src="{% static 'js/select2/dependencia_hija.js' %}"></script>

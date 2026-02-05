@@ -87,7 +87,7 @@ class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 			context["empleado_filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
 		return context
 
-class FormacionAcademicaCreate(EmpleadoScopedMixin,CreateView):
+class FormacionAcademicaCreate(PermissionMixin, EmpleadoScopedMixin,CreateView):
 	model = FormacionAcademica
 	form_class = FormacionAcademicaForm
 	template_name = "formacion_academica/create.html"

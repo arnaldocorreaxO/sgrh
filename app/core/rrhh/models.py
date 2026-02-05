@@ -69,20 +69,21 @@ class Institucion(ModeloBase):
     def __str__(self):  
         return f"{self.denominacion} - {self.abreviatura}"
     
-    def search(term):
+    def search(term,limit=10):
         return Institucion.objects.filter(
             models.Q(denominacion__icontains=term) |
             models.Q(abreviatura__icontains=term)
-        )[:10]
-
+        )[:limit]
+    
     class Meta:
         db_table = "rh_institucion"
         verbose_name = "001 - Institución"
         verbose_name_plural = "001 -Instituciones" 
 
-# SEDE 
-class Sede(ModeloBase):
+# Relacion Sucursal con Institucion
+class SucursalInstitucion(ModeloBase):
     institucion = models.ForeignKey(Institucion, on_delete=models.RESTRICT)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.RESTRICT,null=True, blank=True)
     codigo = models.CharField(max_length=255, unique=True)
     denominacion = models.CharField(max_length=255)
     abreviatura = models.CharField(max_length=100)  
@@ -91,19 +92,32 @@ class Sede(ModeloBase):
         return self.denominacion
 
     class Meta:
-        db_table = "rh_sede"
-        verbose_name = "002 - Sede"
-        verbose_name_plural = "002 - Sedes" 
+        db_table = "rh_sucursal_institucion"
+        verbose_name = "002 - Sucursal Institución"
+        verbose_name_plural = "002 - Sucursales Institución" 
 
 # DEPENDENCIA = DEPARTAMENTO, AREA, SECCION
 class Dependencia(ModeloBase):
-    sede = models.ForeignKey(Sede, on_delete=models.RESTRICT)
+    sucursal_institucion = models.ForeignKey(SucursalInstitucion, on_delete=models.RESTRICT,null=True, blank=True)
     codigo = models.CharField(max_length=255, unique=True)
     denominacion = models.CharField(max_length=255)
     dependencia_padre = models.ForeignKey('self', on_delete=models.RESTRICT, null=True, blank=True)
 
     def __str__(self):  
-        return f"{self.codigo} - {self.denominacion} - {self.sede.denominacion}"
+        return f"{self.codigo} - {self.denominacion} - {self.sucursal_institucion.denominacion}"
+    
+    @classmethod
+    def search(cls, term, padre_id=None, limit=20):
+        # Usamos icontains para búsqueda insensible a mayúsculas
+        qs = cls.objects.filter(
+            models.Q(codigo__icontains=term) |
+            models.Q(denominacion__icontains=term)
+        )
+        # Si se pasa un padre_id, filtramos las hijas
+        if padre_id:
+            qs = qs.filter(dependencia_padre_id=padre_id)
+            
+        return qs.order_by('denominacion')[:limit]
 
     class Meta:
         db_table = "rh_dependencia"
@@ -359,6 +373,12 @@ class DependenciaPosicion(ModeloBase):
 
     def __str__(self):  
         return f"{self.posicion} - {self.dependencia}"
+    
+    def search(term,limit=10):
+        return DependenciaPosicion.objects.filter(
+            models.Q(posicion__denominacion__icontains=term) |
+            models.Q(dependencia__denominacion__icontains=term)
+        )[:limit]
 
     class Meta:
         db_table = "rh_dependencia_posicion"
@@ -410,6 +430,7 @@ class EmpleadoPosicion(ModeloBase):
         # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
         # Campos personalizados y denominaciones de ForeignKeys
         item['empleado'] = self.empleado.nombre_apellido if self.empleado else None
+        item['empleado_nombre_apellido_legajo'] = self.empleado.nombre_apellido_legajo if self.empleado else None
         item['dependencia_posicion__denominacion'] = str(self.dependencia_posicion) if self.dependencia_posicion else None
         item['tipo_movimiento__denominacion'] = self.tipo_movimiento.denominacion if self.tipo_movimiento else None
         item['vinculo_laboral__denominacion'] = self.vinculo_laboral.denominacion if self.vinculo_laboral else None
@@ -420,21 +441,50 @@ class EmpleadoPosicion(ModeloBase):
         return item
     
     def save(self, *args, **kwargs):
-        # Si este registro se marca como actual
+        # 1. Si este registro se marca como actual, gestionamos la exclusividad
         if self.cargo_puesto_actual:
-            # Deshabilitar todos los demás cargos del mismo empleado
+            # Deshabilitar cargos anteriores
             EmpleadoPosicion.objects.filter(
                 empleado=self.empleado,
                 cargo_puesto_actual=True
-            ).exclude(id=self.id).update(
-                cargo_puesto_actual=False,
-                # fecha_fin=self.fecha_inicio  # opcional: cerrar periodo
-            )
-        # Actualizar el legajo del empleado
+            ).exclude(id=self.id).update(cargo_puesto_actual=False)
+
+            # 2. Recuperar la sucursal desde la dependencia_posicion
+            # Ajusta 'dependencia.sucursal_institucion_id' según tus nombres exactos de campos
+            nueva_sucursal = self.dependencia_posicion.dependencia.sucursal_institucion.sucursal
+            
+            if nueva_sucursal:
+                # Actualizar sucursal en el Empleado
+                self.empleado.sucursal = nueva_sucursal
+                
+                # Actualizar sucursal en el Usuario vinculado (si existe)
+                if self.empleado.usuario:
+                    self.empleado.usuario.sucursal = nueva_sucursal
+                    self.empleado.usuario.save(update_fields=["sucursal"])
+
+        # 3. Actualizar siempre el legajo del empleado
         self.empleado.legajo = self.legajo
-        self.empleado.save(update_fields=["legajo"])
+        # Guardamos los cambios realizados en el empleado (legajo y sucursal)
+        self.empleado.save(update_fields=["legajo", "sucursal"])
     
         super().save(*args, **kwargs)
+    
+    # def save(self, *args, **kwargs):
+    #     # Si este registro se marca como actual
+    #     if self.cargo_puesto_actual:
+    #         # Deshabilitar todos los demás cargos del mismo empleado
+    #         EmpleadoPosicion.objects.filter(
+    #             empleado=self.empleado,
+    #             cargo_puesto_actual=True
+    #         ).exclude(id=self.id).update(
+    #             cargo_puesto_actual=False,
+    #             # fecha_fin=self.fecha_inicio  # opcional: cerrar periodo
+    #         )
+    #     # Actualizar el legajo del empleado
+    #     self.empleado.legajo = self.legajo
+    #     self.empleado.save(update_fields=["legajo"])
+    
+    #     super().save(*args, **kwargs)
         
     class Meta:
         db_table = "rh_empleado_posicion"
@@ -633,10 +683,7 @@ class ExperienciaLaboral(ModeloBase):
 
         return item
    
-
-
 # DOCUMENTOS COMPLEMENTARIOS DEL EMPLEADO = OTROS DOCUMENTOS
-
 class DocumentoComplementario(ModeloBase):
     empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT)
     fecha_documento = models.DateField(verbose_name="Fecha del Documento", null=True, blank=True,default=timezone.now)

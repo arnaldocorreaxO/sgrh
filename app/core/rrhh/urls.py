@@ -7,6 +7,7 @@ from core.rrhh.capacitacion.views import *
 from core.rrhh.experiencia_laboral.views import *
 from core.rrhh.documento_complementario.views import *
 from core.rrhh.historico_disciplinario.views import *
+from core.rrhh.empleado_posicion.views import *
 
 urlpatterns = [
     # AJAX REFERENCIAS RefDet
@@ -19,6 +20,12 @@ urlpatterns = [
     path("empleado/add/", EmpleadoCreate.as_view(), name="empleado_create"),
     path("empleado/update/<int:pk>/", EmpleadoUpdate.as_view(), name="empleado_update"),    
     path("empleado/delete/<int:pk>/", EmpleadoDelete.as_view(), name="empleado_delete"),
+    
+    # Vista general (admin)
+    path("empleado_posicion/", EmpleadoPosicionList.as_view(), name="empleado_posicion_list"),
+    path("empleado_posicion/add/", EmpleadoPosicionCreate.as_view(), name="empleado_posicion_create"),
+    path("empleado_posicion/update/<int:pk>/", EmpleadoPosicionUpdate.as_view(), name="empleado_posicion_update"),    
+    path("empleado_posicion/delete/<int:pk>/", EmpleadoPosicionDelete.as_view(), name="empleado_posicion_delete"),
     # Vista personal (empleado)
     path("empleado/self/", EmpleadoList.as_view(), name="empleado_list_self"),
     path("empleado/self/add/", EmpleadoCreate.as_view(), name="empleado_create_self"),

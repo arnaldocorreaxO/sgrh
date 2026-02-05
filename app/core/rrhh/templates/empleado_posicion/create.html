@@ -1,0 +1,9 @@
+{% extends 'form.html' %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block head_form %}
+  <script src="{% static 'empleado_posicion/js/form.js' %}"></script>
+  <script src="{% static 'js/select2/empleado.js' %}"></script>
+  <script src="{% static 'js/select2/dependencia_posicion.js' %}"></script>
+{% endblock %}

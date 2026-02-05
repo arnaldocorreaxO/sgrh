@@ -61,11 +61,12 @@ class DependenciaAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['sede'].queryset = Sede.objects.all().filter(activo=True)
+        self.fields['sucursal_institucion'].queryset = SucursalInstitucion.objects.all().filter(activo=True)
 
 class DependenciaAdmin(ModeloAdminBase):
     form = DependenciaAdminForm
-    search_fields = ["codigo","denominacion", "sede__denominacion"]
+    search_fields = ["codigo","denominacion", ]
+    
 
 # Categoria Salarial Admin
 class CategoriaSalarialAdminForm(forms.ModelForm):
@@ -174,7 +175,7 @@ admin.site.register(Nivel, NivelAdmin)
 admin.site.register(MatrizSalarial, MatrizSalarialAdmin)
 admin.site.register(CargoPuesto, CargoPuestoAdmin)
 admin.site.register(Institucion, InstitucionAdmin)
-admin.site.register(Sede, ModeloAdminBase)
+admin.site.register(SucursalInstitucion, ModeloAdminBase)
 admin.site.register(Dependencia, DependenciaAdmin)
 admin.site.register(DependenciaPosicion, DependenciaPosicionAdmin)
 admin.site.register(Empleado, EmpleadoAdmin)
