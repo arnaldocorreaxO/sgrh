@@ -530,12 +530,13 @@ class FormacionAcademica(ModeloBase):
         db_table = "rh_formacion_academica"
         verbose_name = "Formación Académica"
         verbose_name_plural = "Formaciones Académicas"
+        ordering = ['-anho_graduacion']
         permissions = [('view_formacionacademica_self', 'Puede ver su propia formación académica'),
                        ('add_formacionacademica_self', 'Puede agregar su propia formación académica'),
                        ('change_formacionacademica_self', 'Puede modificar su propia formación académica'),
                        ('delete_formacionacademica_self', 'Puede eliminar su propia formación académica'),            
                       ]
-        ordering = ['-anho_graduacion']
+        
 
 
 # CURSOS REALIZADOS = CAPACITACION
@@ -643,6 +644,7 @@ class ExperienciaLaboral(ModeloBase):
         db_table = "rh_experiencia_laboral"
         verbose_name = "Experiencia Laboral"
         verbose_name_plural = "Experiencias Laborales"
+        ordering = ["-fecha_hasta"]
         permissions = [('view_experiencialaboral_self', 'Puede ver su propia experiencia laboral'),
                        ('add_experiencialaboral_self', 'Puede agregar su propia experiencia laboral'),
                        ('change_experiencialaboral_self', 'Puede modificar su propia experiencia laboral'),
