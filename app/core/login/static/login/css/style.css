@@ -1,24 +1,201 @@
-.contact-image {
-    text-align: center;
+/* Fondo inspirado en QTS (QNAP) */
+body {
+  background: url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072")
+    no-repeat center center fixed;
+  background-size: cover;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  height: 100vh;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.lockscreen-wrapper {
-    width: 450px;
+/* Overlay sutil para mejorar legibilidad */
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: 0;
+}
+
+.login-box {
+  position: relative;
+  z-index: 1;
+  width: 380px;
+}
+
+/* Card estilo QNAP: Blanco puro, bordes suaves y sombra profunda */
+.login-card-body {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  padding: 2.5rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Logo/Icono circular estilo App */
+.contact-image {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #007bff 0%, #00a8ff 100%);
+  border-radius: 20px; /* Bordes redondeados tipo iOS/QNAP */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem auto;
+  box-shadow: 0 8px 15px rgba(0, 123, 255, 0.3);
 }
 
 .contact-image i {
-    margin-top: 10px;
-    margin-bottom: 15px;
-    border-radius: 50%;
+  color: white;
+  font-size: 2.5rem;
+}
+
+.login-box-msg {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+/* Inputs limpios */
+.form-control {
+  border: 1px solid #ced4da !important;
+  border-radius: 6px !important;
+  padding: 12px 15px !important;
+  height: auto !important;
+  background: #f8f9fa !important;
+  transition: all 0.3s;
+}
+
+.form-control:focus {
+  background: #fff !important;
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
+}
+
+/* Botón QNAP: Azul corporativo vibrante */
+.btn-qnap {
+  background-color: #007bff;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s;
+}
+
+.btn-qnap:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+
+/* Estilo para el botón de mostrar contraseña */
+.btnShowPassword {
+  background: #e9ecef !important;
+  border: 1px solid #ced4da !important;
+  border-left: none !important;
+  color: #495057 !important;
+}
+
+.desc {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.desc a {
+  color: #007bff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.desc a:hover {
+  text-decoration: underline;
+}
+
+.login-box-msg {
+  padding: 0 0 20px 0;
+  line-height: 1.4;
+}
+
+/* "ACCESO" - Estilo etiqueta técnica */
+.msg-header {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: #888; /* Gris tenue como en QTS */
+  text-transform: uppercase;
+}
+
+/* "Sistema de Gestión de Legajos" - Texto elegante con profundidad */
+.msg-subheader {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #333;
+  display: inline-block;
+  margin-top: 5px;
+
+  /* Sombra contemporánea: sutil y elegante */
+  text-shadow:
+    1px 1px 2px rgba(0, 0, 0, 0.1),
+    0 0 15px rgba(255, 255, 255, 0.5);
+
+  /* Un ligero espaciado mejora la legibilidad con sombras */
+  letter-spacing: 0.2px;
+}
+
+/* "SGL" - Identificador con degradado QNAP */
+.msg-app-name {
+  font-size: 1.5rem; /* Un poco más grande para que el degradado luzca */
+  font-weight: 800;
+  letter-spacing: 2px;
+
+  /* Aplicación del degradado al texto */
+  background: linear-gradient(135deg, #007bff 0%, #00a8ff 100%);
+  -webkit-background-clip: text; /* Corta el fondo con la forma del texto */
+  -webkit-text-fill-color: transparent; /* Hace el color del texto transparente para ver el fondo */
+  background-clip: text;
+
+  display: inline-block;
+  margin-top: 5px;
+
+  /* Opcional: un ligero brillo para darle profundidad */
+  filter: drop-shadow(0px 2px 4px rgba(0, 123, 255, 0.2));
+}
+
+/* Ajuste adicional para el contact-image para que no quede tan pegado */
+.contact-image {
+  margin-bottom: 1rem !important;
+}
+.contact-image {
+  text-align: center;
+}
+
+.lockscreen-wrapper {
+  width: 450px;
+}
+
+.contact-image i {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  border-radius: 50%;
 }
 
 @media (max-width: 768px) {
-    .login-box, .register-box {
-        width: 90%;
-        margin-top: 80px;
-    }
+  .login-box,
+  .register-box {
+    width: 90%;
+    margin-top: 80px;
+  }
 }
 
 .login-box p.desc {
-    font-size: 14px;
+  font-size: 14px;
 }
