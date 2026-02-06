@@ -535,6 +535,7 @@ class FormacionAcademica(ModeloBase):
                        ('change_formacionacademica_self', 'Puede modificar su propia formación académica'),
                        ('delete_formacionacademica_self', 'Puede eliminar su propia formación académica'),            
                       ]
+        ordering = ['-anho_graduacion']
 
 
 # CURSOS REALIZADOS = CAPACITACION
