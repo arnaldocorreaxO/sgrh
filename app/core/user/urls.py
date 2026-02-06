@@ -9,4 +9,6 @@ urlpatterns = [
     path('admin/update/password/', UserUpdatePasswordView.as_view(), name='user_update_password'),
     path('admin/update/profile/', UserUpdateProfileView.as_view(), name='user_update_profile'),
     path('admin/choose/profile/<int:pk>/', UserChooseProfileView.as_view(), name='user_choose_profile'),
+    # apps/user/urls.py
+    path('admin/force-password-change/', MandatedPasswordChangeView.as_view(), name='force_password_change'),
 ]

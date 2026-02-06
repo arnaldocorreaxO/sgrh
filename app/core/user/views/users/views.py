@@ -11,7 +11,7 @@ from django.views.generic import CreateView, UpdateView, DeleteView, FormView, V
 
 from core.security.mixins import PermissionMixin, ModuleMixin
 from core.security.models import *
-from core.user.forms import UserForm, ProfileForm
+from core.user.forms import ForcePasswordChangeForm, UserForm, ProfileForm
 
 
 class UserListView(PermissionMixin, TemplateView):
@@ -311,3 +311,23 @@ class UserChooseProfileView(LoginRequiredMixin, View):
         except:
             pass
         return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
+
+
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy
+
+class MandatedPasswordChangeView(PasswordChangeView):
+    form_class = ForcePasswordChangeForm
+    template_name = 'login/force_password_change.html'
+    success_url = reverse_lazy('dashboard') # O a tu index
+
+    def form_valid(self, form):
+        # 1. Guardar la nueva contraseña (esto hace el logout/login de seguridad)
+        response = super().form_valid(form)
+        
+        # 2. Cambiar el estado de tu campo personalizado
+        user = self.request.user
+        user.is_change_password = False # Ya no es un cambio pendiente
+        user.save()
+        
+        return response

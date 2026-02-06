@@ -21,8 +21,8 @@ class User(AbstractUser):
         # upload_to="users/%Y/%m/%d", verbose_name="Imagen", null=True, blank=True
         upload_to=user_directory_path, verbose_name="Imagen", null=True, blank=True
     )
-    is_change_password = models.BooleanField(default=False)
-    # token = models.UUIDField(primary_key=False, editable=False, null=True, blank=True, default=uuid.uuid4, unique=True)
+    is_change_password = models.BooleanField(default=True)
+    token = models.UUIDField(primary_key=False, editable=False, null=True, blank=True, default=uuid.uuid4, unique=True)
     sucursal = models.ForeignKey(
         Sucursal,
         verbose_name="Sucursal",
