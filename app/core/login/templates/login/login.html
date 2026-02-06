@@ -125,6 +125,53 @@
     .desc a:hover {
       text-decoration: underline;
     }
+    
+    .login-box-msg {
+      padding: 0 0 20px 0;
+      line-height: 1.4;
+    }
+    
+    /* "ACCESO" - Estilo etiqueta técnica */
+    .msg-header {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 2.5px;
+      color: #888; /* Gris tenue como en QTS */
+      text-transform: uppercase;
+    }
+    
+    /* "Sistema de Gestión de Legajos" - Texto elegante */
+    .msg-subheader {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: #333;
+      display: inline-block;
+      margin-top: 5px;
+    }
+    
+    /* "SGL" - Identificador con degradado QNAP */
+    .msg-app-name {
+      font-size: 1.5rem; /* Un poco más grande para que el degradado luzca */
+      font-weight: 800;
+      letter-spacing: 2px;
+    
+      /* Aplicación del degradado al texto */
+      background: linear-gradient(135deg, #007bff 0%, #00a8ff 100%);
+      -webkit-background-clip: text; /* Corta el fondo con la forma del texto */
+      -webkit-text-fill-color: transparent; /* Hace el color del texto transparente para ver el fondo */
+      background-clip: text;
+    
+      display: inline-block;
+      margin-top: 5px;
+    
+      /* Opcional: un ligero brillo para darle profundidad */
+      filter: drop-shadow(0px 2px 4px rgba(0, 123, 255, 0.2));
+    }
+    
+    /* Ajuste adicional para el contact-image para que no quede tan pegado */
+    .contact-image {
+      margin-bottom: 1rem !important;
+    }
   </style>
 {% endblock %}
 
@@ -134,7 +181,11 @@
       <div class="contact-image">
         <i class="{{ dshboard.get_icon }}"></i>
       </div>
-      <p class="login-box-msg text-center">Sistema de Gestión de Legajos - SGL</p>
+      <p class="login-box-msg text-center">
+        <span class="msg-header">ACCESO</span><br />
+        <span class="msg-subheader">Sistema de Gestión de Legajos</span><br />
+        <span class="msg-app-name">SGL</span>
+      </p>
 
       <form method="post" id="frmLogin">
         {% csrf_token %}
