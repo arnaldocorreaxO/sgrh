@@ -1,5 +1,8 @@
 var fv;
 
+// Variable para controlar la obligatoriedad en tiempo real
+let pdfIsRequired = false;
+
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("frmForm");
 
@@ -55,12 +58,22 @@ document.addEventListener("DOMContentLoaded", function () {
       },
       archivo_pdf: {
         validators: {
-          // notEmpty eliminado porque es opcional
+          callback: {
+            message: "El archivo PDF es obligatorio para el nivel seleccionado",
+            callback: function (input) {
+              const value = input.value;
+              // Si el servidor dijo que es obligatorio (1), validar que no esté vacío
+              if (pdfIsRequired) {
+                return value !== "";
+              }
+              return true; // Si es 0, siempre es válido
+            },
+          },
           file: {
             extension: "pdf",
             type: "application/pdf",
-            maxSize: 5 * 1024 * 1024, // 5MB
-            message: "Si sube un archivo, debe ser PDF de hasta 5MB",
+            maxSize: 5 * 1024 * 1024,
+            message: "Debe ser un PDF de hasta 5MB",
           },
         },
       },
@@ -71,6 +84,31 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 $(document).ready(function () {
+  // 1. Escuchar el cambio del nivel académico
+  $('select[name="nivel_academico"]').on("change", function () {
+    let id = $(this).val();
+    if (id) {
+      $.ajax({
+        url: pathname,
+        type: "POST",
+        data: {
+          action: "validate_data",
+          type: "check_pdf_requirement",
+          id: id,
+        },
+        success: function (response) {
+          pdfIsRequired = response.is_required;
+          // Forzamos a FormValidation a re-evaluar el PDF con el nuevo valor
+          fv.revalidateField("archivo_pdf");
+        },
+      });
+    }
+  });
+  if (pdfIsRequired) {
+    $(".label-pdf").html('Archivo PDF <span class="text-danger">*</span>');
+  } else {
+    $(".label-pdf").text("Archivo PDF");
+  }
   // --- REGLA DE ORO PARA SELECT2 Y FORMVALIDATION ---
   // Revalidar el campo cuando Select2 cambie su valor
   $(".select2").on("select2:select", function (e) {

@@ -211,8 +211,8 @@ class Empleado(ModeloBase):
         verbose_name="Legajo", max_length=4, validators=[MinLengthValidator(4)],null=True, blank=True
     )
     ci = models.BigIntegerField(verbose_name="CI", unique=True)
-    ci_fecha_vencimiento = models.DateField(verbose_name="Fecha Vencimiento CI", null=True, blank=True)
-    ci_archivo_pdf = models.FileField(
+    fecha_vencimiento_ci = models.DateField(verbose_name="Fecha Vencimiento CI", null=True, blank=True)
+    archivo_pdf_ci = models.FileField(
         upload_to=UploadToPath('CI'),
         verbose_name="Archivo Adjunto CI", null=True, blank=True
     )
@@ -267,6 +267,20 @@ class Empleado(ModeloBase):
         related_name="tipo_sanguineo_empleado",
         null=True, blank=True
     )
+    fecha_ingreso = models.DateField(verbose_name="Fecha Ingreso", null=True, blank=True)
+    
+    archivo_pdf_ingreso = models.FileField(
+        upload_to=UploadToPath('INGRESO'),
+        verbose_name="Resolución Ingreso", null=True, blank=True
+    )
+    fecha_egreso = models.DateField(verbose_name="Fecha Egreso", null=True, blank=True)
+    
+    archivo_pdf_egreso = models.FileField(
+        upload_to=UploadToPath('EGRESO'),
+        verbose_name="Resolución Egreso", null=True, blank=True
+    )
+
+    
     # El metodo search está en el EmpleadoQuerySet del EmpleadoManager
     objects = EmpleadoManager() # Asignamos el manager personalizado
 
@@ -315,6 +329,11 @@ class Empleado(ModeloBase):
     def get_edad(self):
         return calculate_age(self.fecha_nacimiento)
 
+    def get_antiguedad(self):
+        if self.fecha_ingreso:
+            return calculate_age(self.fecha_ingreso)
+        return None
+
     def toJSON(self):
         # 1. Convertimos el modelo a diccionario
         item = model_to_dict(self)
@@ -325,9 +344,12 @@ class Empleado(ModeloBase):
         item["nombre_apellido"] = self.nombre_apellido
         item["nombre_apellido_legajo"] = self.nombre_apellido_legajo
         item["edad"] = self.get_edad()
+        item["antiguedad"] = self.get_antiguedad()
 
         # 3. Procesar Archivos (PDF e Imagen)
-        item["ci_archivo_pdf"] = self.ci_archivo_pdf.url if self.ci_archivo_pdf else ""
+        item["archivo_pdf_ci"] = self.archivo_pdf_ci.url if self.archivo_pdf_ci else ""
+        item["archivo_pdf_ingreso"] = self.archivo_pdf_ingreso.url if self.archivo_pdf_ingreso else ""
+        item["archivo_pdf_egreso"] = self.archivo_pdf_egreso.url if self.archivo_pdf_egreso else ""
         
         # Imagen desde el usuario relacionado
         if self.usuario and self.usuario.image:
@@ -337,7 +359,7 @@ class Empleado(ModeloBase):
 
         # 4. Formatear Fechas para que no den error de serialización
         item["fecha_nacimiento"] = self.fecha_nacimiento.strftime('%d/%m/%Y') if self.fecha_nacimiento else ""
-        item["ci_fecha_vencimiento"] = self.ci_fecha_vencimiento.strftime('%d/%m/%Y') if self.ci_fecha_vencimiento else ""
+        item["fecha_vencimiento_ci"] = self.fecha_vencimiento_ci.strftime('%d/%m/%Y') if self.fecha_vencimiento_ci else ""
         # Relaciones
         # Se usa doble guión '__' para que el nombre en el JSON coincida con el campo del ORM.
         # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
@@ -351,6 +373,9 @@ class Empleado(ModeloBase):
         item["sexo__denominacion"] = self.sexo.denominacion if self.sexo else ""
         item["estado_civil__denominacion"] = self.estado_civil.denominacion if self.estado_civil else ""
         item["tipo_sanguineo__denominacion"] = self.tipo_sanguineo.denominacion if self.tipo_sanguineo else ""
+
+        item["fecha_ingreso"] = self.fecha_ingreso.strftime('%d/%m/%Y') if self.fecha_ingreso else ""
+        item["fecha_egreso"] = self.fecha_egreso.strftime('%d/%m/%Y') if self.fecha_egreso else ""
         
         return item
 

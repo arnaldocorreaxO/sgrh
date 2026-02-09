@@ -1,22 +1,21 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <title>Currículum Vitae</title>
-  <link rel="stylesheet" href="{% static 'css/cv.css' %}" />
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Currículum Vitae</title>
+    <link rel="stylesheet" href="{% static 'css/cv.css' %}" />
+  </head>
 
-<body>
-  
+  <body>
     <!-- ENCABEZADO EMPRESA CONFIGURADA -->
     <header class="empresa-header">
       <div class="empresa-logo-wrapper">
         {# Asumiendo que la sucursal o el empleado tiene relación con la empresa configurada #}
         {% if empleado.sucursal.empresa.logo %}
-          <img src="{{ empleado.sucursal.empresa.logo.url }}" class="logo-empresa" alt="Logo Empresa">
+          <img src="{{ empleado.sucursal.empresa.logo.url }}" class="logo-empresa" alt="Logo Empresa" />
         {% else %}
-          <img src="{% static 'img/logo_default.png' %}" class="logo-empresa" alt="Logo">
+          <img src="{% static 'img/logo_default.png' %}" class="logo-empresa" alt="Logo" />
         {% endif %}
       </div>
       <div class="empresa-info">
@@ -27,54 +26,70 @@
 
     <!-- ENCABEZADO FUNCIONARIO EMPLEADO -->
     <header class="cv-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
-      
       <div class="header-info" style="flex: 1;">
-        <h1 class="nombre" style="margin: 0; font-size: 1.2rem; color: #2d4154; text-transform: uppercase;">
-          {{ empleado.nombre_apellido }}
-        </h1>
-        <p class="cargo">
-          {{ empleado.cargo_actual }}
-        </p>
-        <p class="dependencia">
-          {{ empleado.dependencia_actual }}
-        </p>
-        <p class="sede">
-          {{ empleado.sede_actual }}
-        </p>
+        <h1 class="nombre" style="margin: 0; font-size: 1.2rem; color: #2d4154; text-transform: uppercase;">{{ empleado.nombre_apellido }}</h1>
+        <p class="cargo">{{ empleado.cargo_actual }}</p>
+        <p class="dependencia">{{ empleado.dependencia_actual }}</p>
+        <p class="sede">{{ empleado.sede_actual }}</p>
       </div>
 
       <div class="foto-wrapper" style="margin-left: 20px;">
         {% if empleado.usuario.image %}
-          <img src="{{ empleado.usuario.image.url }}" alt="Foto tipo carnet" class="foto-carnet" 
-               style="width: 130px; height: 130px; object-fit: cover; border: 3px solid #f8f9fa; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-radius: 4px;" />
+          <img src="{{ empleado.usuario.image.url }}" alt="Foto tipo carnet" class="foto-carnet" style="width: 130px; height: 130px; object-fit: cover; border: 3px solid #f8f9fa; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-radius: 4px;" />
         {% else %}
-          <img src="{% static 'img/default-user.png' %}" alt="Sin foto" class="foto-carnet" 
-               style="width: 130px; height: 130px; border-radius: 4px;" />
+          <img src="{% static 'img/default-user.png' %}" alt="Sin foto" class="foto-carnet" style="width: 130px; height: 130px; border-radius: 4px;" />
         {% endif %}
       </div>
-
     </header>
 
     <!-- DATOS PERSONALES -->
-<section class="cv-section">
+    <section class="cv-section">
       <h2 class="section-title">Información Personal</h2>
       <ul class="section-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; list-style: none; padding: 0;">
-        <li><strong>Legajo:</strong> {{ empleado.legajo|default:"----" }}</li>
-        {% comment %} <li><strong>Sucursal:</strong> {{ empleado.sucursal.denominacion }}</li> {% endcomment %}
-        <li><strong>Documento de Identidad:</strong> {{ empleado.ci }}</li>
-        <li><strong>RUC:</strong> {{ empleado.ruc|default:"Sin RUC" }}</li>
-        <li><strong>Fecha de Nacimiento:</strong> {{ empleado.fecha_nacimiento|date:"d/m/Y" }} ({{ empleado.get_edad }} años)</li>
-        <li><strong>Nacionalidad:</strong> {{ empleado.nacionalidad.nacionalidad }}</li>
-        <li><strong>Sexo:</strong> {{ empleado.sexo.denominacion }}</li>
-        <li><strong>Estado Civil:</strong> {{ empleado.estado_civil.denominacion }}</li>
+        <li>
+          <strong>Legajo:</strong> {{ empleado.legajo|default:'----' }}
+        </li>
+        {% comment %} <li>
+          <strong>Sucursal:</strong> {{ empleado.sucursal.denominacion }}
+        </li> {% endcomment %}
+        <li>
+          <strong>Documento de Identidad:</strong> {{ empleado.ci }}
+        </li>
+        <li>
+          <strong>RUC:</strong> {{ empleado.ruc|default:'Sin RUC' }}
+        </li>
+        <li>
+          <strong>Fecha de Nacimiento:</strong> {{ empleado.fecha_nacimiento|date:'d/m/Y' }} ({{ empleado.get_edad }} años)
+        </li>
+        <li>
+          <strong>Nacionalidad:</strong> {{ empleado.nacionalidad.nacionalidad }}
+        </li>
+        <li>
+          <strong>Sexo:</strong> {{ empleado.sexo.denominacion }}
+        </li>
+        <li>
+          <strong>Estado Civil:</strong> {{ empleado.estado_civil.denominacion }}
+        </li>
 
-        <li><strong>Email:</strong> {{ empleado.email }}</li>
-        <li><strong>Teléfono / Celular:</strong> {{ empleado.telefono }} / {{ empleado.celular }}</li>
-        
-        <li><strong>Ciudad:</strong> {{ empleado.ciudad.denominacion }}</li>
-        <li><strong>Barrio:</strong> {{ empleado.barrio.denominacion|default:"---" }}</li>
-        <li><strong>Dirección:</strong> {{ empleado.direccion }}</li>
-        <li><strong>Tipo Sanguíneo:</strong> {{ empleado.tipo_sanguineo.denominacion|default:"No especificado" }}</li>
+        <li>
+          <strong>Email:</strong> {{ empleado.email }}
+        </li>
+        <li>
+          <strong>Teléfono / Celular:</strong> {{ empleado.telefono }} / {{ empleado.celular }}
+        </li>
+
+        <li>
+          <strong>Ciudad:</strong> {{ empleado.ciudad.denominacion }}
+        </li>
+        <li>
+          <strong>Barrio:</strong> {{ empleado.barrio.denominacion|default:'---' }}
+        </li>
+        <li>
+          <strong>Dirección:</strong> {{ empleado.direccion }}
+        </li>
+        <li>
+          <strong>Tipo Sanguíneo:</strong> {{ empleado.tipo_sanguineo.denominacion|default:'No especificado' }}
+        </li>
       </ul>
     </section>
 
@@ -83,11 +98,13 @@
       <h2 class="section-title">Formación Académica</h2>
       <ul class="section-list">
         {% for f in empleado.formacionacademica.all %}
-          <li> <strong>{{ f.titulo_obtenido }} - {{ f.denominacion_carrera }}</strong> - {{ f.institucion }} ({{ f.anho_graduacion }})
-            <br>
-            {% if f.archivo_pdf %}            
+          <li>
+            <strong>{{ f.titulo_obtenido }} - {{ f.denominacion_carrera }}</strong> - {{ f.institucion }} ({{ f.anho_graduacion }})
+            <br />
+            {% if f.archivo_pdf %}
               <a href="{{ f.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
-            {% comment %} {% else %}            
+              {% comment %}
+            {% else %}
               <small>Sin archivo pdf</small> {% endcomment %}
             {% endif %}
           </li>
@@ -102,13 +119,15 @@
       <h2 class="section-title">Otros Estudios</h2>
       <ul class="section-list">
         {% for c in empleado.capacitacion.all %}
-          <li> <strong>{{ c.nombre_capacitacion }}</strong> - {{ c.institucion }} (del {{ c.fecha_inicio|date:"d/m/Y" }} al {{ c.fecha_fin|date:"d/m/Y" }})
-            <br>
-            {% if c.archivo_pdf %}            
+          <li>
+            <strong>{{ c.nombre_capacitacion }}</strong> - {{ c.institucion }} (del {{ c.fecha_inicio|date:'d/m/Y' }} al {{ c.fecha_fin|date:'d/m/Y' }})
+            <br />
+            {% if c.archivo_pdf %}
               <a href="{{ c.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
-            {% comment %} {% else %}            
+              {% comment %}
+            {% else %}
               <small>Sin archivo pdf</small>{% endcomment %}
-            {% endif %} 
+            {% endif %}
           </li>
         {% empty %}
           <li>No hay registros de capacitación.</li>
@@ -122,15 +141,16 @@
       <ul class="section-list">
         {% for e in empleado.experiencia_laboral.all %}
           <li class="exp-item">
-            <strong>{{ e.cargo }}</strong> en {{ e.empresa }}<br>
-            <em>{{ e.fecha_desde|date:"F Y" }} – {{ e.fecha_hasta|date:"F Y" }}</em><br>
+            <strong>{{ e.cargo }}</strong> en {{ e.empresa }}<br />
+            <em>{{ e.fecha_desde|date:'F Y' }} – {{ e.fecha_hasta|date:'F Y' }}</em><br />
             {{ e.descripcion }}
-        
-            {% if e.archivo_pdf %}            
+
+            {% if e.archivo_pdf %}
               <a href="{{ e.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
-            {% comment %} {% else %}            
+              {% comment %}
+            {% else %}
               <small>Sin archivo pdf</small>{% endcomment %}
-            {% endif %} 
+            {% endif %}
           </li>
         {% empty %}
           <li>No hay registros de experiencia laboral.</li>
@@ -138,40 +158,81 @@
       </ul>
     </section>
 
+    <!-- INFORMACIÓN LABORAL -->
+    <section class="cv-section" style="margin-top: 20px; page-break-inside: avoid;">
+      <h2 class="section-title" style="border-bottom: 2px solid #333; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 10px;">Información Laboral</h2>
+
+      <ul class="section-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; list-style: none; padding: 0;">
+        <li>
+          <strong>Fecha de Ingreso:</strong> {{ empleado.fecha_ingreso|date:'d/m/Y'|default:'---' }}
+        </li>
+
+        <li>
+          <strong>Antigüedad:</strong>
+          {% if empleado.get_antiguedad %}
+            {{ empleado.get_antiguedad }} años
+          {% else %}
+            ---
+          {% endif %}
+        </li>
+
+        <li>
+          <strong>Resolución de Ingreso:</strong>
+          {% if empleado.archivo_pdf_ingreso %}
+            <a href="{{ request.build_absolute_uri }}{{ empleado.archivo_pdf_ingreso.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
+          {% else %}
+            <span style="color: #888;">No adjunto</span>
+          {% endif %}
+        </li>
+
+        {% if empleado.fecha_egreso %}
+          <li>
+            <strong>Fecha de Egreso:</strong> {{ empleado.fecha_egreso|date:'d/m/Y' }}
+          </li>
+          <li>
+            <strong>Resolución de Egreso:</strong>
+            {% if empleado.archivo_pdf_egreso %}
+              <a href="{{ request.build_absolute_uri }}{{ empleado.archivo_pdf_egreso.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
+            {% else %}
+              <span style="color: #888;">No adjunto</span>
+            {% endif %}
+          </li>
+        {% endif %}
+      </ul>
+    </section>
+
     <!-- TRAYECTORIA -->
     <section class="cv-section">
-      <h2 class="section-title">Puesto Actual en la Empresa</h2>
+      {% comment %} <h2 class="section-title">Puesto Actual en la Empresa</h2> {% endcomment %}
       <ul class="trayectoria-list">
         {% for e in empleado.empleado_posicion.all %}
           <li class="trayectoria-item">
             <div class="trayectoria-header">
               <strong>{{ e.tipo_movimiento.denominacion }}</strong> - {{ e.dependencia_posicion }}
-              <br>
+              <br />
               {% if e.cargo_puesto_actual %}
                 <span class="badge badge-success">Cargo Actual</span>
               {% endif %}
             </div>
 
             <small class="text-muted">
-              {{ e.fecha_inicio|date:"d/m/Y" }}
+              {{ e.fecha_inicio|date:'d/m/Y' }}
               {% if e.fecha_fin %}
-                – {{ e.fecha_fin|date:"d/m/Y" }}
+                – {{ e.fecha_fin|date:'d/m/Y' }}
               {% else %}
                 – Actualidad
               {% endif %}
             </small>
 
-            <br>
+            <br />
 
             <small>Vínculo: {{ e.vinculo_laboral.denominacion }} | Legajo: {{ e.legajo }}</small>
 
             {% if e.archivo_pdf %}
-              <br>
-              <a href="{{ e.archivo_pdf.url }}" target="_blank" class="pdf-link">
-                <span class="badge badge-danger">Ver pdf</span>
-              </a>
-              {% else %}
-              <br>
+              <br />
+              <a href="{{ e.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
+            {% else %}
+              <br />
               <small>Falta archivo pdf resolución</small>
             {% endif %}
           </li>
@@ -180,117 +241,5 @@
         {% endfor %}
       </ul>
     </section>
-
-  </div>
-</body>
+  </body>
 </html>
-
-{% comment %} {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <title>Currículum Vitae</title>
-  <link rel="stylesheet" href="{% static 'css/cv.css' %}" />
-</head>
-<body>
-  <div class="cv-container">
-    <header>
-      {% if empleado.usuario.image %}
-        <img src="{{ empleado.usuario.image.url }}" alt="Foto tipo carnet" class="foto-carnet" />
-      {% else %}
-        <img src="{% static 'img/default-user.png' %}" alt="Sin foto" class="foto-carnet" />
-      {% endif %}
-
-      <h1>{{ empleado.full_name }}</h1>
-      <p>{{ empleado.cargo }}</p>
-    </header>
-
-    <section>
-      <h2>Datos Personales</h2>
-      <ul>
-        <li><strong>CI:</strong> {{ empleado.ci }}</li>
-        <li><strong>Email:</strong> {{ empleado.email }}</li>
-        <li><strong>Teléfono:</strong> {{ empleado.telefono }}</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Formación Académica</h2>
-      <ul>
-        {% for f in empleado.formacionacademica.all %}
-          <li>{{ f.titulo_obtenido }} - {{f.denominacion_carrera}} - {{ f.institucion }} ({{ f.anho_graduacion }})</li>
-        {% empty %}
-          <li>No hay registros académicos.</li>
-        {% endfor %}
-      </ul>
-    </section>
-    <section>
-      <h2>Otros Estudios</h2>
-      <ul>
-        {% for c in empleado.capacitacion.all %}
-          <li>{{ c.nombre_capacitacion }} - {{ c.institucion }} (del {{ c.fecha_inicio|date:"d/m/Y" }} al {{ c.fecha_fin|date:"d/m/Y" }})</li>
-        {% empty %}
-          <li>No hay registros de capacitación.</li>
-        {% endfor %}
-      </ul>
-    </section>
-
-    <section>
-      <h2>Experiencia Laboral</h2>
-      <ul>
-        {% for e in empleado.experiencia_laboral.all %}
-          <li>
-            <strong>{{ e.cargo }}</strong> en {{ e.empresa }}<br />
-            <em>{{ e.fecha_desde|date:"F Y" }} – {{ e.fecha_hasta|date:"F Y" }}</em><br />
-            {{ e.descripcion }}
-          </li>
-        {% empty %}
-          <li>No hay registros de experiencia laboral.</li>
-        {% endfor %}
-      </ul>
-    </section>
-
-<section>
-  <h2>Trayectoria en la Empresa / Asignación de Cargos</h2>
-  <ul>
-    {% for e in empleado.empleado_posicion.all %}
-      <li style="margin-bottom: 15px; list-style: none; border-left: 3px solid #2d4154; padding-left: 10px;">
-        <strong>{{ e.tipo_movimiento.denominacion }}</strong> - {{ e.dependencia_posicion }}
-        
-        {% if e.cargo_puesto_actual %}
-          <span class="badge badge-success">Cargo Actual</span>
-        {% endif %}
-        
-        <br />
-        
-        <small class="text-muted">
-          <i class="fas fa-calendar-alt"></i> 
-          {{ e.fecha_inicio|date:"d/m/Y" }} 
-          {% if e.fecha_fin %}
-            – {{ e.fecha_fin|date:"d/m/Y" }}
-          {% else %}
-            – Actualidad
-          {% endif %}
-        </small>
-        
-        <br />
-        
-        <small>Vínculo: {{ e.vinculo_laboral.denominacion }} | Legajo: {{ e.legajo }}</small>
-        
-        {% if e.archivo_pdf %}
-          <br />
-          <a href="{{ e.archivo_pdf.url }}" target="_blank" class="text-danger">
-            <i class="fas fa-file-pdf"></i> Ver Documento
-          </a>
-        {% endif %}
-      </li>
-    {% empty %}
-      <li class="text-muted">No hay registros de movimientos o cargos asignados.</li>
-    {% endfor %}
-  </ul>
-</section>
-
-  </div>
-</body>
-</html> {% endcomment %}

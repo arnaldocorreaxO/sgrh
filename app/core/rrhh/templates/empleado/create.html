@@ -3,235 +3,314 @@
 {% load static %}
 
 {% block head_form %}
-    <script src="{% static 'empleado/js/form.js' %}"></script>
-    <script src="{% static './js/select2/ciudad_barrio.js' %}"></script>
-{% endblock head_form %}
+  <script src="{% static 'empleado/js/form.js' %}"></script>
+  <script src="{% static './js/select2/ciudad_barrio.js' %}"></script>
+{% endblock %}
 
 {% block content %}
-<div class="container">
+  <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-12 mt-3">
-            <form method="post" enctype="multipart/form-data" id="frmForm" data-url="{{ list_url }}">
-                {% csrf_token %}
-                <div class="card {% if action == 'add' %}card-success{% else %}card-warning{% endif %}">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            {% if action == 'add' %}
-                                <i class="fas fa-plus"></i>
-                            {% else %}
-                                <i class="fas fa-edit"></i>
-                            {% endif %}
-                            {{ title }}
-                        </h3>
-                    </div>
-                    <div class="card-body py-2">
-                        <input type="hidden" id="action" name="action" value="{{ action }}">
-
-                        {% if form.errors %}
-                        <div class="alert alert-danger alert-dismissible">
-                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                            <h5><i class="icon fas fa-ban"></i> Ha ocurrido un error al querer guardar el registro</h5>
-                            <ul>
-                                {% for field in form %}
-                                    {% for error in field.errors %}
-                                        <li>{{ error }}</li>
-                                    {% endfor %}
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        {% endif %}
-
-                        <!-- 📌 Datos personales + imagen -->
-                        <div class="form-row g-0">
-                            <!-- 🧱 Columna izquierda -->
-                            <div class="col-md-8">
-                                <!-- Estado -->
-                                <div class="form-group mb-1">
-                                    <label for="{{ form.activo.id_for_label }}">{{ form.activo.label }}</label>
-                                    {{ form.activo }}
-                                </div>
-                                <!-- Sucursal -->
-                                <div class="form-group mb-1">
-                                    <label for="{{ form.sucursal.id_for_label }}">{{form.sucursal.label}}*</label>
-                                    {{ form.sucursal|add_class:'form-control'|attr:'autocomplete:off'}} 
-                                </div>
-
-                                <!-- Legajo -->
-                                <div class="form-row g-0">
-                                    <div class="form-group col-md-6 mb-1">
-                                        <label for="{{ form.legajo.id_for_label }}">{{ form.legajo.label }}</label>
-                                        {{ form.legajo|add_class:'form-control'|attr:'autocomplete:off'|attr:'aria-label:Legajo del empleado' }}
-                                    </div>
-                               
-                                <!-- Tipo Sanguineo -->
-                                    <div class="form-group col-md-6 mb-1">
-                                        <label for="{{ form.tipo_sanguineo.id_for_label }}">{{form.tipo_sanguineo.label}}*</label>
-                                        {{ form.tipo_sanguineo|add_class:'form-control'|attr:'autocomplete:off'}}
-                                    </div> 
-                                </div>
-
-                                <!-- CI y RUC -->
-                                <div class="form-row g-0">
-                                    <div class="form-group col-md-6 mb-1">
-                                        <label for="{{ form.ci.id_for_label }}" class="font-weight-bold">
-                                            {{ form.ci.label }} <span class="text-danger">*</span>
-                                        </label>
-                                        <div class="input-group">
-                                            {{ form.ci|add_class:'form-control'|attr:'autocomplete:off'|attr:'aria-label:CI del empleado' }}
-                                            <div class="input-group-append">
-                                                <button id="btnVerificar" class="btn btn-secondary" type="button" title="Buscar persona por CI">
-                                                    <i class="fas fa-search mr-1"></i> Buscar Persona
-                                                </button>
-                                            </div>
-                                        </div>
-                                        {% if form.ci.errors %}
-                                            <div class="invalid-feedback d-block">
-                                                {% for error in form.ci.errors %}
-                                                    {{ error }}
-                                                {% endfor %}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-
-                                    <div class="form-group col-md-6 mb-1">
-                                        <label for="{{ form.ruc.id_for_label }}">{{ form.ruc.label }}*</label>
-                                        {{ form.ruc|add_class:'form-control'|attr:'autocomplete:off' }}
-                                    </div>
-
-                                    <div class="form-group col-md-6 mb-1">
-                                        <label for="{{ form.ci_fecha_vencimiento.id_for_label }}">{{form.ci_fecha_vencimiento.label}}*</label>
-                                        {{ form.ci_fecha_vencimiento|add_class:'form-control'|attr:'autocomplete:off'}}
-                                    </div>
-
-                                    <div class="form-group col-md-6 mb-1">
-                                        <label for="{{ form.ci_archivo_pdf.id_for_label }}">
-                                            {{ form.ci_archivo_pdf.label }}{% if form.ci_archivo_pdf.field.required %}*{% endif %}
-                                        </label>
-                                        
-                                        {# Usamos form-control-file para que se vea bien en Bootstrap 4/5 #}
-                                        {{ form.ci_archivo_pdf|add_class:'form-control-file'|attr:'autocomplete:off' }}
-                                        
-                                        {% if form.ci_archivo_pdf.errors %}
-                                            <div class="invalid-feedback d-block">
-                                                {{ form.ci_archivo_pdf.errors|first }}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                    
-                                </div>
-                        </div>
-
-
-                            <!-- 🖼️ Columna derecha: Imagen -->
-                            <div class="col-md-4 d-flex flex-column align-items-center">
-                                <label for="id_image" style="cursor: pointer;">
-                                    <img src="{% if instance and instance.usuario.image %}
-                                                {{ instance.usuario.get_image }}
-                                            {% else %}
-                                                /static/img/default/empty.png
-                                            {% endif %}"
-                                        alt="Foto carnet"
-                                        class="img-thumbnail"
-                                        style="width: 120px; height: 160px; object-fit: cover; border: 1px solid #ccc;">
-                                </label>
-
-                                <div class="mt-2 w-100">
-                                    {{ form.image }}
-
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 📌 Nombre y Apellido -->
-                        <div class="form-row g-0">
-                            <!-- 🧱 Columna izquierda -->
-                            <div class="col-md-12">
-                                <!-- Nombre y Apellido -->
-                                <div class="form-row g-0">
-                                    <div class="form-group col-md-6 mb-1">
-                                        <label for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}*</label>
-                                        {{ form.nombre|add_class:'form-control'|attr:'autocomplete:off' }}
-                                    </div>
-
-                                    <div class="form-group col-md-6 mb-1">
-                                        <label for="{{ form.apellido.id_for_label }}">{{ form.apellido.label }}*</label>
-                                        {{ form.apellido|add_class:'form-control'|attr:'autocomplete:off' }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+      <div class="col-md-12 mt-3">
+        <form method="post" enctype="multipart/form-data" id="frmForm" data-url="{{ list_url }}">
+          {% csrf_token %}
+          <div class="card {% if action == 'add' %}
+              
+              
+              
+              
+              
+              
+              
+              
+              card-success
 
 
 
-                        <!-- 📌 Ubicación -->
-                        <div class="form-row g-0">
-                            <div class="form-group col-md-4 mb-1">
-                                <label for="{{ form.nacionalidad.id_for_label }}">{{form.nacionalidad.label}}*</label>
-                                {{ form.nacionalidad|add_class:'form-control'|attr:'autocomplete:off'}}
-                            </div>
-                            <div class="form-group col-md-4 mb-1">
-                                <label for="{{ form.ciudad.id_for_label }}">{{form.ciudad.label}}*</label>
-                                {{ form.ciudad|add_class:'form-control'|attr:'autocomplete:off'}}
-                            </div>
-                            <div class="form-group col-md-4 mb-1">
-                                <label for="{{ form.barrio.id_for_label }}">{{form.barrio.label}}</label>
-                                {{ form.barrio|add_class:'form-control'|attr:'autocomplete:off'}}
-                            </div>
-                        </div>
 
-                        <!-- 📌 Dirección -->
-                        <div class="form-row g-0">
-                            <div class="form-group col-md-12 mb-1">
-                                <label for="{{ form.direccion.id_for_label }}">{{form.direccion.label}}</label>
-                                {{ form.direccion|add_class:'form-control'|attr:'autocomplete:off'}}
-                            </div>
-                        </div>
 
-                        <!-- 📌 Contacto -->
-                        <div class="form-row g-0">
-                            <div class="form-group col-md-4 mb-1">
-                                <label for="{{ form.celular.id_for_label }}">{{form.celular.label}}*</label>
-                                {{ form.celular|add_class:'form-control'|attr:'autocomplete:off'}}
-                            </div>
-                            <div class="form-group col-md-4 mb-1">
-                                <label for="{{ form.telefono.id_for_label }}">{{form.telefono.label}}</label>
-                                {{ form.telefono|add_class:'form-control'|attr:'autocomplete:off'}}
-                            </div>
-                            <div class="form-group col-md-4 mb-1">
-                                <label for="{{ form.email.id_for_label }}">{{form.email.label}}*</label>
-                                {{ form.email|add_class:'form-control'|attr:'autocomplete:off'}}
-                            </div>
-                        </div>
 
-                        <!-- 📌 Datos demográficos -->
-                        <div class="form-row g-0">
-                            <div class="form-group col-md-4 mb-1">
-                                <label for="{{ form.fecha_nacimiento.id_for_label }}">{{form.fecha_nacimiento.label}}*</label>
-                                {{ form.fecha_nacimiento|add_class:'form-control'|attr:'autocomplete:off'}}
-                            </div>
-                            <div class="form-group col-md-4 mb-1">
-                                <label for="{{ form.sexo.id_for_label }}">{{form.sexo.label}}*</label>
-                                {{ form.sexo|add_class:'form-control'|attr:'autocomplete:off'}}
-                            </div>
-                            <div class="form-group col-md-4 mb-1">
-                                <label for="{{ form.estado_civil.id_for_label }}">{{form.estado_civil.label}}*</label>
-                                {{ form.estado_civil|add_class:'form-control'|attr:'autocomplete:off'}}
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- 📌 Footer -->
-                    <div class="card-footer d-flex justify-content-end gap-2 mt-2">
-                        <button type="submit" class="btn btn-primary btn-flat" id="btnGuardar">
-                            <i class="fas fa-save"></i> Guardar registro
-                        </button>
-                        <a href="{{ list_url }}" class="btn btn-danger btn-flat">
-                            <i class="fas fa-times"></i> Cancelar
-                        </a>
-                    </div>
+
+            {% else %}
+              
+              
+              
+              
+              
+              
+              
+              
+              card-warning
+
+
+
+
+
+
+
+
+            {% endif %}">
+            <div class="card-header">
+              <h3 class="card-title">
+                {% if action == 'add' %}
+                  <i class="fas fa-plus"></i>
+                {% else %}
+                  <i class="fas fa-edit"></i>
+                {% endif %}
+                {{ title }}
+              </h3>
+            </div>
+            <div class="card-body py-2">
+              <input type="hidden" id="action" name="action" value="{{ action }}" />
+
+              {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible">
+                  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                  <h5><i class="icon fas fa-ban"></i> Ha ocurrido un error al querer guardar el registro</h5>
+                  <ul>
+                    {% for field in form %}
+                      {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                      {% endfor %}
+                    {% endfor %}
+                  </ul>
                 </div>
-            </form>
-        </div>
+              {% endif %}
+
+              <!-- 📌 Datos personales + imagen -->
+              <div class="form-row g-0">
+                <!-- 🧱 Columna izquierda -->
+                <div class="col-md-8">
+                  <!-- Estado -->
+                  <div class="form-group mb-1">
+                    <label for="{{ form.activo.id_for_label }}">{{ form.activo.label }}</label>
+                    {{ form.activo }}
+                  </div>
+                  <!-- Sucursal -->
+                  <div class="form-group mb-1">
+                    <label for="{{ form.sucursal.id_for_label }}">{{ form.sucursal.label }}*</label>
+                    {{ form.sucursal|add_class:'form-control'|attr:'autocomplete:off' }}
+                  </div>
+
+                  <!-- Legajo -->
+                  <div class="form-row g-0">
+                    <div class="form-group col-md-6 mb-1">
+                      <label for="{{ form.legajo.id_for_label }}">{{ form.legajo.label }}</label>
+                      {{ form.legajo|add_class:'form-control'|attr:'autocomplete:off'|attr:'aria-label:Legajo del empleado' }}
+                    </div>
+
+                    <!-- Tipo Sanguineo -->
+                    <div class="form-group col-md-6 mb-1">
+                      <label for="{{ form.tipo_sanguineo.id_for_label }}">{{ form.tipo_sanguineo.label }}*</label>
+                      {{ form.tipo_sanguineo|add_class:'form-control'|attr:'autocomplete:off' }}
+                    </div>
+                  </div>
+
+                  <!-- CI y RUC -->
+                  <div class="form-row g-0">
+                    <div class="form-group col-md-6 mb-1">
+                      <label for="{{ form.ci.id_for_label }}" class="font-weight-bold">{{ form.ci.label }} <span class="text-danger">*</span></label>
+                      <div class="input-group">
+                        {{ form.ci|add_class:'form-control'|attr:'autocomplete:off'|attr:'aria-label:CI del empleado' }}
+                        <div class="input-group-append">
+                          <button id="btnVerificar" class="btn btn-secondary" type="button" title="Buscar persona por CI"><i class="fas fa-search mr-1"></i> Buscar Persona</button>
+                        </div>
+                      </div>
+                      {% if form.ci.errors %}
+                        <div class="invalid-feedback d-block">
+                          {% for error in form.ci.errors %}
+                            {{ error }}
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+                    </div>
+
+                    <div class="form-group col-md-6 mb-1">
+                      <label for="{{ form.ruc.id_for_label }}">{{ form.ruc.label }}*</label>
+                      {{ form.ruc|add_class:'form-control'|attr:'autocomplete:off' }}
+                    </div>
+
+                    <div class="form-group col-md-6 mb-1">
+                      <label for="{{ form.fecha_vencimiento_ci.id_for_label }}">{{ form.fecha_vencimiento_ci.label }}*</label>
+                      {{ form.fecha_vencimiento_ci|add_class:'form-control'|attr:'autocomplete:off' }}
+                    </div>
+
+                    <div class="form-group col-md-6 mb-1">
+                      <label for="{{ form.archivo_pdf_ci.id_for_label }}">{{ form.archivo_pdf_ci.label }}{% if form.archivo_pdf_ci.field.required %}*{% endif %}</label>
+
+                      {# Usamos form-control-file para que se vea bien en Bootstrap 4/5 #}
+                      {{ form.archivo_pdf_ci|add_class:'form-control-file'|attr:'autocomplete:off' }}
+
+                      {% if form.archivo_pdf_ci.errors %}
+                        <div class="invalid-feedback d-block">{{ form.archivo_pdf_ci.errors|first }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 🖼️ Columna derecha: Imagen -->
+                <div class="col-md-4 d-flex flex-column align-items-center">
+                  <label for="id_image" style="cursor: pointer;">
+                    <img src="{% if instance and instance.usuario.image %}
+                        {{ instance.usuario.get_image }}
+                      {% else %}
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                                                /static/img/default/empty.png
+
+
+
+
+
+
+
+
+
+                      {% endif %}"
+                      alt="Foto carnet"
+                      class="img-thumbnail"
+                      style="width: 120px; height: 160px; object-fit: cover; border: 1px solid #ccc;" />
+                  </label>
+
+                  <div class="mt-2 w-100">{{ form.image }}</div>
+                </div>
+              </div>
+
+              <!-- 📌 Nombre y Apellido -->
+              <div class="form-row g-0">
+                <!-- 🧱 Columna izquierda -->
+                <div class="col-md-12">
+                  <!-- Nombre y Apellido -->
+                  <div class="form-row g-0">
+                    <div class="form-group col-md-6 mb-1">
+                      <label for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}*</label>
+                      {{ form.nombre|add_class:'form-control'|attr:'autocomplete:off' }}
+                    </div>
+
+                    <div class="form-group col-md-6 mb-1">
+                      <label for="{{ form.apellido.id_for_label }}">{{ form.apellido.label }}*</label>
+                      {{ form.apellido|add_class:'form-control'|attr:'autocomplete:off' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 📌 Ubicación -->
+              <div class="form-row g-0">
+                <div class="form-group col-md-4 mb-1">
+                  <label for="{{ form.nacionalidad.id_for_label }}">{{ form.nacionalidad.label }}*</label>
+                  {{ form.nacionalidad|add_class:'form-control'|attr:'autocomplete:off' }}
+                </div>
+                <div class="form-group col-md-4 mb-1">
+                  <label for="{{ form.ciudad.id_for_label }}">{{ form.ciudad.label }}*</label>
+                  {{ form.ciudad|add_class:'form-control'|attr:'autocomplete:off' }}
+                </div>
+                <div class="form-group col-md-4 mb-1">
+                  <label for="{{ form.barrio.id_for_label }}">{{ form.barrio.label }}</label>
+                  {{ form.barrio|add_class:'form-control'|attr:'autocomplete:off' }}
+                </div>
+              </div>
+
+              <!-- 📌 Dirección -->
+              <div class="form-row g-0">
+                <div class="form-group col-md-12 mb-1">
+                  <label for="{{ form.direccion.id_for_label }}">{{ form.direccion.label }}</label>
+                  {{ form.direccion|add_class:'form-control'|attr:'autocomplete:off' }}
+                </div>
+              </div>
+
+              <!-- 📌 Contacto -->
+              <div class="form-row g-0">
+                <div class="form-group col-md-4 mb-1">
+                  <label for="{{ form.celular.id_for_label }}">{{ form.celular.label }}*</label>
+                  {{ form.celular|add_class:'form-control'|attr:'autocomplete:off' }}
+                </div>
+                <div class="form-group col-md-4 mb-1">
+                  <label for="{{ form.telefono.id_for_label }}">{{ form.telefono.label }}</label>
+                  {{ form.telefono|add_class:'form-control'|attr:'autocomplete:off' }}
+                </div>
+                <div class="form-group col-md-4 mb-1">
+                  <label for="{{ form.email.id_for_label }}">{{ form.email.label }}*</label>
+                  {{ form.email|add_class:'form-control'|attr:'autocomplete:off' }}
+                </div>
+              </div>
+
+              <!-- 📌 Datos demográficos -->
+              <div class="form-row g-0">
+                <div class="form-group col-md-4 mb-1">
+                  <label for="{{ form.fecha_nacimiento.id_for_label }}">{{ form.fecha_nacimiento.label }}*</label>
+                  {{ form.fecha_nacimiento|add_class:'form-control'|attr:'autocomplete:off' }}
+                </div>
+                <div class="form-group col-md-4 mb-1">
+                  <label for="{{ form.sexo.id_for_label }}">{{ form.sexo.label }}*</label>
+                  {{ form.sexo|add_class:'form-control'|attr:'autocomplete:off' }}
+                </div>
+                <div class="form-group col-md-4 mb-1">
+                  <label for="{{ form.estado_civil.id_for_label }}">{{ form.estado_civil.label }}*</label>
+                  {{ form.estado_civil|add_class:'form-control'|attr:'autocomplete:off' }}
+                </div>
+              </div>
+            </div>
+
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-briefcase mr-2"></i>
+                Datos Laborales
+              </h3>
+            </div>
+            <div class="card-body py-3">
+              <div class="form-row">
+                <div class="form-group col-md-3 mb-2">
+                  <label for="{{ form.fecha_ingreso.id_for_label }}">{{ form.fecha_ingreso.label }}</label>
+                  {{ form.fecha_ingreso|add_class:'form-control'|attr:'autocomplete:off' }}
+                </div>
+
+                <div class="form-group col-md-3 mb-2">
+                  <label for="{{ form.archivo_pdf_ingreso.id_for_label }}" class="label-pdf-ingreso">
+                    {{ form.archivo_pdf_ingreso.label }}{% if form.archivo_pdf_ingreso.field.required %}
+                      <span class="text-danger">*</span>
+                    {% endif %}
+                  </label>
+                  {{ form.archivo_pdf_ingreso|add_class:'form-control-file' }}
+                  {% if form.archivo_pdf_ingreso.errors %}
+                    <div class="invalid-feedback d-block">{{ form.archivo_pdf_ingreso.errors|first }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="form-group col-md-3 mb-2">
+                  <label for="{{ form.fecha_egreso.id_for_label }}">{{ form.fecha_egreso.label }}</label>
+                  {{ form.fecha_egreso|add_class:'form-control'|attr:'autocomplete:off' }}
+                </div>
+
+                <div class="form-group col-md-3 mb-2">
+                  <label for="{{ form.archivo_pdf_egreso.id_for_label }}" class="label-pdf-egreso">
+                    {{ form.archivo_pdf_egreso.label }}{% if form.archivo_pdf_egreso.field.required %}
+                      <span class="text-danger">*</span>
+                    {% endif %}
+                  </label>
+                  {{ form.archivo_pdf_egreso|add_class:'form-control-file' }}
+                  {% if form.archivo_pdf_egreso.errors %}
+                    <div class="invalid-feedback d-block">{{ form.archivo_pdf_egreso.errors|first }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- 📌 Footer -->
+            <div class="card-footer d-flex justify-content-end gap-2 mt-2">
+              <button type="submit" class="btn btn-primary btn-flat" id="btnGuardar"><i class="fas fa-save"></i> Guardar registro</button>
+              <a href="{{ list_url }}" class="btn btn-danger btn-flat"><i class="fas fa-times"></i> Cancelar</a>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
-</div>
+  </div>
 {% endblock %}

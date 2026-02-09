@@ -223,7 +223,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
           },
         },
       },
-      ci_archivo_pdf: {
+      archivo_pdf_ci: {
         validators: {
           // Solo obligatorio si no hay un archivo previo cargado
           notEmpty: {
@@ -235,6 +235,57 @@ document.addEventListener("DOMContentLoaded", function (e) {
             type: "application/pdf",
             maxSize: 5 * 1024 * 1024, // 5MB
             message: "Solo se permite archivos PDF de hasta 5MB",
+          },
+        },
+      },
+      fecha_ingreso: {
+        validators: {
+          notEmpty: {
+            message: "La fecha de ingreso es obligatoria",
+          },
+          date: {
+            format: "YYYY-MM-DD", // El estándar de los navegadores para inputs de tipo fecha
+            message: "La fecha no es válida",
+          },
+        },
+      },
+      fecha_egreso: {
+        validators: {
+          date: {
+            format: "YYYY-MM-DD", // El estándar de los navegadores para inputs de tipo fecha
+            message: "La fecha no es válida",
+          },
+          callback: {
+            message:
+              "La fecha de egreso no puede ser anterior a la fecha de ingreso",
+            callback: function (input) {
+              const value = input.value;
+              if (!value) return true;
+
+              const partes = value.split("-");
+              if (partes.length !== 3) return false;
+
+              const fechaEgreso = new Date(partes[0], partes[1] - 1, partes[2]);
+              const fechaIngresoInput = form.querySelector(
+                '[name="fecha_ingreso"]',
+              );
+              const fechaIngresoValue = fechaIngresoInput
+                ? fechaIngresoInput.value
+                : null;
+
+              if (!fechaIngresoValue) return true;
+
+              const partesIngreso = fechaIngresoValue.split("-");
+              if (partesIngreso.length !== 3) return false;
+
+              const fechaIngreso = new Date(
+                partesIngreso[0],
+                partesIngreso[1] - 1,
+                partesIngreso[2],
+              );
+
+              return fechaEgreso >= fechaIngreso;
+            },
           },
         },
       },

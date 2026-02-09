@@ -19,13 +19,8 @@ urlpatterns = [
     path("empleado/", EmpleadoList.as_view(), name="empleado_list"),
     path("empleado/add/", EmpleadoCreate.as_view(), name="empleado_create"),
     path("empleado/update/<int:pk>/", EmpleadoUpdate.as_view(), name="empleado_update"),    
-    path("empleado/delete/<int:pk>/", EmpleadoDelete.as_view(), name="empleado_delete"),
-    
-    # Vista general (admin)
-    path("empleado_posicion/", EmpleadoPosicionList.as_view(), name="empleado_posicion_list"),
-    path("empleado_posicion/add/", EmpleadoPosicionCreate.as_view(), name="empleado_posicion_create"),
-    path("empleado_posicion/update/<int:pk>/", EmpleadoPosicionUpdate.as_view(), name="empleado_posicion_update"),    
-    path("empleado_posicion/delete/<int:pk>/", EmpleadoPosicionDelete.as_view(), name="empleado_posicion_delete"),
+    path("empleado/delete/<int:pk>/", EmpleadoDelete.as_view(), name="empleado_delete"),    
+
     # Vista personal (empleado)
     path("empleado/self/", EmpleadoList.as_view(), name="empleado_list_self"),
     path("empleado/self/add/", EmpleadoCreate.as_view(), name="empleado_create_self"),
@@ -37,6 +32,12 @@ urlpatterns = [
     # CV EMPLEADO
     path('empleado/cv/pdf/<int:pk>/', CVEmpleadoPDFView.as_view(), name='cv_empleado_pdf'),
     path('empleado/self/cv/pdf/', CVEmpleadoPDFView.as_view(), name='cv_empleado_pdf_self'),
+
+    # Vista general (admin)
+    path("empleado_posicion/", EmpleadoPosicionList.as_view(), name="empleado_posicion_list"),
+    path("empleado_posicion/add/", EmpleadoPosicionCreate.as_view(), name="empleado_posicion_create"),
+    path("empleado_posicion/update/<int:pk>/", EmpleadoPosicionUpdate.as_view(), name="empleado_posicion_update"),    
+    path("empleado_posicion/delete/<int:pk>/", EmpleadoPosicionDelete.as_view(), name="empleado_posicion_delete"),
     
     # FORMACION
    # Vista general (admin)

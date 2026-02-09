@@ -3,6 +3,7 @@ import json
 import json as simplejson
 from datetime import datetime
 from datetime import date, datetime
+from urllib import request
 # Librerías de terceros
 from dateutil.relativedelta import relativedelta
 from weasyprint import HTML
@@ -20,7 +21,7 @@ from django.views.generic import CreateView, DeleteView, UpdateView,  View
 
 # Proyecto interno
 from config import settings
-from core.base.models import Barrio, Ciudad
+from core.base.models import Barrio, Ciudad, RefDet
 from core.base.procedures import sp_identificaciones
 from core.base.utils import  get_fecha_actual, get_fecha_actual_ymd, isNULL, validar_mayor_edad
 from core.base.views.generics import BaseListView
@@ -219,7 +220,7 @@ class EmpleadoList(PermissionMixin,BaseListView):
 			"ciudad",        # Evita consultas extra al mostrar la ciudad
 			"sexo",          # Tabla RefDet
 			"estado_civil",  # Tabla RefDet
-    	)
+		)
 
 	@method_decorator(csrf_exempt)
 	def dispatch(self, request, *args, **kwargs):
@@ -309,8 +310,12 @@ class EmpleadoCreate(PermissionMixin,CreateView):
 					sexo_id = isNULL(request.POST["sexo"])
 					estado_civil_id = isNULL(request.POST["estado_civil"])
 					tipo_sanguineo_id = isNULL(request.POST["tipo_sanguineo"])
-					ci_fecha_vencimiento = isNULL(request.POST["ci_fecha_vencimiento"])	
-					ci_archivo_pdf = request.FILES.get("ci_archivo_pdf")
+					fecha_vencimiento_ci = isNULL(request.POST["fecha_vencimiento_ci"])	
+					archivo_pdf_ci = request.FILES.get("archivo_pdf_ci")
+					fecha_ingreso = isNULL(request.POST["fecha_ingreso"])
+					archivo_pdf_ingreso = request.FILES.get("archivo_pdf_ingreso")
+					fecha_egreso = isNULL(request.POST["fecha_egreso"])
+					archivo_pdf_egreso = request.FILES.get("archivo_pdf_egreso")
 					
 					if usuario:
 						# 🔄 Actualizar datos existentes
@@ -346,32 +351,44 @@ class EmpleadoCreate(PermissionMixin,CreateView):
 								   
 					#INSTANCIAR EMPLEADO
 					empleado = Empleado()
-					empleado.activo 	    	= activo
-					empleado.sucursal_id 		= sucursal_id
-					empleado.usuario 		 	= usuario
-					empleado.ci 			 	= ci
-					empleado.ruc 			 	= ruc
-					empleado.nombre 		 	= nombre
-					empleado.apellido 		 	= apellido
-					empleado.nacionalidad_id 	= nacionalidad_id
-					empleado.ciudad_id 		 	= ciudad_id
-					empleado.barrio_id 		 	= barrio_id
-					empleado.direccion 		 	= direccion
-					empleado.celular 		 	= celular
-					empleado.telefono 		 	= telefono
-					empleado.email 			 	= email
-					empleado.fecha_nacimiento  	= fecha_nacimiento
-					empleado.sexo_id 		 	= sexo_id
-					empleado.estado_civil_id	= estado_civil_id
-					empleado.tipo_sanguineo_id	= tipo_sanguineo_id
-					empleado.ci_fecha_vencimiento = ci_fecha_vencimiento
+					empleado.activo 	    		= activo
+					empleado.sucursal_id 			= sucursal_id
+					empleado.usuario 		 		= usuario
+					empleado.ci 			 		= ci
+					empleado.ruc 			 		= ruc
+					empleado.nombre 		 		= nombre
+					empleado.apellido 		 		= apellido
+					empleado.nacionalidad_id 		= nacionalidad_id
+					empleado.ciudad_id 		 		= ciudad_id
+					empleado.barrio_id 		 		= barrio_id
+					empleado.direccion 		 		= direccion
+					empleado.celular 		 		= celular
+					empleado.telefono 		 		= telefono
+					empleado.email 			 		= email
+					empleado.fecha_nacimiento  		= fecha_nacimiento
+					empleado.sexo_id 		 		= sexo_id
+					empleado.estado_civil_id		= estado_civil_id
+					empleado.tipo_sanguineo_id		= tipo_sanguineo_id
+					empleado.fecha_vencimiento_ci 	= fecha_vencimiento_ci
+					empleado.fecha_ingreso 			= fecha_ingreso
+					empleado.fecha_egreso 			= fecha_egreso
 
-					if ci_archivo_pdf:
+					if archivo_pdf_ci:
 						# Si ya existía un archivo antes, lo borramos del disco
-						if empleado.ci_archivo_pdf:
-							empleado.ci_archivo_pdf.delete(save=False)
+						if empleado.archivo_pdf_ci:
+							empleado.archivo_pdf_ci.delete(save=False)
 						# Asignamos el nuevo
-						empleado.ci_archivo_pdf = ci_archivo_pdf     
+						empleado.archivo_pdf_ci = archivo_pdf_ci     
+
+					if archivo_pdf_ingreso:
+						if empleado.archivo_pdf_ingreso:
+							empleado.archivo_pdf_ingreso.delete(save=False)
+						empleado.archivo_pdf_ingreso = archivo_pdf_ingreso
+					
+					if archivo_pdf_egreso:
+						if empleado.archivo_pdf_egreso:
+							empleado.archivo_pdf_egreso.delete(save=False)
+						empleado.archivo_pdf_egreso = archivo_pdf_egreso	
 
 					empleado.save()
 					data["id"] 					= empleado.id
@@ -452,164 +469,420 @@ class EmpleadoCreate(PermissionMixin,CreateView):
 		return HttpResponse(json.dumps(data), content_type="application/json")
 
 	def get_context_data(self, **kwargs):
-		context = super().get_context_data()
+		context = super().get_context_data(**kwargs)
 		context["list_url"] = self.success_url
 		context["title"] = "Nuevo registro de un Empleado"
 		context["action"] = "add"
 		context["instance"] = None
 		return context
+	
+import json
+from django.db import transaction
+from django.http import JsonResponse, HttpResponse, Http404
+from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import UpdateView
+from django.contrib.auth.models import Group
+from django.conf import settings
 
-class EmpleadoUpdate(PermissionMixin,UpdateView):
-	# class EmpleadoUpdatePerfil(PermissionMixin, UpdateView):
+# Importa tus utilidades y modelos
+# from apps.rh.models import Empleado
+# from apps.core.functions import isNULL, validar_mayor_edad
+
+class EmpleadoUpdate(PermissionMixin, UpdateView):
 	model = Empleado
 	form_class = EmpleadoForm
 	template_name = "empleado/create.html"
-	success_url = reverse_lazy("dashboard")
-	permission_required = "change_empleado"
+
+	# 1. Permisos dinámicos basados en la ruta
+	def get_permission_required(self):
+		if self.request.resolver_match.url_name.endswith("_self"):
+			return ("rh.change_empleado_self",)
+		return ("rh.change_empleado",)
 
 	@method_decorator(csrf_exempt)
 	def dispatch(self, request, *args, **kwargs):
+		# Identificar si es edición de perfil propio
 		self.is_self = self.request.resolver_match.url_name.endswith("_self")
+		
+		# Seguridad: Si es 'self' pero el usuario no tiene perfil de empleado
+		if self.is_self and not hasattr(request.user, 'empleado'):
+			raise Http404("No tiene un perfil de empleado asociado a su cuenta de usuario.")
+			
 		return super().dispatch(request, *args, **kwargs)
-	
+
 	def get_success_url(self):
 		return reverse_lazy("dashboard") if self.is_self else reverse_lazy("empleado_list")
-	
-	# Obtener empleado asociado al usuario logueado
-	def get_empleado(self):
-		try:
-			return Empleado.objects.get(usuario=self.request.user)
-		except Empleado.DoesNotExist:
-			raise Http404("No se encontró el perfil del empleado asociado al usuario.")
-	
+
+	# 2. Obtener el objeto correcto (El suyo o el de la PK)
 	def get_object(self, queryset=None):
 		try:
 			if self.is_self:
-				return Empleado.objects.get(usuario=self.request.user)
-			return Empleado.objects.get(pk=self.kwargs["pk"])
+				return self.request.user.empleado
+			return Empleado.objects.get(pk=self.kwargs.get("pk"))
 		except Empleado.DoesNotExist:
-			raise Http404("No se encontró el perfil del empleado.")
-	
-	# Validar datos únicos
+			raise Http404("El empleado solicitado no existe.")
+
+	# 3. Consulta de campos bloqueados desde la DB (RefDet)
+	def get_bloqueados_db(self):
+		try:
+			# Obtenemos el registro
+			referencia = RefDet.objects.filter(cod_referencia='CAMPOS_BLOQUEADOS_EMPLEADO').first()
+			
+			if referencia and referencia.comentarios:
+				# 1. Tomamos el string: "'ci', 'activo', 'sucursal'"
+				# 2. Reemplazamos las comillas simples por nada
+				# 3. Separamos por la coma
+				# 4. Limpiamos espacios en blanco con strip()
+				bloqueados = [
+					item.strip().replace("'", "").replace('"', "") 
+					for item in referencia.comentarios.split(',')
+				]
+				return bloqueados
+				
+			return []
+		except Exception as e:
+			print(f"Error en get_bloqueados_db: {e}")
+			# Retornamos lista de seguridad en caso de error de DB
+			return ['ci', 'activo', 'sucursal', 'fecha_ingreso', 'fecha_egreso', 'archivo_pdf_ingreso', 'archivo_pdf_egreso']
+		
+	# 4. Bloqueo visual de campos en el Formulario
+	def get_form(self, form_class=None):
+		form = super().get_form(form_class)
+		if self.is_self:
+			# Campos que el empleado NO debe tocar (aunque use F12, el post está protegido)
+			# TRAEMOS LOS CAMPOS DESDE LA DB
+			bloqueados = self.get_bloqueados_db()
+			for field in bloqueados:
+				if field in form.fields:
+					form.fields[field].disabled = True
+					form.fields[field].widget.attrs['class'] = 'form-control bg-light'
+		return form
+
+	# 5. Validación remota (AJAX)
 	def validate_data(self):
 		data = {"valid": True}
 		try:
-			type = self.request.POST["type"]
-			obj = self.request.POST["obj"].strip()
-			id = self.get_object().id
-			if type == "ci":
-				if Empleado.objects.filter(ci__iexact=obj).exclude(id=id):
-					data["valid"] = False
-			if type == "ruc":
-				if Empleado.objects.filter(ruc__iexact=obj).exclude(id=id):
-					data["valid"] = False
-			if type == "fecha_nacimiento":
-				data["valid"] = validar_mayor_edad(obj)
+			type_val = self.request.POST.get("type")
+			obj_val = self.request.POST.get("obj", "").strip()
+			id_actual = self.get_object().id
 			
-		except:
+			if type_val == "ci":
+				if Empleado.objects.filter(ci__iexact=obj_val).exclude(id=id_actual).exists():
+					data["valid"] = False
+			elif type_val == "ruc":
+				if Empleado.objects.filter(ruc__iexact=obj_val).exclude(id=id_actual).exists():
+					data["valid"] = False
+			elif type_val == "fecha_nacimiento":
+				data["valid"] = validar_mayor_edad(obj_val)
+		except Exception:
 			pass
-		return JsonResponse(data)
+		return JsonResponse(data)	
+	
 
+	# 6. Procesamiento manual del POST (Seguro)
 	def post(self, request, *args, **kwargs):
 		data = {}
 		action = request.POST.get("action")
+		
+		if action == "validate_data":
+			return self.validate_data()
+
 		try:
 			if action == "edit":
-					with transaction.atomic():
-						empleado = self.get_object()
-						usuario = empleado.usuario
-						# Obtener datos del formulario
-						activo = True if "on" in request.POST['activo'] else False
-						ci = isNULL(request.POST["ci"])
-						ruc = isNULL(request.POST["ruc"])
-						nombre = isNULL(request.POST["nombre"])
-						apellido = isNULL(request.POST["apellido"])
-						sucursal_id = isNULL(request.POST["sucursal"])
-						nacionalidad_id = isNULL(request.POST["nacionalidad"])
-						ciudad_id = isNULL(request.POST["ciudad"])
-						barrio_id = isNULL(request.POST["barrio"])
-						direccion = isNULL(request.POST["direccion"])
-						celular = isNULL(request.POST["celular"])
-						telefono = isNULL(request.POST["telefono"])
-						email = isNULL(request.POST["email"])
-						fecha_nacimiento = isNULL(request.POST["fecha_nacimiento"])
-						sexo_id = isNULL(request.POST["sexo"])
-						estado_civil_id = isNULL(request.POST["estado_civil"])
-						tipo_sanguineo_id = isNULL(request.POST["tipo_sanguineo"])
-						ci_fecha_vencimiento = isNULL(request.POST["ci_fecha_vencimiento"])	
-						ci_archivo_pdf = request.FILES.get("ci_archivo_pdf")
+				with transaction.atomic():
+					empleado = self.get_object()
+					usuario = empleado.usuario
+					
+					# Traemos la lista de campos bloqueados desde RefDet
+					bloqueados = self.get_bloqueados_db()
 
-						# Actualizar datos del usuario
-						usuario.is_active 	= activo
-						usuario.first_name 	= nombre
-						usuario.last_name 	= apellido
-						usuario.dni 		= ci
-						usuario.username 	= usuario.dni
-						usuario.email 		= email
-						usuario.sucursal_id = sucursal_id
+					# --- PROCESAMIENTO DINÁMICO DE CAMPOS ---
+					# Si el campo está bloqueado, usamos el valor actual del objeto (empleado.campo)
+					# Si NO está bloqueado, tomamos lo que viene por POST
+					
+					# 1. Campos lógicos y FKs complejas
+					activo = empleado.activo if 'activo' in bloqueados else ("activo" in request.POST)
+					sucursal_id = empleado.sucursal_id if 'sucursal' in bloqueados else isNULL(request.POST.get("sucursal"))
+					
+					# 2. Datos de Identidad
+					ci = empleado.ci if 'ci' in bloqueados else isNULL(request.POST.get("ci"))
+					ruc = empleado.ruc if 'ruc' in bloqueados else isNULL(request.POST.get("ruc"))
+					nombre = empleado.nombre if 'nombre' in bloqueados else isNULL(request.POST.get("nombre"))
+					apellido = empleado.apellido if 'apellido' in bloqueados else isNULL(request.POST.get("apellido"))
+					
+					# 3. Ubicación y Contacto
+					nacionalidad_id = empleado.nacionalidad_id if 'nacionalidad' in bloqueados else isNULL(request.POST.get("nacionalidad"))
+					ciudad_id = empleado.ciudad_id if 'ciudad' in bloqueados else isNULL(request.POST.get("ciudad"))
+					barrio_id = empleado.barrio_id if 'barrio' in bloqueados else isNULL(request.POST.get("barrio"))
+					direccion = empleado.direccion if 'direccion' in bloqueados else isNULL(request.POST.get("direccion"))
+					celular = empleado.celular if 'celular' in bloqueados else isNULL(request.POST.get("celular"))
+					telefono = empleado.telefono if 'telefono' in bloqueados else isNULL(request.POST.get("telefono"))
+					email = empleado.email if 'email' in bloqueados else isNULL(request.POST.get("email"))
+					
+					# 4. Datos Personales
+					fecha_nacimiento = empleado.fecha_nacimiento if 'fecha_nacimiento' in bloqueados else isNULL(request.POST.get("fecha_nacimiento"))
+					sexo_id = empleado.sexo_id if 'sexo' in bloqueados else isNULL(request.POST.get("sexo"))
+					estado_civil_id = empleado.estado_civil_id if 'estado_civil' in bloqueados else isNULL(request.POST.get("estado_civil"))
+					tipo_sanguineo_id = empleado.tipo_sanguineo_id if 'tipo_sanguineo' in bloqueados else isNULL(request.POST.get("tipo_sanguineo"))
+					fecha_vencimiento_ci = empleado.fecha_vencimiento_ci if 'fecha_vencimiento_ci' in bloqueados else isNULL(request.POST.get("fecha_vencimiento_ci"))
+					
+					# 5. Fechas Laborales
+					fecha_ingreso = empleado.fecha_ingreso if 'fecha_ingreso' in bloqueados else isNULL(request.POST.get("fecha_ingreso"))
+					fecha_egreso = empleado.fecha_egreso if 'fecha_egreso' in bloqueados else isNULL(request.POST.get("fecha_egreso"))
 
-						# Manejo de imagen
+					# --- ASIGNACIÓN AL USUARIO (Sincronización) ---
+					usuario.is_active = activo
+					usuario.first_name = nombre
+					usuario.last_name = apellido
+					usuario.dni = ci
+					usuario.username = ci
+					usuario.email = email
+					usuario.sucursal_id = sucursal_id
+					
+					# Imagen de perfil (Generalmente permitida, pero puedes bloquearla también)
+					if 'image' not in bloqueados:
 						if "image-clear" in request.POST:
-							if usuario.image:
-								usuario.image.delete(save=False)
+							if usuario.image: usuario.image.delete(save=False)
 							usuario.image = None
 						if "image" in request.FILES:
 							usuario.image = request.FILES["image"]
+					usuario.save()
 
-						usuario.save()
+					# --- ASIGNACIÓN FINAL AL EMPLEADO ---
+					empleado.activo = activo
+					empleado.sucursal_id = sucursal_id
+					empleado.ci = ci
+					empleado.ruc = ruc
+					empleado.nombre = nombre
+					empleado.apellido = apellido
+					empleado.nacionalidad_id = nacionalidad_id
+					empleado.ciudad_id = ciudad_id
+					empleado.barrio_id = barrio_id
+					empleado.direccion = direccion
+					empleado.celular = celular
+					empleado.telefono = telefono
+					empleado.email = email
+					empleado.fecha_nacimiento = fecha_nacimiento
+					empleado.sexo_id = sexo_id
+					empleado.estado_civil_id = estado_civil_id
+					empleado.tipo_sanguineo_id = tipo_sanguineo_id
+					empleado.fecha_vencimiento_ci = fecha_vencimiento_ci
+					empleado.fecha_ingreso = fecha_ingreso
+					empleado.fecha_egreso = fecha_egreso
 
-						# Asignar grupo si no está
-						group = Group.objects.get(pk=settings.GROUPS.get("empleado"))
-						# Mantener grupo existente y agregar el de empleado
-						usuario.groups.add(group)
+					# Manejo de Archivos PDF (Seguridad Dinámica)
+					# Si 'archivo_pdf_ingreso' está en la lista de bloqueados, no procesamos el archivo del request
+					if 'archivo_pdf_ingreso' not in bloqueados and "archivo_pdf_ingreso" in request.FILES:
+						if empleado.archivo_pdf_ingreso: empleado.archivo_pdf_ingreso.delete(save=False)
+						empleado.archivo_pdf_ingreso = request.FILES["archivo_pdf_ingreso"]
+					
+					if 'archivo_pdf_egreso' not in bloqueados and "archivo_pdf_egreso" in request.FILES:
+						if empleado.archivo_pdf_egreso: empleado.archivo_pdf_egreso.delete(save=False)
+						empleado.archivo_pdf_egreso = request.FILES["archivo_pdf_egreso"]
 
-						# Actualizar datos del empleado
-						empleado.activo 			= activo
-						empleado.sucursal_id 		= sucursal_id
-						empleado.ci 			 	= ci
-						empleado.ruc 			 	= ruc
-						empleado.nombre 		 	= nombre
-						empleado.apellido 		 	= apellido
-						empleado.nacionalidad_id 	= nacionalidad_id
-						empleado.ciudad_id 		 	= ciudad_id
-						empleado.barrio_id 		 	= barrio_id
-						empleado.direccion 		 	= direccion
-						empleado.celular 		 	= celular
-						empleado.telefono 		 	= telefono
-						empleado.email 			 	= email
-						empleado.fecha_nacimiento  	= fecha_nacimiento
-						empleado.sexo_id 		 	= sexo_id
-						empleado.estado_civil_id	= estado_civil_id
-						empleado.tipo_sanguineo_id	= tipo_sanguineo_id
-						empleado.ci_fecha_vencimiento = ci_fecha_vencimiento
-						
-						if ci_archivo_pdf:
-							# Si ya existía un archivo antes, lo borramos del disco
-							if empleado.ci_archivo_pdf:
-								empleado.ci_archivo_pdf.delete(save=False)
-							# Asignamos el nuevo
-							empleado.ci_archivo_pdf = ci_archivo_pdf
-						
-						empleado.save()
+					if 'ci_archivo_pdf' not in bloqueados and "ci_archivo_pdf" in request.FILES:
+						if empleado.archivo_pdf_ci: empleado.archivo_pdf_ci.delete(save=False)
+						empleado.archivo_pdf_ci = request.FILES["ci_archivo_pdf"]
 
-						data["id"] = empleado.id
+					empleado.save()
+					data["id"] = empleado.id
 
-			elif action == "validate_data":
-				return self.validate_data()
 			else:
 				data["error"] = "No ha seleccionado ninguna opción"
 		except Exception as e:
 			data["error"] = str(e)
-		return HttpResponse(json.dumps(data), content_type="application/json")
-
+			
+		return JsonResponse(data, safe=False)
 
 	def get_context_data(self, **kwargs):
-		context = super().get_context_data()
+		context = super().get_context_data(**kwargs)
 		context["list_url"] = self.get_success_url()
-		context["title"] = f" Perfil de {self.object.nombre} {self.object.apellido}"
+		context["title"] = f"Perfil de {self.object.nombre} {self.object.apellido}"
 		context["action"] = "edit"
 		context["instance"] = self.object
+		context["is_self"] = self.is_self
 		return context
+
+# class EmpleadoUpdate(PermissionMixin,UpdateView):
+# 	# class EmpleadoUpdatePerfil(PermissionMixin, UpdateView):
+# 	model = Empleado
+# 	form_class = EmpleadoForm
+# 	template_name = "empleado/create.html"
+# 	success_url = reverse_lazy("dashboard")
+
+# 	# Eliminamos la propiedad fija y la hacemos dinámica
+# 	def get_permission_required(self):
+# 		if self.request.resolver_match.url_name.endswith("_self"):
+# 			return ("rh.change_empleado_self",) # Permiso para el empleado
+# 		return ("rh.change_empleado",) # Permiso para el administrador
+	
+# 	@method_decorator(csrf_exempt)
+# 	def dispatch(self, request, *args, **kwargs):
+# 		self.is_self = self.request.resolver_match.url_name.endswith("_self")
+
+# 		# Seguridad extra: Si es 'self' pero el usuario no tiene un empleado asociado
+# 		if self.is_self and not hasattr(request.user, 'empleado'):
+# 			raise Http404("Usted no tiene un perfil de empleado vinculado.")
+
+# 		return super().dispatch(request, *args, **kwargs)
+	
+# 	def get_success_url(self):
+# 		return reverse_lazy("dashboard") if self.is_self else reverse_lazy("empleado_list")
+	
+# 	# Obtener empleado asociado al usuario logueado
+# 	def get_empleado(self):
+# 		try:
+# 			return Empleado.objects.get(usuario=self.request.user)
+# 		except Empleado.DoesNotExist:
+# 			raise Http404("No se encontró el perfil del empleado asociado al usuario.")
+	
+# 	def get_object(self, queryset=None):
+# 		try:
+# 			if self.is_self:
+# 				return Empleado.objects.get(usuario=self.request.user)
+# 			return Empleado.objects.get(pk=self.kwargs["pk"])
+# 		except Empleado.DoesNotExist:
+# 			raise Http404("No se encontró el perfil del empleado.")
+	
+# 	# Validar datos únicos
+# 	def validate_data(self):
+# 		data = {"valid": True}
+# 		try:
+# 			type = self.request.POST["type"]
+# 			obj = self.request.POST["obj"].strip()
+# 			id = self.get_object().id
+# 			if type == "ci":
+# 				if Empleado.objects.filter(ci__iexact=obj).exclude(id=id):
+# 					data["valid"] = False
+# 			if type == "ruc":
+# 				if Empleado.objects.filter(ruc__iexact=obj).exclude(id=id):
+# 					data["valid"] = False
+# 			if type == "fecha_nacimiento":
+# 				data["valid"] = validar_mayor_edad(obj)
+			
+# 		except:
+# 			pass
+# 		return JsonResponse(data)
+
+# 	def post(self, request, *args, **kwargs):
+# 		data = {}
+# 		action = request.POST.get("action")
+# 		try:
+# 			if action == "edit":
+# 					with transaction.atomic():
+# 						empleado = self.get_object()
+# 						usuario = empleado.usuario
+# 						# Obtener datos del formulario
+# 						activo = True if "on" in request.POST['activo'] else False
+# 						ci = isNULL(request.POST["ci"])
+# 						ruc = isNULL(request.POST["ruc"])
+# 						nombre = isNULL(request.POST["nombre"])
+# 						apellido = isNULL(request.POST["apellido"])
+# 						sucursal_id = isNULL(request.POST["sucursal"])
+# 						nacionalidad_id = isNULL(request.POST["nacionalidad"])
+# 						ciudad_id = isNULL(request.POST["ciudad"])
+# 						barrio_id = isNULL(request.POST["barrio"])
+# 						direccion = isNULL(request.POST["direccion"])
+# 						celular = isNULL(request.POST["celular"])
+# 						telefono = isNULL(request.POST["telefono"])
+# 						email = isNULL(request.POST["email"])
+# 						fecha_nacimiento = isNULL(request.POST["fecha_nacimiento"])
+# 						sexo_id = isNULL(request.POST["sexo"])
+# 						estado_civil_id = isNULL(request.POST["estado_civil"])
+# 						tipo_sanguineo_id = isNULL(request.POST["tipo_sanguineo"])
+# 						fecha_vencimiento_ci = isNULL(request.POST["fecha_vencimiento_ci"])	
+# 						archivo_pdf_ci = request.FILES.get("ci_archivo_pdf")
+# 						fecha_ingreso = isNULL(request.POST["fecha_ingreso"])
+# 						archivo_pdf_ingreso = request.FILES.get("archivo_pdf_ingreso")
+# 						fecha_egreso = isNULL(request.POST["fecha_egreso"])
+# 						archivo_pdf_egreso = request.FILES.get("archivo_pdf_egreso")
+
+# 						# Actualizar datos del usuario
+# 						usuario.is_active 	= activo
+# 						usuario.first_name 	= nombre
+# 						usuario.last_name 	= apellido
+# 						usuario.dni 		= ci
+# 						usuario.username 	= usuario.dni
+# 						usuario.email 		= email
+# 						usuario.sucursal_id = sucursal_id
+
+# 						# Manejo de imagen
+# 						if "image-clear" in request.POST:
+# 							if usuario.image:
+# 								usuario.image.delete(save=False)
+# 							usuario.image = None
+# 						if "image" in request.FILES:
+# 							usuario.image = request.FILES["image"]
+
+# 						usuario.save()
+
+# 						# Asignar grupo si no está
+# 						group = Group.objects.get(pk=settings.GROUPS.get("empleado"))
+# 						# Mantener grupo existente y agregar el de empleado
+# 						usuario.groups.add(group)
+
+# 						# Actualizar datos del empleado
+# 						empleado.activo 			= activo
+# 						empleado.sucursal_id 		= sucursal_id
+# 						empleado.ci 			 	= ci
+# 						empleado.ruc 			 	= ruc
+# 						empleado.nombre 		 	= nombre
+# 						empleado.apellido 		 	= apellido
+# 						empleado.nacionalidad_id 	= nacionalidad_id
+# 						empleado.ciudad_id 		 	= ciudad_id
+# 						empleado.barrio_id 		 	= barrio_id
+# 						empleado.direccion 		 	= direccion
+# 						empleado.celular 		 	= celular
+# 						empleado.telefono 		 	= telefono
+# 						empleado.email 			 	= email
+# 						empleado.fecha_nacimiento  	= fecha_nacimiento
+# 						empleado.sexo_id 		 	= sexo_id
+# 						empleado.estado_civil_id	= estado_civil_id
+# 						empleado.tipo_sanguineo_id	= tipo_sanguineo_id
+# 						empleado.fecha_vencimiento_ci = fecha_vencimiento_ci
+# 						empleado.fecha_ingreso 		= fecha_ingreso
+# 						empleado.fecha_egreso 		= fecha_egreso
+						
+						
+# 						if archivo_pdf_ci:
+# 							# Si ya existía un archivo antes, lo borramos del disco
+# 							if empleado.archivo_pdf_ci:
+# 								empleado.archivo_pdf_ci.delete(save=False)
+# 							# Asignamos el nuevo
+# 							empleado.archivo_pdf_ci = archivo_pdf_ci
+						
+# 						if archivo_pdf_ingreso:
+# 							if empleado.archivo_pdf_ingreso:
+# 								empleado.archivo_pdf_ingreso.delete(save=False)
+# 							empleado.archivo_pdf_ingreso = archivo_pdf_ingreso	
+						
+# 						if archivo_pdf_egreso:
+# 							if empleado.archivo_pdf_egreso:
+# 								empleado.archivo_pdf_egreso.delete(save=False)
+# 							empleado.archivo_pdf_egreso = archivo_pdf_egreso
+						
+						
+# 						empleado.save()
+# 						data["id"] = empleado.id
+
+# 			elif action == "validate_data":
+# 				return self.validate_data()
+# 			else:
+# 				data["error"] = "No ha seleccionado ninguna opción"
+# 		except Exception as e:
+# 			data["error"] = str(e)
+# 		return HttpResponse(json.dumps(data), content_type="application/json")
+
+
+# 	def get_context_data(self, **kwargs):
+# 		context = super().get_context_data()
+# 		context["list_url"] = self.get_success_url()
+# 		context["title"] = f" Perfil de {self.object.nombre} {self.object.apellido}"
+# 		context["action"] = "edit"
+# 		context["instance"] = self.object
+# 		return context
 	
 class EmpleadoDelete(PermissionMixin, DeleteView):
 	model = Empleado

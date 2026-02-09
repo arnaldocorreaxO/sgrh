@@ -13,7 +13,7 @@ from core.rrhh.formacion_academica.forms import FormacionAcademicaForm
 from core.rrhh.models import Empleado, FormacionAcademica, Institucion
 from core.rrhh.empleado.views import EmpleadoScopedMixin
 from core.security.mixins import PermissionMixin
-
+from core.base.models import RefDet
 class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	# Modelo base y permiso requerido
 	model = FormacionAcademica
@@ -86,6 +86,24 @@ class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 			context["title"] = "Listado de " + self.context_prefix
 			context["empleado_filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
 		return context
+	
+def validate_data_request(request, model_class=None):
+	data = request.POST
+	type_val = data.get('type')
+	
+	try:
+		# 1. Validación de PDF (Independiente del modelo de la vista)
+		if type_val == 'check_pdf_requirement':
+			obj_id = data.get('id')
+			nivel = RefDet.objects.get(refcab__cod_referencia = 'NIVEL_ACADEMICO', pk=obj_id)
+			print("Nivel académico seleccionado:", nivel.denominacion, "con valor numérico:", nivel.valor_bit	)
+			return JsonResponse({'is_required': nivel.valor_bit == True})
+				
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=400)
+
+	return JsonResponse({'valid': True})
+
 
 class FormacionAcademicaCreate(PermissionMixin, EmpleadoScopedMixin,CreateView):
 	model = FormacionAcademica
@@ -117,7 +135,7 @@ class FormacionAcademicaCreate(PermissionMixin, EmpleadoScopedMixin,CreateView):
 				else:
 					data["error"] = form.errors					
 			elif action == "validate_data":
-				return self.validate_data()
+				return validate_data_request(request)
 			
 			elif action == "search_institucion":
 				term = request.POST.get("term", "")
@@ -153,6 +171,7 @@ class FormacionAcademicaUpdate(PermissionMixin,EmpleadoScopedMixin,UpdateView):
 		
 	def get_success_url(self):
 		return self.get_success_url_for("formacion_academica_list")
+	
 
 	def get_object(self, queryset=None):
 		try:
@@ -188,8 +207,9 @@ class FormacionAcademicaUpdate(PermissionMixin,EmpleadoScopedMixin,UpdateView):
 					form.save()
 				else:
 					data["error"] = form.errors
+
 			elif action == "validate_data":
-				return self.validate_data()
+				return validate_data_request(request)
 			else:
 				data["error"] = "No ha seleccionado ninguna opción"
 

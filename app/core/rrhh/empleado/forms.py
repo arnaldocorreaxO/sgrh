@@ -147,8 +147,18 @@ class EmpleadoForm(forms.ModelForm):
         widget=forms.DateInput(format="%Y-%m-%d",attrs={'type': 'date', 'class': 'form-control'})
     )
 
-    ci_fecha_vencimiento = forms.DateField(
+    fecha_vencimiento_ci = forms.DateField(
         label="Fecha Vencimiento CI",
+        widget=forms.DateInput(format="%Y-%m-%d",attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    fecha_ingreso = forms.DateField(
+        label="Fecha de Ingreso",
+        widget=forms.DateInput(format="%Y-%m-%d",attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    fecha_egreso = forms.DateField(
+        label="Fecha de Egreso",
         widget=forms.DateInput(format="%Y-%m-%d",attrs={'type': 'date', 'class': 'form-control'})
     )
 
@@ -182,7 +192,9 @@ class EmpleadoForm(forms.ModelForm):
             "telefono": forms.TextInput(attrs={"placeholder": "Indique un número de teléfono convencional"}),
             "celular": forms.TextInput(attrs={"placeholder": "Indique un número de celular principal"}),
             "email": forms.TextInput(attrs={"placeholder": "Indique un email principal"}),
-            'ci_archivo_pdf': ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'archivo_pdf_ci': ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'archivo_pdf_ingreso': ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'archivo_pdf_egreso': ClearableFileInput(attrs={'class': 'form-control-file'}),
         }
 
     def __init__(self, *args, **kwargs):
