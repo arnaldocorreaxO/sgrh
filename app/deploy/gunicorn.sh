@@ -1,32 +1,29 @@
 #!/bin/bash
 
 NAME="sgrh"
-# /home/tic/sgrh/app/deploy
-DIRECTORY=$(cd `dirname $0` && pwd)
-# /home/tic/sgrh/app (Sube un nivel)
-APPDIR=`dirname $DIRECTORY`
-# /home/tic/sgrh (Sube a la raíz)
-DJANGODIR=`dirname $APPDIR`
+# La raíz de ejecución debe ser donde está manage.py
+DJANGODIR="/home/tic/sgrh/app"
+# El entorno virtual está un nivel arriba de la app
+VENV_PATH="/home/tic/sgrh/.env/bin/activate"
 
-# Ruta del entorno virtual según lo que me indicaste
-VENV_PATH="${DJANGODIR}/.env/bin/activate"
-
-SOCKFILE=/tmp/gunicorn.sock
-LOGDIR=${DJANGODIR}/logs/gunicorn.log
-USER=tic
-GROUP=tic
+SOCKFILE="/tmp/gunicorn.sock"
+LOGDIR="/home/tic/sgrh/logs/gunicorn.log"
+USER="tic"
+GROUP="tic"
 NUM_WORKERS=5
-DJANGO_SETTINGS_MODULE=config.production
-DJANGO_WSGI_MODULE=config.wsgi
+
+# Verifica si es production.py o settings.py. 
+# Si no existe production.py, usa config.settings
+DJANGO_SETTINGS_MODULE="config.production"
+DJANGO_WSGI_MODULE="config.wsgi"
 
 # Limpiar socket previo
-rm -frv $SOCKFILE
+rm -f $SOCKFILE
 
 echo "Iniciando $NAME"
-echo "Directorio del Script: $DIRECTORY"
-echo "Raíz del Proyecto: $DJANGODIR"
+echo "Directorio de trabajo: $DJANGODIR"
 
-# Navegar a la raíz para ejecutar gunicorn
+# Entrar a la carpeta donde está manage.py
 cd $DJANGODIR
 
 # Activar el entorno virtual
@@ -37,13 +34,15 @@ else
     exit 1
 fi
 
+# Exportar variables de entorno
 export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
 export PYTHONPATH=$DJANGODIR:$PYTHONPATH
 
-# Crear el directorio para los logs si no existe
-mkdir -p ${DJANGODIR}/logs
+# Crear carpeta de logs si no existe
+mkdir -p /home/tic/sgrh/logs
 
 # Ejecutar Gunicorn
+# Importante: el módulo es config.wsgi
 exec gunicorn ${DJANGO_WSGI_MODULE}:application \
   --name $NAME \
   --workers $NUM_WORKERS \
