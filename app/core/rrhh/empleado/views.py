@@ -596,7 +596,9 @@ class EmpleadoUpdate(PermissionMixin, UpdateView):
 					usuario = empleado.usuario
 					
 					# Traemos la lista de campos bloqueados desde RefDet
-					bloqueados = self.get_bloqueados_db()
+					bloqueados=[]
+					if self.is_self:
+						bloqueados = self.get_bloqueados_db()
 
 					# --- PROCESAMIENTO DINÁMICO DE CAMPOS ---
 					# Si el campo está bloqueado, usamos el valor actual del objeto (empleado.campo)
@@ -682,9 +684,9 @@ class EmpleadoUpdate(PermissionMixin, UpdateView):
 						if empleado.archivo_pdf_egreso: empleado.archivo_pdf_egreso.delete(save=False)
 						empleado.archivo_pdf_egreso = request.FILES["archivo_pdf_egreso"]
 
-					if 'ci_archivo_pdf' not in bloqueados and "ci_archivo_pdf" in request.FILES:
+					if 'archivo_pdf_ci' not in bloqueados and "archivo_pdf_ci" in request.FILES:
 						if empleado.archivo_pdf_ci: empleado.archivo_pdf_ci.delete(save=False)
-						empleado.archivo_pdf_ci = request.FILES["ci_archivo_pdf"]
+						empleado.archivo_pdf_ci = request.FILES["archivo_pdf_ci"]
 
 					empleado.save()
 					data["id"] = empleado.id
@@ -793,7 +795,7 @@ class EmpleadoUpdate(PermissionMixin, UpdateView):
 # 						estado_civil_id = isNULL(request.POST["estado_civil"])
 # 						tipo_sanguineo_id = isNULL(request.POST["tipo_sanguineo"])
 # 						fecha_vencimiento_ci = isNULL(request.POST["fecha_vencimiento_ci"])	
-# 						archivo_pdf_ci = request.FILES.get("ci_archivo_pdf")
+# 						archivo_pdf_ci = request.FILES.get("archivo_pdf_ci")
 # 						fecha_ingreso = isNULL(request.POST["fecha_ingreso"])
 # 						archivo_pdf_ingreso = request.FILES.get("archivo_pdf_ingreso")
 # 						fecha_egreso = isNULL(request.POST["fecha_egreso"])

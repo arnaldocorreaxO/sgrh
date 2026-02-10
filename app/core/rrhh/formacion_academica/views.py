@@ -58,7 +58,7 @@ class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 				return self.model.objects.none()
 
 		# 4. Optimización final si hay datos que mostrar
-		return qs.select_related("empleado", "institucion", "titulo_obtenido", "nivel_academico")
+		return qs.select_related("empleado", "institucion", "nivel_academico","grado_academico")
 
 	def post(self, request, *args, **kwargs):
 		# Maneja acciones POST como búsqueda

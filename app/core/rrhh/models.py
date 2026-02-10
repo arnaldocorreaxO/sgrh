@@ -513,8 +513,15 @@ class FormacionAcademica(ModeloBase):
         related_name="nivel_academico_antecedente_academico",
     )
     institucion = models.ForeignKey(Institucion, on_delete=models.RESTRICT, related_name="institucion_antecedente_academico")
-    titulo_obtenido = models.ForeignKey(RefDet, on_delete=models.RESTRICT, related_name="titulo_obtenido_antecedente_academico")
+    grado_academico = models.ForeignKey(
+        RefDet,
+        verbose_name="Grado Académico",
+        on_delete=models.RESTRICT,
+        related_name="grado_academico_antecedente_academico",
+        default=0 # 0 (cero) Valor por defecto del sistema 
+    )
     denominacion_carrera = models.CharField(max_length=150, verbose_name="Carrera", null=True, blank=True)
+    titulo_obtenido = models.CharField(max_length=150, verbose_name="Título Obtenido", null=True, blank=True)    
     anho_graduacion = models.IntegerField(verbose_name="Año Graduación", null=True, blank=True)
     archivo_pdf = models.FileField(
         upload_to=UploadToPath('FORMACION'),
@@ -524,7 +531,7 @@ class FormacionAcademica(ModeloBase):
     def __str__(self):
         if self.empleado:
             return f"{self.titulo_obtenido} ({self.empleado.nombre} {self.empleado.apellido})"
-        return self.titulo
+        return self.titulo_obtenido
     
     def toJSON(self):
         item = model_to_dict(self)
@@ -544,7 +551,8 @@ class FormacionAcademica(ModeloBase):
         # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
         item['institucion__denominacion'] = self.institucion.denominacion if self.institucion else None
         item['nivel_academico__denominacion'] = self.nivel_academico.denominacion if self.nivel_academico else None
-        item['titulo_obtenido__denominacion'] = self.titulo_obtenido.denominacion if self.titulo_obtenido else None
+        item['grado_academico__denominacion'] = self.grado_academico.denominacion if self.grado_academico else None
+        item['titulo_obtenido'] = self.titulo_obtenido if self.titulo_obtenido else None
         item['denominacion_carrera'] = self.denominacion_carrera if self.denominacion_carrera else None
         # Formatear fecha de graduación
         item['anho_graduacion'] = self.anho_graduacion if self.anho_graduacion else None
@@ -716,12 +724,10 @@ class DocumentoComplementario(ModeloBase):
     )
     estado_documento_empleado = models.ForeignKey(
         RefDet,
-        to_field="valor_unico",
         verbose_name="Estado del Documento",
         db_column="estado_documento_empleado",
         on_delete=models.RESTRICT,
         related_name="estado_documento_empleado",
-        default="S", # Activo
     )
 
     class Meta:
@@ -822,12 +828,10 @@ class HistoricoDisciplinario(ModeloBase):
 
     estado_documento = models.ForeignKey(
         RefDet,
-        to_field="valor_unico",
         verbose_name="Estado del Documento",
         db_column="estado_documento",
         on_delete=models.RESTRICT,
         related_name="estado_documento_historico",
-        default="S"
     )
 
     def toJSON(self):

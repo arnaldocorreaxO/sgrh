@@ -98,14 +98,16 @@
       <h2 class="section-title">Formación Académica</h2>
       <ul class="section-list">
         {% for f in empleado.formacionacademica.all %}
-          <li>
-            <strong>{{ f.titulo_obtenido }} - {{ f.denominacion_carrera }}</strong> - {{ f.institucion }} ({{ f.anho_graduacion }})
+          <li style="margin-bottom: 15px; list-style: none;">
+            <strong>{{ f.anho_graduacion }} - {{ f.nivel_academico }}</strong>
+            <br />
+            {{ f.denominacion_carrera }} - {{ f.institucion }}
+            <br />
+            {{ f.titulo_obtenido }}
+
             <br />
             {% if f.archivo_pdf %}
               <a href="{{ f.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
-              {% comment %}
-            {% else %}
-              <small>Sin archivo pdf</small> {% endcomment %}
             {% endif %}
           </li>
         {% empty %}

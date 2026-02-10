@@ -32,8 +32,8 @@ class FormacionAcademicaForm(ModelFormEmpleado):
             refcab__cod_referencia="NIVEL_ACADEMICO"
         ).order_by('descripcion')
         
-        self.fields["titulo_obtenido"].queryset = RefDet.objects.filter(
-            refcab__cod_referencia="TITULO_ACADEMICO"
+        self.fields["grado_academico"].queryset = RefDet.objects.filter(
+            refcab__cod_referencia="GRADO_ACADEMICO"
         ).order_by('descripcion')
 
         # 3. CONFIGURACIÓN DE ARCHIVO EN EDICIÓN
@@ -52,8 +52,9 @@ class FormacionAcademicaForm(ModelFormEmpleado):
             'empleado',
             'nivel_academico',
             'institucion',
-            'titulo_obtenido',
+            'grado_academico',
             'denominacion_carrera',
+            'titulo_obtenido',
             'anho_graduacion',
             'archivo_pdf',
         ]
@@ -62,7 +63,8 @@ class FormacionAcademicaForm(ModelFormEmpleado):
             'empleado': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;'}),
             'nivel_academico': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;'}),
             'institucion': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;'}),
-            'titulo_obtenido': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;'}),
+            'grado_academico': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;'}),
+            'titulo_obtenido': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Ingeniero Civil'}),
             'anho_graduacion': forms.Select(choices=YEAR_CHOICES, attrs={'class': 'form-control select2', 'style': 'width: 100%;'}),
             'denominacion_carrera': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Ingeniería en Sistemas'}),
             'archivo_pdf': ClearableFileInput(attrs={'class': 'form-control-file'}),

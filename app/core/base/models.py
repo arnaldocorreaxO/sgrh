@@ -37,15 +37,15 @@ class RefDet(ModeloBase):
         on_delete=models.RESTRICT,
         related_name="referencia",
     )
+    #Codigo referencia unico para cada detalle, se puede usar para relacionar con otras tablas ya que es un valor unico
     cod_referencia = models.CharField(
-        verbose_name="Codigo Referencia", max_length=100
+        verbose_name="Codigo Referencia", max_length=100,unique=True
     )
     denominacion = models.CharField(verbose_name="Denominacion", max_length=250) #Nombre Referencia
     descripcion = models.CharField(verbose_name="Descripción", max_length=250,null=True,blank=True)#Descripcion Referencia
     valor_alfanumerico = models.CharField(verbose_name="Valor Alfanumerico", max_length=100, null=True, blank=True)
     valor_numerico = models.DecimalField(verbose_name="Valor Numérico", max_digits=18, decimal_places=4, null=True, blank=True)   
     valor_fecha = models.DateField(verbose_name="Valor Fecha", null=True, blank=True)
-    valor_unico = models.CharField(verbose_name="Valor Único", max_length=25,unique=True) # Valor unico para relacionar en otras tablas
     valor_orden = models.IntegerField(verbose_name="Valor Orden", null=True, blank=True)
     valor_bit = models.BooleanField(verbose_name="Valor Bit", null=True, blank=True)
     comentarios = models.TextField(verbose_name="Comentarios", max_length=250, null=True, blank=True)  
@@ -71,24 +71,12 @@ class RefDet(ModeloBase):
             .order_by("denominacion")[:10]
         )
 
-    # Generar valor unico automatico si no se ingresa
-    def save(self, *args, **kwargs):
-        if not self.valor_unico:
-            # Guardar primero para obtener el ID
-            super().save(*args, **kwargs)
-            self.valor_unico = str(self.id)
-            # Guardar solo el campo actualizado
-            super().save(update_fields=["valor_unico"])
-        else:
-            super().save(*args, **kwargs)
-
     class Meta:
         # ordering = ['tip_movimiento',]
         db_table = "bs_refdet"
         verbose_name = "Referencia Detalle"
         verbose_name_plural = "Referencias Detalle"
-        unique_together = ["refcab", "valor_unico"]
-
+        
 
 """MESES"""
 class Meses(ModeloBase):

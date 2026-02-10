@@ -9,7 +9,7 @@ if (!window.isSelf) {
 }
 
 columnas.push(
-  { data: "titulo_obtenido__denominacion" }, // 2
+  { data: "titulo_obtenido" }, // 2
   { data: "denominacion_carrera" }, // 3
   { data: "institucion__denominacion" }, // 4
   { data: "nivel_academico__denominacion" }, // 5

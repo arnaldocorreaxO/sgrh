@@ -5,6 +5,11 @@ let pdfIsRequired = false;
 
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("frmForm");
+  // Detectamos si existe un link al PDF (esto indica que ya hay uno cargado en el servidor)
+  // Ajusta el selector si el link está en un contenedor específico
+  const tieneArchivo =
+    document.querySelector("a.pdf-link") !== null ||
+    document.querySelector('a[href*=".pdf"]') !== null;
 
   fv = FormValidation.formValidation(form, {
     locale: "es_ES",
@@ -62,11 +67,19 @@ document.addEventListener("DOMContentLoaded", function () {
             message: "El archivo PDF es obligatorio para el nivel seleccionado",
             callback: function (input) {
               const value = input.value;
-              // Si el servidor dijo que es obligatorio (1), validar que no esté vacío
+
+              // REGLA: Si el nivel exige PDF...
               if (pdfIsRequired) {
+                // Si el input está vacío PERO ya existe un archivo previo, es VÁLIDO
+                if (value === "" && tieneArchivo) {
+                  return true;
+                }
+                // Si el input está vacío y NO hay archivo previo, es INVÁLIDO
                 return value !== "";
               }
-              return true; // Si es 0, siempre es válido
+
+              // Si no es obligatorio por nivel, siempre es válido
+              return true;
             },
           },
           file: {
