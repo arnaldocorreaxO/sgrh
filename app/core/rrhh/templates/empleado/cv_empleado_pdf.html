@@ -99,11 +99,11 @@
       <ul class="section-list">
         {% for f in empleado.formacionacademica.all %}
           <li style="margin-bottom: 15px; list-style: none;">
-            <strong>{{ f.anho_graduacion }} - {{ f.nivel_academico }}</strong>
+            <strong>{{ f.anho_graduacion }} - {{ f.nivel_academico|upper }}</strong>
             <br />
-            {{ f.denominacion_carrera }} - {{ f.institucion }}
+            {{ f.denominacion_carrera }} - {{ f.institucion|upper }}
             <br />
-            {{ f.titulo_obtenido }}
+            Titulo Obtenido: {{ f.titulo_obtenido|upper }}
 
             <br />
             {% if f.archivo_pdf %}
