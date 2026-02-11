@@ -75,6 +75,12 @@ class Institucion(ModeloBase):
             models.Q(abreviatura__icontains=term)
         )[:limit]
     
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['tipo_institucion__denominacion'] = self.tipo_institucion.denominacion if self.tipo_institucion else None
+        item['tipo_funcion__denominacion'] = self.tipo_funcion.denominacion if self.tipo_funcion else None
+        return item
+    
     class Meta:
         db_table = "rh_institucion"
         verbose_name = "001 - Institución"
