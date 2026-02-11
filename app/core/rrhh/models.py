@@ -635,7 +635,7 @@ class Capacitacion(ModeloBase):
         return None
     
     def __str__(self):
-        return f"{self.empleado} - {self.nombre_capacitacion}"
+        return f"{self.nombre_capacitacion}"
     
     def toJSON(self):
         item = model_to_dict(self)
@@ -652,7 +652,7 @@ class Capacitacion(ModeloBase):
         # Se usa doble guión '__' para que el nombre en el JSON coincida con el campo del ORM.
         # Esto permite que el ordenamiento de DataTables funcione sin mapeos adicionales.
         # Campos relacionados con denominación
-        item['institucion__denominacion'] = self.institucion.denominacion if self.institucion else None
+        item['institucion__denominacion'] = self.institucion if self.institucion else None
         item['tipo_certificacion__denominacion'] = self.tipo_certificacion.denominacion if self.tipo_certificacion else None
         item['empleado__ci'] = self.empleado.ci if self.empleado else None
         item['empleado'] = self.empleado.nombre_apellido if self.empleado else None #Empleado nombre completo
