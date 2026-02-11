@@ -498,8 +498,8 @@ class EmpleadoUpdate(PermissionMixin, UpdateView):
 	# 1. Permisos dinámicos basados en la ruta
 	def get_permission_required(self):
 		if self.request.resolver_match.url_name.endswith("_self"):
-			return ("rh.change_empleado_self",)
-		return ("rh.change_empleado",)
+			return ("change_empleado_self",)
+		return ("change_empleado",)
 
 	@method_decorator(csrf_exempt)
 	def dispatch(self, request, *args, **kwargs):
