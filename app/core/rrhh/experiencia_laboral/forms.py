@@ -19,93 +19,82 @@ class CargoChoiceField(forms.ModelChoiceField):
         super().validate(value)
 
 
+from django import forms
+from django.utils.safestring import mark_safe
+
 class ExperienciaLaboralForm(ModelFormEmpleado):
 
-    # ---------------------------------------------------------
-    # 🔥 CAMPO PERSONALIZADO DEFINIDO A NIVEL DE CLASE
-    # ---------------------------------------------------------
-    
     empresa = forms.CharField(
         label="Empresa donde trabajó",
-         widget=forms.Select(
+        help_text="Si no existe en la lista, escríbala y presione Enter para crearla.",
+        widget=forms.Select(
             attrs={
-
                 "class": "custom-select select2",
                 "style": "width: 100%",
+                "data-placeholder": "Seleccione o escriba una empresa",
             }
         ),
-        required=False,
+        required=True,
     )
 
     cargo = forms.CharField(
         label="Cargo desempeñado",
-         widget=forms.Select(
+        help_text="Si no existe en la lista, escríbalo y presione Enter para crearlo.",
+        widget=forms.Select(
             attrs={
-
                 "class": "custom-select select2",
                 "style": "width: 100%",
+                "data-placeholder": "Seleccione o escriba un cargo",
             }
         ),
-        required=False,
+        required=True,
     )
-        
+
+    actividades = forms.CharField(
+        label="Actividades o tareas",
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": "3",
+                "placeholder": "Ej: Gestión de inventarios, atención al cliente, elaboración de informes...",
+            }
+        ),
+        help_text="Mencione brevemente sus tareas principales o deje en blanco si no desea detallar."
+    )
+    archivo_pdf = forms.FileField(
+        label="Respaldo de experiencia",
+        required=False,
+        help_text="Puede adjuntar un certificado o constancia laboral en PDF (opcional).",
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control-file'})
+    )
 
     def __init__(self, *args, **kwargs):
-        print(">>> instancia del form:", id(self))
         super().__init__(*args, **kwargs)
-
-        # En Experiencia Laboral, el campo empresa y cargo son RefDet no son declarados en el modelo
-
-        # ---------------------------------------------------------
-        # EMPRESA (ya declarado arriba)
-        # ---------------------------------------------------------
-
-        # Para que Select2 no cargue opciones al abrir
-        self.fields["empresa"].widget.choices = []
-
-        # Si estamos editando, cargar solo el cargo actual
         inst = self.instance if self.instance and self.instance.pk else None
 
+        # --- Configuración de Empresa ---
+        self.fields["empresa"].widget.choices = []
         if inst and inst.empresa:
-            # valor inicial del campo
             self.initial["empresa"] = inst.empresa.pk
+            self.fields["empresa"].widget.choices = [(inst.empresa.pk, inst.empresa.denominacion)]
 
-            # opción visible en el select
-            self.fields["empresa"].widget.choices = [
-            (inst.empresa.pk, inst.empresa.denominacion)
-            ]
-
-        # ---------------------------------------------------------
-        # CARGO (ya declarado arriba)
-        # ---------------------------------------------------------
-
-        # Para que Select2 no cargue opciones al abrir
+        # --- Configuración de Cargo ---
         self.fields["cargo"].widget.choices = []
-
-        # Si estamos editando, cargar solo el cargo actual
         if inst and inst.cargo:
-            # valor inicial del campo
             self.initial["cargo"] = inst.cargo.pk
+            self.fields["cargo"].widget.choices = [(inst.cargo.pk, inst.cargo.denominacion)]
 
-            # opción visible en el select
-            self.fields["cargo"].widget.choices = [
-            (inst.cargo.pk, inst.cargo.denominacion)
-            ]
-
-
-        # ---------------------------------------------------------
-        # ARCHIVO PDF
-        # ---------------------------------------------------------
+        # --- Archivo PDF ---
         self.fields["archivo_pdf"].required = False
         if inst and inst.archivo_pdf:
-            archivo_url = inst.archivo_pdf.url
-            self.fields["archivo_pdf"].help_text += (
-                f'<br><a href="{archivo_url}" target="_blank">Ver archivo actual</a>'
-            )
+                # Mantenemos el texto de ayuda original y agregamos el link al actual
+                self.fields["archivo_pdf"].help_text = mark_safe(
+                    f'Puede reemplazar el documento actual subiendo uno nuevo en PDF.<br>'
+                    f'<span class="text-success"><i class="fa fa-check-circle"></i> Archivo ya cargado: '
+                    f'<a href="{inst.archivo_pdf.url}" target="_blank" class="font-weight-bold">Ver documento</a></span>'
+                )
 
-    # ---------------------------------------------------------
-    # META
-    # ---------------------------------------------------------
     class Meta:
         model = ExperienciaLaboral
         fields = [
@@ -114,12 +103,10 @@ class ExperienciaLaboralForm(ModelFormEmpleado):
             'cargo',
             'fecha_desde',
             'fecha_hasta',
-            'motivo_retiro',
+            'actividades',
             'archivo_pdf',
         ]
         widgets = {
-            
-            # ⚠️ IMPORTANTE: NO DEFINIR WIDGET PARA "empresa" y "cargo"
             'fecha_desde': forms.DateInput(
                 format="%Y-%m-%d",
                 attrs={'class': 'form-control', 'type': 'date'}
@@ -128,8 +115,7 @@ class ExperienciaLaboralForm(ModelFormEmpleado):
                 format="%Y-%m-%d",
                 attrs={'class': 'form-control', 'type': 'date'}
             ),
-            'archivo_pdf': ClearableFileInput(attrs={'class': 'form-control-file'}),
-            'motivo_retiro': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'archivo_pdf': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
         }
 
     def clean_empresa(self):

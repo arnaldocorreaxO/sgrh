@@ -49,6 +49,10 @@
               {% else %}
                 {{ field|add_class:'form-control'|attr:'autocomplete:off' }}
               {% endif %}
+
+              {% if field.help_text %}
+                <small class="form-text text-muted">{{ field.help_text|safe }}</small>
+              {% endif %}
             </div>
           {% endfor %}
         </div>

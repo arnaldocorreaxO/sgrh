@@ -666,7 +666,7 @@ class ExperienciaLaboral(ModeloBase):
     cargo = models.ForeignKey(RefDet,db_column="cargo_refdet_id", on_delete=models.RESTRICT, related_name="cargo_experiencia_laboral")
     fecha_desde = models.DateField(verbose_name="Fecha Desde")
     fecha_hasta = models.DateField(verbose_name="Fecha Hasta", null=True, blank=True)
-    motivo_retiro = models.CharField(max_length=255, verbose_name="Motivo Retiro", null=True, blank=True)
+    actividades = models.CharField(max_length=255, verbose_name="Actividades", null=True, blank=True)
     archivo_pdf = models.FileField(
         upload_to=UploadToPath('LABORAL'),
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],

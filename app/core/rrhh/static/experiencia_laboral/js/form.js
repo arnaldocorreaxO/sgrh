@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
           },
         },
       },
-      motivo_retiro: {
+      actividades: {
         validators: {
           stringLength: { max: 255, message: "Máximo 255 caracteres" },
         },
