@@ -144,7 +144,7 @@
         <ul class="section-list">
           {% for e in empleado.experiencia_laboral.all %}
             <li class="exp-item">
-              <strong>{{ e.cargo }}</strong> en {{ e.empresa }}<br />
+              <strong>{{ e.cargo|upper }}</strong> en {{ e.empresa|upper }}<br />
               {{ e.fecha_desde|date:'F Y' }} –{% if e.fecha_hasta %}
                 {{ e.fecha_hasta|date:'F Y' }}
               {% else %}
