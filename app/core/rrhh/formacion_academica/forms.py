@@ -32,14 +32,18 @@ class FormacionAcademicaForm(ModelFormEmpleado):
         else:
             self.fields["institucion"].queryset = Institucion.objects.none()
 
-        # 3. QUERYSETS DE REFERENCIAS (Basados en RefDet)
+        # 3. QUERYSETS DE REFERENCIAS
         self.fields["nivel_academico"].queryset = RefDet.objects.filter(
             refcab__cod_referencia="NIVEL_ACADEMICO"
-        ).order_by('descripcion')
-        
+        ).order_by('valor_orden')
+        # Esto permite que el data-placeholder del widget funcione:
+        self.fields["nivel_academico"].empty_label = "" 
+
         self.fields["grado_academico"].queryset = RefDet.objects.filter(
             refcab__cod_referencia="GRADO_ACADEMICO"
-        ).order_by('descripcion')
+        ).order_by('valor_orden')
+        # Esto quita la selección automática del primer elemento:
+        self.fields["grado_academico"].empty_label = ""
 
         # 4. CONFIGURACIÓN VISUAL DEL ARCHIVO PDF
         if self.instance and self.instance.pk:
@@ -72,9 +76,9 @@ class FormacionAcademicaForm(ModelFormEmpleado):
         ]
         widgets = {
             'empleado': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;'}),
-            'nivel_academico': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;'}),
+            'nivel_academico': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;', 'data-placeholder': 'Seleccione nivel académico'}),
             'institucion': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;'}),
-            'grado_academico': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;'}),
+            'grado_academico': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;', 'data-placeholder': 'Seleccione grado académico'}),
             'titulo_obtenido': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Licenciado en Administración'}),
             'denominacion_carrera': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Administración de Empresas'}),
             'anho_graduacion': forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 100%;'}),
