@@ -94,159 +94,161 @@
     </section>
 
     <!-- FORMACIÓN -->
-    <section class="cv-section">
-      <h2 class="section-title">Formación Académica</h2>
-      <ul class="section-list">
-        {% for f in empleado.formacionacademica.all %}
-          <li style="margin-bottom: 15px; list-style: none;">
-            <strong>{{ f.anho_graduacion }} - {{ f.nivel_academico|upper }}</strong>
-            <br />
-            {{ f.denominacion_carrera }} - {{ f.institucion|upper }}
-            <br />
-            Titulo Obtenido: {{ f.titulo_obtenido|upper }}
+    <div style="page-break-inside: avoid;">
+      <section class="cv-section">
+        <h2 class="section-title">Formación Académica</h2>
+        <ul class="section-list">
+          {% for f in empleado.formacionacademica.all %}
+            <li style="for-item">
+              <strong>{{ f.anho_graduacion }} - {{ f.nivel_academico|upper }}</strong>
+              <br />
+              {{ f.denominacion_carrera }} - {{ f.institucion|upper }}
+              <br />
+              Titulo Obtenido: {{ f.titulo_obtenido|upper }}
 
-            <br />
-            {% if f.archivo_pdf %}
-              <a href="{{ f.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
-            {% endif %}
+              <br />
+              {% if f.archivo_pdf %}
+                <a href="{{ f.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
+              {% endif %}
+            </li>
+          {% empty %}
+            <li>No hay registros académicos.</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <!-- OTROS ESTUDIOS -->
+      <section class="cv-section">
+        <h2 class="section-title">Otros Estudios</h2>
+        <ul class="section-list">
+          {% for c in empleado.capacitacion.all %}
+            <li class="cap-item">
+              <strong>{{ c.nombre_capacitacion }}</strong> - {{ c.institucion }} (del {{ c.fecha_inicio|date:'d/m/Y' }} al {{ c.fecha_fin|date:'d/m/Y' }})
+              <br />
+              {% if c.archivo_pdf %}
+                <a href="{{ c.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
+                {% comment %}
+              {% else %}
+                <small>Sin archivo pdf</small>{% endcomment %}
+              {% endif %}
+            </li>
+          {% empty %}
+            <li>No hay registros de capacitación.</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <!-- EXPERIENCIA -->
+      <section class="cv-section">
+        <h2 class="section-title">Experiencia Laboral</h2>
+        <ul class="section-list">
+          {% for e in empleado.experiencia_laboral.all %}
+            <li class="exp-item">
+              <strong>{{ e.cargo }}</strong> en {{ e.empresa }}<br />
+              {{ e.fecha_desde|date:'F Y' }} –{% if e.fecha_hasta %}
+                {{ e.fecha_hasta|date:'F Y' }}
+              {% else %}
+                Actualidad
+              {% endif %}
+              <br />
+              {{ e.descripcion }}
+
+              {% if e.archivo_pdf %}
+                <a href="{{ e.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
+                {% comment %}
+              {% else %}
+                <small>Sin archivo pdf</small>{% endcomment %}
+              {% endif %}
+            </li>
+          {% empty %}
+            <li>No hay registros de experiencia laboral.</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <!-- INFORMACIÓN LABORAL -->
+      <section class="cv-section" style="margin-top: 20px; page-break-inside: avoid;">
+        <h2 class="section-title" style="border-bottom: 2px solid #333; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 10px;">Información Laboral</h2>
+
+        <ul class="section-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; list-style: none; padding: 0;">
+          <li class="inf-item">
+            <strong>Fecha de Ingreso:</strong> {{ empleado.fecha_ingreso|date:'d/m/Y'|default:'---' }}
           </li>
-        {% empty %}
-          <li>No hay registros académicos.</li>
-        {% endfor %}
-      </ul>
-    </section>
 
-    <!-- OTROS ESTUDIOS -->
-    <section class="cv-section">
-      <h2 class="section-title">Otros Estudios</h2>
-      <ul class="section-list">
-        {% for c in empleado.capacitacion.all %}
-          <li>
-            <strong>{{ c.nombre_capacitacion }}</strong> - {{ c.institucion }} (del {{ c.fecha_inicio|date:'d/m/Y' }} al {{ c.fecha_fin|date:'d/m/Y' }})
-            <br />
-            {% if c.archivo_pdf %}
-              <a href="{{ c.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
-              {% comment %}
+          <li class="inf-item">
+            <strong>Antigüedad:</strong>
+            {% if empleado.get_antiguedad %}
+              {{ empleado.get_antiguedad }}
             {% else %}
-              <small>Sin archivo pdf</small>{% endcomment %}
+              ---
             {% endif %}
           </li>
-        {% empty %}
-          <li>No hay registros de capacitación.</li>
-        {% endfor %}
-      </ul>
-    </section>
 
-    <!-- EXPERIENCIA -->
-    <section class="cv-section">
-      <h2 class="section-title">Experiencia Laboral</h2>
-      <ul class="section-list">
-        {% for e in empleado.experiencia_laboral.all %}
-          <li class="exp-item">
-            <strong>{{ e.cargo }}</strong> en {{ e.empresa }}<br />
-            {{ e.fecha_desde|date:'F Y' }} –{% if e.fecha_hasta %}
-              {{ e.fecha_hasta|date:'F Y' }}
-            {% else %}
-              Actualidad
-            {% endif %}
-            <br />
-            {{ e.descripcion }}
-
-            {% if e.archivo_pdf %}
-              <a href="{{ e.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
-              {% comment %}
-            {% else %}
-              <small>Sin archivo pdf</small>{% endcomment %}
-            {% endif %}
-          </li>
-        {% empty %}
-          <li>No hay registros de experiencia laboral.</li>
-        {% endfor %}
-      </ul>
-    </section>
-
-    <!-- INFORMACIÓN LABORAL -->
-    <section class="cv-section" style="margin-top: 20px; page-break-inside: avoid;">
-      <h2 class="section-title" style="border-bottom: 2px solid #333; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 10px;">Información Laboral</h2>
-
-      <ul class="section-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; list-style: none; padding: 0;">
-        <li>
-          <strong>Fecha de Ingreso:</strong> {{ empleado.fecha_ingreso|date:'d/m/Y'|default:'---' }}
-        </li>
-
-        <li>
-          <strong>Antigüedad:</strong>
-          {% if empleado.get_antiguedad %}
-            {{ empleado.get_antiguedad }}
-          {% else %}
-            ---
-          {% endif %}
-        </li>
-
-        <li>
-          <strong>Resolución de Ingreso:</strong>
-          {% if empleado.archivo_pdf_ingreso %}
-            <a href="{{ request.build_absolute_uri }}{{ empleado.archivo_pdf_ingreso.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
-          {% else %}
-            <span style="color: #888;">No adjunto</span>
-          {% endif %}
-        </li>
-
-        {% if empleado.fecha_egreso %}
-          <li>
-            <strong>Fecha de Egreso:</strong> {{ empleado.fecha_egreso|date:'d/m/Y' }}
-          </li>
-          <li>
-            <strong>Resolución de Egreso:</strong>
-            {% if empleado.archivo_pdf_egreso %}
-              <a href="{{ request.build_absolute_uri }}{{ empleado.archivo_pdf_egreso.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
+          <li class="inf-item">
+            <strong>Resolución de Ingreso:</strong>
+            {% if empleado.archivo_pdf_ingreso %}
+              <a href="{{ request.build_absolute_uri }}{{ empleado.archivo_pdf_ingreso.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
             {% else %}
               <span style="color: #888;">No adjunto</span>
             {% endif %}
           </li>
-        {% endif %}
-      </ul>
-    </section>
 
-    <!-- TRAYECTORIA -->
-    <section class="cv-section">
-      {% comment %} <h2 class="section-title">Puesto Actual en la Empresa</h2> {% endcomment %}
-      <ul class="trayectoria-list">
-        {% for e in empleado.empleado_posicion.all %}
-          <li class="trayectoria-item">
-            <div class="trayectoria-header">
-              <strong>{{ e.tipo_movimiento.denominacion }}</strong> - {{ e.dependencia_posicion }}
-              <br />
-              {% if e.cargo_puesto_actual %}
-                <span class="badge badge-success">Cargo Actual</span>
-              {% endif %}
-            </div>
-
-            <small class="text-muted">
-              {{ e.fecha_inicio|date:'d/m/Y' }}
-              {% if e.fecha_fin %}
-                – {{ e.fecha_fin|date:'d/m/Y' }}
+          {% if empleado.fecha_egreso %}
+            <li class="inf-item">
+              <strong>Fecha de Egreso:</strong> {{ empleado.fecha_egreso|date:'d/m/Y' }}
+            </li>
+            <li class="inf-item">
+              <strong>Resolución de Egreso:</strong>
+              {% if empleado.archivo_pdf_egreso %}
+                <a href="{{ request.build_absolute_uri }}{{ empleado.archivo_pdf_egreso.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
               {% else %}
-                – Actualidad
+                <span style="color: #888;">No adjunto</span>
               {% endif %}
-            </small>
+            </li>
+          {% endif %}
+        </ul>
+      </section>
 
-            <br />
+      <!-- TRAYECTORIA -->
+      <section class="cv-section">
+        {% comment %} <h2 class="section-title">Puesto Actual en la Empresa</h2> {% endcomment %}
+        <ul class="trayectoria-list">
+          {% for e in empleado.empleado_posicion.all %}
+            <li class="trayectoria-item">
+              <div class="trayectoria-header">
+                <strong>{{ e.tipo_movimiento.denominacion }}</strong> - {{ e.dependencia_posicion }}
+                <br />
+                {% if e.cargo_puesto_actual %}
+                  <span class="badge badge-success">Cargo Actual</span>
+                {% endif %}
+              </div>
 
-            <small>Vínculo: {{ e.vinculo_laboral.denominacion }} | Legajo: {{ e.legajo }}</small>
+              <small class="text-muted">
+                {{ e.fecha_inicio|date:'d/m/Y' }}
+                {% if e.fecha_fin %}
+                  – {{ e.fecha_fin|date:'d/m/Y' }}
+                {% else %}
+                  – Actualidad
+                {% endif %}
+              </small>
 
-            {% if e.archivo_pdf %}
               <br />
-              <a href="{{ e.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
-            {% else %}
-              <br />
-              <small>Falta archivo pdf resolución</small>
-            {% endif %}
-          </li>
-        {% empty %}
-          <li class="text-muted">No hay registros de movimientos o cargos asignados.</li>
-        {% endfor %}
-      </ul>
-    </section>
+
+              <small>Vínculo: {{ e.vinculo_laboral.denominacion }} | Legajo: {{ e.legajo }}</small>
+
+              {% if e.archivo_pdf %}
+                <br />
+                <a href="{{ e.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
+              {% else %}
+                <br />
+                <small>Falta archivo pdf resolución</small>
+              {% endif %}
+            </li>
+          {% empty %}
+            <li class="text-muted">No hay registros de movimientos o cargos asignados.</li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
   </body>
 </html>

@@ -151,9 +151,12 @@ body {
 
 /* Evitar que una sección se corte entre dos páginas */
 .cv-section,
+.for-item,
+.cap-item,
 .exp-item,
+.inf-item,
 .trayectoria-item {
-  /* page-break-inside: avoid; */
+  page-break-inside: avoid;
   margin-bottom: 15px;
 }
 
