@@ -149,15 +149,20 @@ body {
   font-size: 14px;
 }
 
-/* Evitar que una sección se corte entre dos páginas */
-.cv-section,
+/* Quita .cv-section de aquí para evitar saltos bruscos de secciones enteras */
 .for-item,
 .cap-item,
 .exp-item,
 .inf-item,
 .trayectoria-item {
-  page-break-inside: avoid;
+  page-break-inside: avoid; /* Esto evita que UN título se parta a la mitad */
   margin-bottom: 15px;
+  list-style: none; /* Limpia los puntos si no los deseas */
+}
+
+.cv-section {
+  page-break-inside: auto; /* Permite que la sección fluya entre páginas */
+  margin-bottom: 25px;
 }
 
 .section-title {

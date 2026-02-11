@@ -99,7 +99,7 @@
         <h2 class="section-title">Formación Académica</h2>
         <ul class="section-list">
           {% for f in empleado.formacionacademica.all %}
-            <li style="for-item">
+            <li class="for-item">
               <strong>{{ f.anho_graduacion }} - {{ f.nivel_academico|upper }}</strong>
               <br />
               {{ f.denominacion_carrera }} - {{ f.institucion|upper }}
