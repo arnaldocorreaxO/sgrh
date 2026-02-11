@@ -11,7 +11,7 @@ from django.db import models
 from django.forms import model_to_dict
 
 from core.base.choices import *
-from core.base.utils import calculate_age
+from core.base.utils import calculate_age, calculate_age_detailed
 from core.user.models import User
 from core.utils import UploadToPath
 
@@ -331,7 +331,10 @@ class Empleado(ModeloBase):
 
     def get_antiguedad(self):
         if self.fecha_ingreso:
-            return calculate_age(self.fecha_ingreso)
+            years, months, days = calculate_age_detailed(self.fecha_ingreso)
+            resultado = f"{years} años, {months} meses y {days} días"
+            # Ejemplo: "25 años, 4 meses y 12 días"
+            return resultado
         return None
 
     def toJSON(self):

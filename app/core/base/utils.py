@@ -111,3 +111,41 @@ def calculate_age(born):
     return (today.year - born.year) - (
         (today.month, today.day) < (born.month, born.day)
     )
+
+
+# Calcular edad detallada en años, meses y días con dateutil
+def calculate_age_detailed(born):
+    today = date.today()
+    diferencia = relativedelta(today, born)
+    return diferencia.years, diferencia.months, diferencia.days
+
+# Ejemplo de uso:
+# años, meses, dias = calculate_age_detailed(fecha_nacimiento)
+
+# Calcular edad detallada en años, meses y días con lógica manual
+def calculate_age_detailed2(born):
+    today = date.today()
+    
+    # 1. Diferencia inicial
+    years = today.year - born.year
+    months = today.month - born.month
+    days = today.day - born.day
+
+    # 2. Ajuste de días negativos
+    if days < 0:
+        # Retroceder un mes y sumar los días del mes anterior
+        months -= 1
+        # Obtenemos el último día del mes pasado
+        # (Usamos una fecha temporal para el cálculo)
+        import calendar
+        month_to_check = today.month - 1 if today.month > 1 else 12
+        year_to_check = today.year if today.month > 1 else today.year - 1
+        _, last_day_prev_month = calendar.monthrange(year_to_check, month_to_check)
+        days += last_day_prev_month
+
+    # 3. Ajuste de meses negativos
+    if months < 0:
+        years -= 1
+        months += 12
+
+    return years, months, days
