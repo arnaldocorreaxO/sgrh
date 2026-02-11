@@ -494,6 +494,7 @@ class EmpleadoUpdate(PermissionMixin, UpdateView):
 	model = Empleado
 	form_class = EmpleadoForm
 	template_name = "empleado/create.html"
+	permission_required = "change_empleado"
 
 	# 1. Permisos dinámicos basados en la ruta
 	def get_permission_required(self):
