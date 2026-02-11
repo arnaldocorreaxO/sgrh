@@ -52,8 +52,9 @@ class RefDetAdmin(ModeloAdminBase):
     list_display = [
         "id",
         "cod_referencia",
+        # "denominacion",
     ] + _list_display
-    search_fields = ("refcab__denominacion",)
+    search_fields = ("refcab__denominacion","denominacion",)
     list_filter = ("refcab",)
 
 

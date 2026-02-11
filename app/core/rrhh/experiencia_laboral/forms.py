@@ -117,7 +117,9 @@ class ExperienciaLaboralForm(ModelFormEmpleado):
             ),
             'archivo_pdf': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
         }
-
+    # ---------------------------------------------------------
+    # CREACIÓN DINÁMICA DE EMPRESA
+    # ---------------------------------------------------------
     def clean_empresa(self):
         raw = self.data.get("empresa", "")
         print(">>> clean_empresa() recibió:", raw)

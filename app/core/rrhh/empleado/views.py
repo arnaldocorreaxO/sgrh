@@ -30,6 +30,7 @@ from core.rrhh.empleado.forms import EmpleadoFilterForm, EmpleadoForm
 from core.security.mixins import PermissionMixin
 from core.user.models import User
 
+debug = settings.DEBUG
 # MSSQL
 def get_datos_persona(request):
 	# import pdb; pdb.set_trace()
@@ -676,19 +677,31 @@ class EmpleadoUpdate(PermissionMixin, UpdateView):
 					empleado.fecha_egreso = fecha_egreso
 
 					# Manejo de Archivos PDF (Seguridad Dinámica)
-					# Si 'archivo_pdf_ingreso' está en la lista de bloqueados, no procesamos el archivo del request
-					if 'archivo_pdf_ingreso' not in bloqueados and "archivo_pdf_ingreso" in request.FILES:
-						if empleado.archivo_pdf_ingreso: empleado.archivo_pdf_ingreso.delete(save=False)
-						empleado.archivo_pdf_ingreso = request.FILES["archivo_pdf_ingreso"]
-					
-					if 'archivo_pdf_egreso' not in bloqueados and "archivo_pdf_egreso" in request.FILES:
-						if empleado.archivo_pdf_egreso: empleado.archivo_pdf_egreso.delete(save=False)
-						empleado.archivo_pdf_egreso = request.FILES["archivo_pdf_egreso"]
+					# Lista de campos de archivo a procesar
+					campos_pdf = ["archivo_pdf_ingreso", "archivo_pdf_egreso", "archivo_pdf_ci"]
 
-					if 'archivo_pdf_ci' not in bloqueados and "archivo_pdf_ci" in request.FILES:
-						if empleado.archivo_pdf_ci: empleado.archivo_pdf_ci.delete(save=False)
-						empleado.archivo_pdf_ci = request.FILES["archivo_pdf_ci"]
+					for campo in campos_pdf:
+						if campo not in bloqueados:
+							# Caso 1: Viene un archivo nuevo en el request
+							if campo in request.FILES:
+								# Borramos el archivo físico anterior si existe
+								old_file = getattr(empleado, campo)
+								if old_file:
+									old_file.delete(save=False)
+								# Asignamos el nuevo
+								setattr(empleado, campo, request.FILES[campo])
+								if debug: print(f"DEBUG - Archivo actualizado: {campo}")
 
+							# Caso 2: El usuario marcó "Limpiar" (Clear)
+							# Verificamos si el campo está presente en el POST pero NO en FILES 
+							# y si el valor enviado indica limpieza (esto depende de cómo envíes el form, 
+							# pero si usas el form_class de Django, se puede validar así):
+							elif f"{campo}-clear" in request.POST:
+								old_file = getattr(empleado, campo)
+								if old_file:
+									old_file.delete(save=False) # Borra archivo físico
+								setattr(empleado, campo, None)   # Limpia la base de datos
+								if debug: print(f"DEBUG - Archivo eliminado por check limpiar: {campo}")
 					empleado.save()
 					data["id"] = empleado.id
 
@@ -912,8 +925,9 @@ class EmpleadoDelete(PermissionMixin, DeleteView):
 		return context
 
 
-class CVEmpleadoPDFView(View):
+class CVEmpleadoPDFView(PermissionMixin,View):
 	template_name = 'empleado/cv_empleado_pdf.html'
+	permission_required = "view_empleado"
 
 	@method_decorator(csrf_exempt)
 	def dispatch(self, request, *args, **kwargs):

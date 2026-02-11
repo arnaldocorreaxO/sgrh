@@ -1,5 +1,5 @@
 import os
-
+from django.db.models import F
 from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 
@@ -680,7 +680,7 @@ class ExperienciaLaboral(ModeloBase):
         db_table = "rh_experiencia_laboral"
         verbose_name = "Experiencia Laboral"
         verbose_name_plural = "Experiencias Laborales"
-        ordering = ["-fecha_hasta"]
+        ordering = [F('fecha_hasta').desc(nulls_first=True), '-fecha_desde']
         permissions = [('view_experiencialaboral_self', 'Puede ver su propia experiencia laboral'),
                        ('add_experiencialaboral_self', 'Puede agregar su propia experiencia laboral'),
                        ('change_experiencialaboral_self', 'Puede modificar su propia experiencia laboral'),

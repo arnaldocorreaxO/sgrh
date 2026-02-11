@@ -169,13 +169,12 @@ var registros = {
           orderable: false,
           render: function (data, type, row) {
             var buttons = "";
-
             buttons +=
               '<a href="' +
               pathname +
               "cv/pdf/" +
               row.id +
-              '/" class="btn btn-danger btn btn-xs btn-flat" data-toggle="tooltip" title="Ver CV PDF" target="_blank"><i class="fas fa-file-pdf"></i></a> ';
+              '/" class="btn btn-danger btn btn-xs btn-flat" target data-toggle="tooltip" title="Ver CV PDF" target="_blank"><i class="fas fa-file-pdf"></i></a> ';
             buttons +=
               '<a href="' +
               pathname +

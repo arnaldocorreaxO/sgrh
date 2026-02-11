@@ -35,9 +35,9 @@
 
       <div class="foto-wrapper" style="margin-left: 20px;">
         {% if empleado.usuario.image %}
-          <img src="{{ empleado.usuario.image.url }}" alt="Foto tipo carnet" class="foto-carnet" style="width: 130px; height: 130px; object-fit: cover; border: 3px solid #f8f9fa; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-radius: 4px;" />
+          <img src="{{ empleado.usuario.image.url }}" alt="Foto tipo carnet" class="foto-carnet" />
         {% else %}
-          <img src="{% static 'img/default-user.png' %}" alt="Sin foto" class="foto-carnet" style="width: 130px; height: 130px; border-radius: 4px;" />
+          <img src="{% static 'img/default-user.png' %}" alt="Sin foto" class="foto-carnet" />
         {% endif %}
       </div>
     </header>
@@ -144,7 +144,12 @@
         {% for e in empleado.experiencia_laboral.all %}
           <li class="exp-item">
             <strong>{{ e.cargo }}</strong> en {{ e.empresa }}<br />
-            <em>{{ e.fecha_desde|date:'F Y' }} – {{ e.fecha_hasta|date:'F Y' }}</em><br />
+            {{ e.fecha_desde|date:'F Y' }} –{% if e.fecha_hasta %}
+              {{ e.fecha_hasta|date:'F Y' }}
+            {% else %}
+              Actualidad
+            {% endif %}
+            <br />
             {{ e.descripcion }}
 
             {% if e.archivo_pdf %}

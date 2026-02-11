@@ -1,12 +1,12 @@
 import json
-
+from django.db.models import F
 from django.http import Http404, HttpResponse, JsonResponse
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import CreateView, DeleteView, UpdateView
 
-from core.base.models import RefCab, RefDet
+from core.base.models import  RefDet
 from core.base.views.generics import BaseListView
 from core.rrhh.empleado.forms import EmpleadoFilterForm
 from core.rrhh.experiencia_laboral.forms import ExperienciaLaboralForm
@@ -59,7 +59,9 @@ class ExperienciaLaboralList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 				return self.model.objects.none()
 
 		# 4. Optimización final si hay datos que mostrar
-		return qs.select_related("empleado", "cargo", "empresa")
+		return qs.select_related("empleado", "cargo", "empresa").order_by(
+        	F('fecha_hasta').desc(nulls_first=True)
+    	)
 
 	def post(self, request, *args, **kwargs):
 		# Maneja acciones POST como búsqueda
