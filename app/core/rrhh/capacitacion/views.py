@@ -29,6 +29,7 @@ class CapacitacionList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 		"empleado__apellido",
 		"institucion__denominacion",
 		"nombre_capacitacion",
+		"institucion__abreviatura",
 	]
 	numeric_fields = ["id", "empleado_id"]
 	default_order_fields = ["empleado__apellido", "empleado__nombre"]
