@@ -1,14 +1,14 @@
 # Librerías estándar
 import json
-import json as simplejson
-from datetime import datetime
 from datetime import date, datetime
 from urllib import request
+
 # Librerías de terceros
 from dateutil.relativedelta import relativedelta
 from weasyprint import HTML
 
 # Django
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Q
@@ -17,20 +17,20 @@ from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import CreateView, DeleteView, UpdateView,  View
+from django.views.generic import CreateView, DeleteView, UpdateView, View
 
 # Proyecto interno
-from config import settings
+from config import settings as project_settings # Evita conflicto con django.conf.settings
 from core.base.models import Barrio, Ciudad, RefDet
 from core.base.procedures import sp_identificaciones
-from core.base.utils import  get_fecha_actual, get_fecha_actual_ymd, isNULL, validar_mayor_edad
+from core.base.utils import get_fecha_actual, get_fecha_actual_ymd, isNULL, validar_mayor_edad
 from core.base.views.generics import BaseListView
-from core.rrhh.models import Empleado
 from core.rrhh.empleado.forms import EmpleadoFilterForm, EmpleadoForm
+from core.rrhh.models import Empleado
 from core.security.mixins import PermissionMixin
 from core.user.models import User
 
-debug = settings.DEBUG
+debug = project_settings.DEBUG
 # MSSQL
 def get_datos_persona(request):
 	# import pdb; pdb.set_trace()
@@ -39,7 +39,7 @@ def get_datos_persona(request):
 	# print(vCi)
 	persona = sp_identificaciones(ci=data)
 	# print(persona)
-	return HttpResponse(simplejson.dumps(persona), content_type="application/json")
+	return HttpResponse(json.dumps(persona), content_type="application/json")
 
 # Mixin institucional para vistas relacionadas al modelo Empleado
 # Scoped (alcance) a un empleado específico (usuario actual)
@@ -477,20 +477,6 @@ class EmpleadoCreate(PermissionMixin,CreateView):
 		context["instance"] = None
 		return context
 	
-import json
-from django.db import transaction
-from django.http import JsonResponse, HttpResponse, Http404
-from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import UpdateView
-from django.contrib.auth.models import Group
-from django.conf import settings
-
-# Importa tus utilidades y modelos
-# from apps.rh.models import Empleado
-# from apps.core.functions import isNULL, validar_mayor_edad
-
 class EmpleadoUpdate(PermissionMixin, UpdateView):
 	model = Empleado
 	form_class = EmpleadoForm

@@ -255,14 +255,12 @@ class Empleado(ModeloBase):
     sexo = models.ForeignKey(
         RefDet,
         verbose_name="Sexo",
-        db_column="sexo",
         on_delete=models.RESTRICT,
         related_name="sexo_empleado",
     )
     estado_civil = models.ForeignKey(
         RefDet,
         verbose_name="Estado Civil",
-        db_column="estado_civil",
         on_delete=models.RESTRICT,
         related_name="estado_civil_empleado",
     )
