@@ -2,7 +2,7 @@ from django import forms
 from django.forms import ClearableFileInput
 
 from core.base.models import RefCab
-from core.rrhh.empleado.forms import ModelFormEmpleado
+from core.rrhh.modules.empleado.forms import ModelFormEmpleado
 from core.rrhh.models import ExperienciaLaboral, Institucion, RefDet
 from core.base.forms import readonly_fields
 from django.core.exceptions import ValidationError

@@ -1,5 +1,5 @@
 from django.urls import path
-from core.base import views
+from core.base.views import views
 from core.base.views.empresa.views import EmpresaUpdate
 from core.base.views.persona.views import *
 from core.base.views.sucursal.views import *

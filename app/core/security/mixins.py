@@ -6,7 +6,6 @@ from django.http import HttpResponseRedirect
 from django.utils.decorators import method_decorator
 
 from config import settings
-from core.rrhh.models import Empleado
 from core.security.models import Module
 
 class ModuleMixin(object):
@@ -61,6 +60,7 @@ class PermissionMixin(object):
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
+        from core.rrhh.models import Empleado
         request.session["module"] = None
         try:
             # 1. Superusuarios: Acceso total

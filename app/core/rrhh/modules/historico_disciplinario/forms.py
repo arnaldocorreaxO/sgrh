@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.widgets import ClearableFileInput
-from core.rrhh.empleado.forms import ModelFormEmpleado
+from core.rrhh.modules.empleado.forms import ModelFormEmpleado
 from core.rrhh.models import HistoricoDisciplinario, RefDet
 from django.core.exceptions import ValidationError
 

@@ -25,7 +25,7 @@ from core.base.models import Barrio, Ciudad, RefDet
 from core.base.procedures import sp_identificaciones
 from core.base.utils import get_fecha_actual, get_fecha_actual_ymd, isNULL, validar_mayor_edad
 from core.base.views.generics import BaseListView
-from core.rrhh.empleado.forms import EmpleadoFilterForm, EmpleadoForm
+from core.rrhh.modules.empleado.forms import EmpleadoFilterForm, EmpleadoForm
 from core.rrhh.models import Empleado
 from core.security.mixins import PermissionMixin
 from core.user.models import User

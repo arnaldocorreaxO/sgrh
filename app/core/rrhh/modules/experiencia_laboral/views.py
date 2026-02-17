@@ -8,11 +8,11 @@ from django.views.generic import CreateView, DeleteView, UpdateView
 
 from core.base.models import  RefDet
 from core.base.views.generics import BaseListView
-from core.rrhh.empleado.forms import EmpleadoFilterForm
-from core.rrhh.experiencia_laboral.forms import ExperienciaLaboralForm
+from core.rrhh.modules.empleado.forms import EmpleadoFilterForm
+from core.rrhh.modules.experiencia_laboral.forms import ExperienciaLaboralForm
 
 from core.rrhh.models import Empleado, ExperienciaLaboral
-from core.rrhh.empleado.views import EmpleadoScopedMixin
+from core.rrhh.modules.empleado.views import EmpleadoScopedMixin
 from core.security.mixins import PermissionMixin
 
 class ExperienciaLaboralList(PermissionMixin,EmpleadoScopedMixin, BaseListView):

@@ -2,7 +2,7 @@ from django import forms
 from django.utils.safestring import mark_safe
 from django.forms.widgets import ClearableFileInput
 from core.base.forms import readonly_fields
-from core.rrhh.empleado.forms import ModelFormEmpleado
+from core.rrhh.modules.empleado.forms import ModelFormEmpleado
 from core.rrhh.models import Capacitacion, RefDet, Institucion
 
 class CapacitacionForm(ModelFormEmpleado):
@@ -126,7 +126,7 @@ class CapacitacionForm(ModelFormEmpleado):
 # from django.forms import ModelForm
 # from django.core.validators import FileExtensionValidator
 # from core.base.forms import readonly_fields
-# from core.rrhh.empleado.forms import ModelFormEmpleado
+# from core.rrhh.modules.empleado.forms import ModelFormEmpleado
 # from core.rrhh.models import Capacitacion, RefDet, Institucion, Empleado
 # from django.forms.widgets import ClearableFileInput
 

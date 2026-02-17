@@ -7,28 +7,26 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import CreateView, DeleteView, UpdateView
 
 from core.base.views.generics import BaseListView
-from core.rrhh.empleado.forms import EmpleadoFilterForm
-from core.rrhh.formacion_academica.forms import FormacionAcademicaForm
+from core.rrhh.modules.empleado.forms import EmpleadoFilterForm
+from core.rrhh.modules.historico_disciplinario.forms import HistoricoDisciplinarioForm
 
-from core.rrhh.models import Empleado, FormacionAcademica, Institucion
-from core.rrhh.empleado.views import EmpleadoScopedMixin
+from core.rrhh.models import Empleado, HistoricoDisciplinario
+from core.rrhh.modules.empleado.views import EmpleadoScopedMixin
 from core.security.mixins import PermissionMixin
-from core.base.models import RefDet
-class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
+
+class HistoricoDisciplinarioList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	# Modelo base y permiso requerido
-	model = FormacionAcademica
-	context_prefix = "Formación Académica"
-	create_url_name = "formacion_academica_create"
-	permission_required = "view_formacionacademica"
-	template_name ="formacion_academica/list.html"
+	model = HistoricoDisciplinario
+	context_prefix = "Histórico Disciplinario"
+	create_url_name = "historico_disciplinario_create"
+	permission_required = "view_historicodisciplinario"
+	template_name = "historico_disciplinario/list.html"
 	
 	# Campos habilitados para búsqueda y ordenamiento
 	search_fields = [
 		"empleado__nombre",
 		"empleado__apellido",
 		"institucion__denominacion",
-		"titulo_obtenido__denominacion",
-		"nivel_academico__denominacion"
 	]
 	numeric_fields = ["id", "empleado_id"]
 	default_order_fields = ["empleado__apellido", "empleado__nombre"]
@@ -38,14 +36,15 @@ class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 		return super().dispatch(request, *args, **kwargs)
 	
 	def get_success_url(self):
-		return self.get_success_url_for("formacion_academica_list")
+		return self.get_success_url_for("historico_disciplinario_list")
 
 	def get_queryset(self):
 		# 1. Recuperamos el QuerySet base del Mixin (Seguridad de sucursal/usuario)
 		qs = super().get_queryset()
+
 		# 2. Capturamos el ID del empleado enviado por el buscador/combo
 		empleado_id = self.request.POST.get("empleado")
-		print(f"Empleado ID recibido para filtrado: {empleado_id}")
+
 		# 3. COMPORTAMIENTO ESPECÍFICO:
 		# Solo filtramos y mostramos si se envía un empleado_id.
 		# NOTA: En la vista personal (is_self_view), el Mixin ya hace el trabajo,
@@ -58,7 +57,7 @@ class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 				return self.model.objects.none()
 
 		# 4. Optimización final si hay datos que mostrar
-		return qs.select_related("empleado", "institucion", "nivel_academico","grado_academico")
+		return qs.select_related("empleado",)
 
 	def post(self, request, *args, **kwargs):
 		# Maneja acciones POST como búsqueda
@@ -76,7 +75,7 @@ class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 	def get_context_data(self, **kwargs):
 		# Agrega contexto adicional a la plantilla
 		context = super().get_context_data(**kwargs)
-		
+
 		if self.is_self_view:
 			context["create_url"] = reverse_lazy(self.create_url_name + "_self")
 			# Enriquecer contexto con datos del empleado
@@ -86,38 +85,20 @@ class FormacionAcademicaList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
 			context["title"] = "Listado de " + self.context_prefix
 			context["empleado_filter_form"] = EmpleadoFilterForm(self.request.GET or None, user=self.request.user)
 		return context
-	
-def validate_data_request(request, model_class=None):
-	data = request.POST
-	type_val = data.get('type')
-	
-	try:
-		# 1. Validación de PDF (Independiente del modelo de la vista)
-		if type_val == 'check_pdf_requirement':
-			obj_id = data.get('id')
-			nivel = RefDet.objects.get(refcab__cod_referencia = 'NIVEL_ACADEMICO', pk=obj_id)
-			print("Nivel académico seleccionado:", nivel.denominacion, "con valor numérico:", nivel.valor_bit	)
-			return JsonResponse({'is_required': nivel.valor_bit == True})
-				
-	except Exception as e:
-		return JsonResponse({'error': str(e)}, status=400)
 
-	return JsonResponse({'valid': True})
-
-
-class FormacionAcademicaCreate(PermissionMixin, EmpleadoScopedMixin,CreateView):
-	model = FormacionAcademica
-	form_class = FormacionAcademicaForm
-	template_name = "formacion_academica/create.html"
+class HistoricoDisciplinarioCreate(PermissionMixin,EmpleadoScopedMixin,CreateView):
+	model = HistoricoDisciplinario
+	form_class = HistoricoDisciplinarioForm
+	template_name = "historico_disciplinario/create.html"
 	#success_url se define en get_success_url
-	permission_required = "add_formacionacademica" # ver comentario en PermissionMixin para más detalles
+	permission_required = "add_historicodisciplinario" # ver comentario en PermissionMixin para más detalles
 
 	@method_decorator(csrf_exempt)
 	def dispatch(self, request, *args, **kwargs):
 		return super().dispatch(request, *args, **kwargs)
 	
 	def get_success_url(self):
-		return self.get_success_url_for("formacion_academica_list")
+		return self.get_success_url_for("historico_disciplinario_list")
 	
 	def form_valid(self, form):
 		form = self.asignar_empleado_a_form(form)
@@ -135,11 +116,9 @@ class FormacionAcademicaCreate(PermissionMixin, EmpleadoScopedMixin,CreateView):
 				else:
 					data["error"] = form.errors					
 			elif action == "validate_data":
-				return validate_data_request(request)
-			
+				return self.validate_data()
 			else:
 				data["error"] = "No ha seleccionado ninguna opción"
-				
 		except Exception as e:
 			data["error"] = str(e)
 		return HttpResponse(json.dumps(data), content_type="application/json")
@@ -149,32 +128,31 @@ class FormacionAcademicaCreate(PermissionMixin, EmpleadoScopedMixin,CreateView):
 		context["list_url"] = self.get_success_url()
 		context["action"] = "add"
 		#Titulo con el nombre del empleado
-		return self.enrich_context_with_empleado(context, prefijo="Agregar Formación Académica")
+		return self.enrich_context_with_empleado(context, prefijo="Agregar Histórico Disciplinario")
 
-class FormacionAcademicaUpdate(PermissionMixin,EmpleadoScopedMixin,UpdateView):
-	model = FormacionAcademica
-	form_class = FormacionAcademicaForm
-	template_name = "formacion_academica/create.html"
+class HistoricoDisciplinarioUpdate(PermissionMixin,EmpleadoScopedMixin,UpdateView):
+	model = HistoricoDisciplinario
+	form_class = HistoricoDisciplinarioForm
+	template_name = "historico_disciplinario/create.html"
 	#success_url se define en get_success_url
-	permission_required = "change_formacionacademica"
+	permission_required = "change_historicodisciplinario"
 
 	@method_decorator(csrf_exempt)
 	def dispatch(self, request, *args, **kwargs):
 		return super().dispatch(request, *args, **kwargs)
-		
-	def get_success_url(self):
-		return self.get_success_url_for("formacion_academica_list")
 	
+	def get_success_url(self):
+		return self.get_success_url_for("historico_disciplinario_list")
 
 	def get_object(self, queryset=None):
 		try:
 			if self.is_self_view:
 				empleado = Empleado.objects.get(usuario=self.request.user)
 				
-				return FormacionAcademica.objects.get(pk=self.kwargs["pk"], empleado=empleado)
+				return HistoricoDisciplinario.objects.get(pk=self.kwargs["pk"], empleado=empleado)
 			else:
-				return FormacionAcademica.objects.get(pk=self.kwargs["pk"])
-		except (Empleado.DoesNotExist, FormacionAcademica.DoesNotExist):
+				return HistoricoDisciplinario.objects.get(pk=self.kwargs["pk"])
+		except (Empleado.DoesNotExist, HistoricoDisciplinario.DoesNotExist):
 			raise Http404("No se encontró la formación académica.")
 
 	def post(self, request, *args, **kwargs):
@@ -188,7 +166,7 @@ class FormacionAcademicaUpdate(PermissionMixin,EmpleadoScopedMixin,UpdateView):
 				# 🔧 Ajuste dinámico: si es self_view, quitamos el campo empleado del form
 				if self.is_self_view and 'empleado' in form.fields:
 					form.fields.pop('empleado')
-					
+				
 				if form.is_valid():
 					if self.is_self_view:
 						try:
@@ -200,9 +178,8 @@ class FormacionAcademicaUpdate(PermissionMixin,EmpleadoScopedMixin,UpdateView):
 					form.save()
 				else:
 					data["error"] = form.errors
-
 			elif action == "validate_data":
-				return validate_data_request(request)
+				return self.validate_data()
 			else:
 				data["error"] = "No ha seleccionado ninguna opción"
 
@@ -216,20 +193,19 @@ class FormacionAcademicaUpdate(PermissionMixin,EmpleadoScopedMixin,UpdateView):
 		context["action"] = "edit"
 		context["instance"] = self.object
 		#Titulo con el nombre del empleado
-		return self.enrich_context_with_empleado(context, prefijo="Modificar Formación Académica")
+		return self.enrich_context_with_empleado(context, prefijo="Modificar Histórico Disciplinario")
 
-class FormacionAcademicaDelete(PermissionMixin,EmpleadoScopedMixin, DeleteView):
-	model = FormacionAcademica
-	template_name = "formacion_academica/delete.html"
-	success_url = reverse_lazy("formacion_academica_list")
-	permission_required = "delete_formacionacademica"
+class HistoricoDisciplinarioDelete(PermissionMixin,EmpleadoScopedMixin, DeleteView):
+	model = HistoricoDisciplinario
+	template_name = "historico_disciplinario/delete.html"
+	permission_required = "delete_historicodisciplinario"
 
 	@method_decorator(csrf_exempt)
 	def dispatch(self, request, *args, **kwargs):
 		return super().dispatch(request, *args, **kwargs)
 	
 	def get_success_url(self):
-		return self.get_success_url_for("formacion_academica_list")
+		return self.get_success_url_for("historico_disciplinario_list")
 
 	def post(self, request, *args, **kwargs):
 		data = {}

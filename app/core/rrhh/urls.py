@@ -1,12 +1,12 @@
 from django.urls import path
-from core.rrhh import views
-from core.rrhh.empleado.views import *
-from core.rrhh.formacion_academica.views import *
-from core.rrhh.capacitacion.views import *
-from core.rrhh.experiencia_laboral.views import *
-from core.rrhh.documento_complementario.views import *
-from core.rrhh.historico_disciplinario.views import *
-from core.rrhh.empleado_posicion.views import *
+from core.rrhh.views import views
+from core.rrhh.modules.empleado.views import *
+from core.rrhh.modules.formacion_academica.views import *
+from core.rrhh.modules.capacitacion.views import *
+from core.rrhh.modules.experiencia_laboral.views import *
+from core.rrhh.modules.documento_complementario.views import *
+from core.rrhh.modules.historico_disciplinario.views import *
+from core.rrhh.modules.empleado_posicion.views import *
 
 urlpatterns = [
     # AJAX INSTITUCIONES

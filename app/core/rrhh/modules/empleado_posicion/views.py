@@ -8,9 +8,9 @@ from datetime import datetime
 
 from core.base.views.generics import BaseListView
 from core.rrhh.models import Dependencia, DependenciaPosicion, EmpleadoPosicion
-from core.rrhh.empleado.forms import EmpleadoFilterForm
-from core.rrhh.empleado_posicion.forms import EmpleadoPosicionFilterForm, EmpleadoPosicionForm # Asumiendo esta ruta
-from core.rrhh.empleado.views import EmpleadoScopedMixin
+from core.rrhh.modules.empleado.forms import EmpleadoFilterForm
+from core.rrhh.modules.empleado_posicion.forms import EmpleadoPosicionFilterForm, EmpleadoPosicionForm # Asumiendo esta ruta
+from core.rrhh.modules.empleado.views import EmpleadoScopedMixin
 from core.security.mixins import PermissionMixin
 
 class EmpleadoPosicionList(PermissionMixin, EmpleadoScopedMixin, BaseListView):

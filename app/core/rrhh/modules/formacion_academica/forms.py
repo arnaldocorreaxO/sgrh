@@ -2,7 +2,7 @@ import datetime
 from django import forms
 from django.utils.safestring import mark_safe
 from django.forms.widgets import ClearableFileInput
-from core.rrhh.empleado.forms import ModelFormEmpleado
+from core.rrhh.modules.empleado.forms import ModelFormEmpleado
 from core.rrhh.models import FormacionAcademica, RefDet, Institucion
 
 
@@ -136,7 +136,7 @@ class FormacionAcademicaForm(ModelFormEmpleado):
 
 # # Importaciones locales (ajusta según tu estructura)
 # from core.base.forms import readonly_fields
-# from core.rrhh.empleado.forms import ModelFormEmpleado
+# from core.rrhh.modules.empleado.forms import ModelFormEmpleado
 # from core.rrhh.models import FormacionAcademica, RefDet, Institucion
 
 # # Generación de años dinámica

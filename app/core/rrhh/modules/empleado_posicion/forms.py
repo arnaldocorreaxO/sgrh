@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from core.base.models import RefDet
-from core.rrhh.empleado.forms import ModelFormEmpleado
+from core.rrhh.modules.empleado.forms import ModelFormEmpleado
 from core.rrhh.models import CategoriaSalarial, Dependencia, DependenciaPosicion, EmpleadoPosicion
 
 # FORMULARIO FILTRO EMPLEADO

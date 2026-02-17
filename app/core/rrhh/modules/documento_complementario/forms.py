@@ -3,7 +3,7 @@ from django.forms.widgets import ClearableFileInput
 from django.core.exceptions import ValidationError
 
 from core.base.forms import readonly_fields
-from core.rrhh.empleado.forms import ModelFormEmpleado
+from core.rrhh.modules.empleado.forms import ModelFormEmpleado
 from core.rrhh.models import DocumentoComplementario, RefDet
 
 # FORMULARIO FILTRO EMPLEADO

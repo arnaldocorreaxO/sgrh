@@ -8,11 +8,11 @@ from django.views.generic import CreateView, DeleteView, UpdateView
 from requests import request
 
 from core.base.views.generics import BaseListView
-from core.rrhh.empleado.forms import EmpleadoFilterForm
-from core.rrhh.capacitacion.forms import CapacitacionForm
+from core.rrhh.modules.empleado.forms import EmpleadoFilterForm
+from core.rrhh.modules.capacitacion.forms import CapacitacionForm
 
 from core.rrhh.models import Empleado, Capacitacion
-from core.rrhh.empleado.views import EmpleadoScopedMixin
+from core.rrhh.modules.empleado.views import EmpleadoScopedMixin
 from core.security.mixins import PermissionMixin
 
 class CapacitacionList(PermissionMixin,EmpleadoScopedMixin, BaseListView):
