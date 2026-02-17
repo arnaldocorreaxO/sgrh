@@ -18,16 +18,15 @@ $(function () {
     // allowClear: true, // Activar si se desea permitir limpiar selección
 
     ajax: {
-      url: "/rrhh/formacion_academica/add/",
-      type: "POST",
+      url: "/rrhh/ajax/instituciones/", // ← URL correcta
+      type: "GET",
       delay: 250,
-      headers: {
-        "X-CSRFToken": csrftoken,
-      },
+      // headers: {
+      //   "X-CSRFToken": csrftoken,
+      // },
       data: function (params) {
         return {
           term: params.term,
-          action: "search_institucion",
         };
       },
       processResults: function (data) {

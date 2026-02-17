@@ -137,13 +137,6 @@ class FormacionAcademicaCreate(PermissionMixin, EmpleadoScopedMixin,CreateView):
 			elif action == "validate_data":
 				return validate_data_request(request)
 			
-			elif action == "search_institucion":
-				term = request.POST.get("term", "")
-				print("Term:", term)
-				instituciones = Institucion.search(term)
-				
-				data = [{"id": institucion.id, "text": str(institucion)} for institucion in instituciones]
-			
 			else:
 				data["error"] = "No ha seleccionado ninguna opción"
 				
