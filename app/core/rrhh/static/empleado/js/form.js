@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
           },
         },
       },
-      ci_fecha_vencimiento: {
+      fecha_vencimiento_ci: {
         validators: {
           notEmpty: {
             message: "La fecha de vencimiento de la CI es obligatoria",
