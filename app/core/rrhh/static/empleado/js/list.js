@@ -18,6 +18,7 @@ let columnas = [
 // pero acá no se usan
 const colArchivoIndice = columnas.length;
 const colOpcionesIndice = columnas.length - 1;
+const colPerfilIndice = columnas.length - 2;
 const colNombreIndice = columnas.findIndex((col) => col.data === "nombre");
 const colApellidoIndice = columnas.findIndex((col) => col.data === "apellido");
 
@@ -71,6 +72,13 @@ var registros = {
             columns: ":not(:last-child)",
             format: {
               body: function (data, row, column, node) {
+                if (column === colPerfilIndice) {
+                  // Buscamos el texto del badge y los pendientes
+                  var text = $(node).text().trim(); // "Incompleto (Faltan 5)"
+                  var title = $(node).find("span").attr("title") || ""; // "Pendiente: ..."
+
+                  return title ? text + " - " + title : text;
+                }
                 // Si es la columna de archivo, extrae el link para Excel
                 if (column === colArchivoIndice) {
                   var url = $(node).find("a").attr("href");
@@ -91,6 +99,13 @@ var registros = {
             columns: ":not(:last-child)",
             format: {
               body: function (data, row, column, node) {
+                if (column === colPerfilIndice) {
+                  // Buscamos el texto del badge y los pendientes
+                  var text = $(node).text().trim(); // "Incompleto (Faltan 5)"
+                  var title = $(node).find("span").attr("title") || ""; // "Pendiente: ..."
+
+                  return title ? text + " - " + title : text;
+                }
                 if (column === colArchivoIndice) {
                   var url = $(node).find("a").attr("href");
                   return url
