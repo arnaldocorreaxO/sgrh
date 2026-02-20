@@ -249,6 +249,21 @@ document.addEventListener("DOMContentLoaded", function (e) {
           },
         },
       },
+      archivo_pdf_ingreso: {
+        validators: {
+          // Solo obligatorio si no hay un archivo previo cargado
+          notEmpty: {
+            enabled: !tieneArchivo,
+            message: "Debe subir un archivo PDF",
+          },
+          file: {
+            extension: "pdf",
+            type: "application/pdf",
+            maxSize: 5 * 1024 * 1024, // 5MB
+            message: "Solo se permite archivos PDF de hasta 5MB",
+          },
+        },
+      },
       fecha_egreso: {
         validators: {
           date: {
