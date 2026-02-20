@@ -9,6 +9,7 @@ let columnas = [
   { data: "apellido" },
   { data: "edad" },
   { data: "celular" },
+  { data: "perfil_completado" },
   { data: "id" },
 ];
 
@@ -161,6 +162,29 @@ var registros = {
           orderable: true,
           render: function (data, type, row) {
             return formatoNumero(data);
+          },
+        },
+        {
+          targets: [-2], // La posición de la nueva columna perfil_completado
+          class: "text-center",
+          orderable: false,
+          render: function (data, type, row) {
+            // 'data' será el diccionario que definimos en la @property de Django
+            if (!data)
+              return '<span class="badge bg-secondary">Sin datos</span>';
+
+            // Construimos el texto para el tooltip si hay pendientes
+            let tooltip =
+              data.faltantes && data.faltantes.length > 0
+                ? 'title="Pendiente: ' + data.faltantes.join(", ") + '"'
+                : 'title="Perfil completo"';
+
+            // Retornamos el badge dinámico
+            return `
+      <span class="badge rounded-pill bg-${data.color}" data-toggle="tooltip" data-placement="top" ${tooltip} style="cursor:pointer;">
+        ${data.mensaje}
+      </span>
+    `;
           },
         },
         {

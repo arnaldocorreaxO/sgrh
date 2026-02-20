@@ -340,6 +340,42 @@ class Empleado(ModeloBase):
             # Ejemplo: "25 años, 4 meses y 12 días"
             return resultado
         return None
+    
+    @property
+    def semaforo_detalle(self):
+        # Definimos las secciones y su estado de carga
+        secciones = [
+                {'nombre': 'Cédula de Identidad (CI)', 'estado': bool(self.ci)},
+                {'nombre': 'PDF Cédula', 'estado': bool(self.archivo_pdf_ci)},
+                {'nombre': 'PDF Res. Ingreso', 'estado': bool(self.archivo_pdf_ingreso)},
+                {'nombre': 'Tipo Sanguíneo', 'estado': bool(self.tipo_sanguineo)},
+                {'nombre': 'Formación Académica', 'estado': self.formacion_academica.exists()},
+                {'nombre': 'Capacitaciones', 'estado': self.capacitacion.exists()},
+                {'nombre': 'Experiencia Laboral', 'estado': self.experiencia_laboral.exists()},
+            ]
+        
+        # Cálculos rápidos
+        faltantes = [s['nombre'] for s in secciones if not s['estado']]
+        total = len(secciones)
+        completos = total - len(faltantes)
+        
+        # Lógica de color del semáforo
+        if completos == total:
+            color = 'success'  # Verde
+            mensaje = 'Perfil Completo'
+        elif completos > 0:
+            color = 'warning'  # Amarillo/Naranja
+            mensaje = f'Incompleto (Faltan {len(faltantes)})'
+        else:
+            color = 'danger'   # Rojo
+            mensaje = 'Perfil Vacío'
+            
+        return {
+            'color': color,
+            'mensaje': mensaje,
+            'faltantes': faltantes,
+            'porcentaje': int((completos / total) * 100)
+        }
 
     def toJSON(self):
         # 1. Convertimos el modelo a diccionario
@@ -383,6 +419,8 @@ class Empleado(ModeloBase):
 
         item["fecha_ingreso"] = self.fecha_ingreso.strftime('%d/%m/%Y') if self.fecha_ingreso else ""
         item["fecha_egreso"] = self.fecha_egreso.strftime('%d/%m/%Y') if self.fecha_egreso else ""
+        item['perfil_completado'] = self.semaforo_detalle
+        item
         
         return item
 
@@ -512,7 +550,7 @@ class EmpleadoPosicion(ModeloBase):
 
 # ANTECEDENTES ACADEMICOS = FORMACION ACADEMICA = ESTUDIOS REALIZADOS
 class FormacionAcademica(ModeloBase):    
-    empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT,related_name="formacionacademica")
+    empleado = models.ForeignKey(Empleado, on_delete=models.RESTRICT,related_name="formacion_academica")
     nivel_academico = models.ForeignKey(
         RefDet,
         verbose_name="Nivel Académico",
