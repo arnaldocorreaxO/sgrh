@@ -30,7 +30,7 @@ $(function () {
     },
 
     ajax: {
-      url: "/rrhh/ajax/cargos/", // ← URL correcta
+      url: "/base/ajax/cargos/", // ← URL correcta
       type: "GET",
       delay: 250,
       data: function (params) {

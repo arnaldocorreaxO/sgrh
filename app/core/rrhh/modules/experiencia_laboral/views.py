@@ -123,12 +123,6 @@ class ExperienciaLaboralCreate(PermissionMixin,EmpleadoScopedMixin,CreateView):
 					
 			elif action == "validate_data":
 				return self.validate_data()
-			
-			elif action == "search_cargo_refdet":
-				term = request.POST.get("term", "")
-				cargo = RefDet.search(term,'CARGOS')				
-				data = [{"id": cargo.id, "text": str(cargo)} for cargo in cargo]
-
 			else:
 				data["error"] = "No ha seleccionado ninguna opción"
 		except Exception as e:
