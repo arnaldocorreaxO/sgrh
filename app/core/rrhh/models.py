@@ -343,6 +343,7 @@ class Empleado(ModeloBase):
     
     @property
     def semaforo_detalle(self):
+        # return 0
         # Definimos las secciones y su estado de carga
         secciones = [
                 {'nombre': 'Cédula de Identidad (CI)', 'estado': bool(self.ci)},

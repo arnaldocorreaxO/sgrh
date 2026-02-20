@@ -1,10 +1,7 @@
 # Librerías estándar
 import json
-from datetime import date, datetime
-from urllib import request
-
+from django.db.models import Q, Count, Case, When, IntegerField, Value
 # Librerías de terceros
-from dateutil.relativedelta import relativedelta
 from weasyprint import HTML
 
 # Django
@@ -23,7 +20,7 @@ from django.views.generic import CreateView, DeleteView, UpdateView, View
 from config import settings as project_settings # Evita conflicto con django.conf.settings
 from core.base.models import Barrio, Ciudad, RefDet
 from core.base.procedures import sp_identificaciones
-from core.base.utils import get_fecha_actual, get_fecha_actual_ymd, isNULL, validar_mayor_edad
+from core.base.utils import  isNULL, validar_mayor_edad
 from core.base.views.generics import BaseListView
 from core.rrhh.modules.empleado.forms import EmpleadoFilterForm, EmpleadoForm
 from core.rrhh.models import Empleado
@@ -191,36 +188,48 @@ class EmpleadoList(PermissionMixin,BaseListView):
 	# 	# Esto garantiza que el Admin Global vea todo y el de Sucursal solo lo suyo
 	# 	return Empleado.objects.para_usuario(self.request.user)
 	def get_queryset(self):
-		# 1. Recuperamos el QuerySet base (Seguridad de usuario/sucursal)
+		# 1. Recuperamos el QuerySet base
 		qs = super().get_queryset()
 
 		# 2. Capturamos los datos del POST
 		sucursal_id = self.request.POST.get("sucursal")
 		empleado_id = self.request.POST.get("empleado")
 
-		# 3. FILTRO OBLIGATORIO: Sucursal
-		# Si viene en el POST, filtramos. Si no, podrías usar la sucursal del usuario
-		if sucursal_id:
+		# 3. FILTRO: Sucursal
+		# Validamos que no sea vacío, que no sea None y que sea un número
+		if sucursal_id and str(sucursal_id).isdigit():
 			qs = qs.filter(sucursal_id=sucursal_id)
 		
-		# 4. FILTRO OPCIONAL: Empleado	
-		# Si el usuario seleccionó un empleado específico, filtramos
-		if empleado_id:
+		# 4. FILTRO: Empleado  
+		# Aquí es donde ocurría el error: validamos que sea un número válido antes de filtrar
+		if empleado_id and str(empleado_id).isdigit():
 			qs = qs.filter(id=empleado_id)
-			
-			# SI empleado_id es vacío, no agregamos más filtros (mostramos todos los de la sucursal)
-			# Eliminamos el 'return objects.none()' anterior para permitir ver "todos"
 		
-		# NOTA: Si es 'is_self_view', el EmpleadoScopedMixin ya filtró por el ID del usuario actual.
+		# 5. ANNOTATE (Para el ordenamiento del semáforo)
+		# Importante: el annotate debe ir después de los filtros para mejor performance
+		# Sumamos 1 punto por cada campo que NO esté vacío o nulo
+		# qs = qs.annotate(
+		# 	progreso_count = (
+		# 		# Para campos numéricos (CI), verificamos que no sea NULL
+		# 		Case(When(ci__isnull=False, then=1), default=0, output_field=IntegerField()) +
+				
+		# 		# Para archivos (FileField), verificamos que no sea NULL y no sea string vacío
+		# 		Case(When(~Q(archivo_pdf_ci=None) & ~Q(archivo_pdf_ci=""), then=1), default=0, output_field=IntegerField()) +
+		# 		Case(When(~Q(archivo_pdf_ingreso=None) & ~Q(archivo_pdf_ingreso=""), then=1), default=0, output_field=IntegerField()) +
+				
+		# 		# Para texto (Tipo Sanguíneo)
+		# 		Case(When(~Q(tipo_sanguineo=None) & ~Q(tipo_sanguineo=""), then=1), default=0, output_field=IntegerField()) +
+				
+		# 		# Relaciones (ManyToMany o ForeignKey con related_name)
+		# 		Count('formacion_academica', distinct=True) +
+		# 		Count('capacitacion', distinct=True) +
+		# 		Count('experiencia_laboral', distinct=True)
+		# 	)
+		# )
 
 		# 5. Optimización final
 		return qs.select_related(
-			"sucursal",      # Obligatorio para tu filtro por sucursal
-			"usuario",       # Para verificar permisos o perfiles
-			"nacionalidad",  # Evita consultas extra al mostrar el país
-			"ciudad",        # Evita consultas extra al mostrar la ciudad
-			"sexo",          # Tabla RefDet
-			"estado_civil",  # Tabla RefDet
+			"sucursal", "usuario", "nacionalidad", "ciudad", "sexo", "estado_civil"
 		)
 
 	@method_decorator(csrf_exempt)
