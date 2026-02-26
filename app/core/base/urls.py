@@ -20,6 +20,9 @@ urlpatterns = [
     path("persona/get_datos_persona/", get_datos_persona, name="get_datos_persona"),
 
 
+    # AJAX REFERENCIAS Ciudad, Barrio
+    path('ajax/ciudades/', views.ajax_ciudades, name='ajax_ciudades'),
+    path('ajax/barrios/', views.ajax_barrios, name='ajax_barrios'),
     # AJAX REFERENCIAS RefDet
     path('ajax/empresas/', views.ajax_empresas, name='ajax_empresas'),
     path('ajax/cargos/', views.ajax_cargos, name='ajax_cargos'),

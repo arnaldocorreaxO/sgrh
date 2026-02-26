@@ -1,6 +1,5 @@
 # Librerías estándar
 import json
-from django.db.models import Q, Count, Case, When, IntegerField, Value
 # Librerías de terceros
 from weasyprint import HTML
 
@@ -18,7 +17,7 @@ from django.views.generic import CreateView, DeleteView, UpdateView, View
 
 # Proyecto interno
 from config import settings as project_settings # Evita conflicto con django.conf.settings
-from core.base.models import Barrio, Ciudad, RefDet
+from core.base.models import RefDet
 from core.base.procedures import sp_identificaciones
 from core.base.utils import  isNULL, validar_mayor_edad
 from core.base.views.generics import BaseListView
@@ -427,51 +426,7 @@ class EmpleadoCreate(PermissionMixin,CreateView):
 				print(f"[search_empleado] Término de búsqueda: '{term}' - Resultados encontrados: {empleados.count()}")
 				# 5. Formatear para Select2 (Limitamos a 15 para velocidad)
 				data = [{"id": emp.id, "text": emp.nombre_apellido_legajo} for emp in empleados]
-
-			elif action == "search_ciudad":
-				data = []
-				term = request.POST["term"]
-				qs = Ciudad.objects.filter(
-					Q(activo__exact=True)
-					& (
-						Q(distrito__denominacion__icontains=term)
-						| Q(denominacion__icontains=term)
-					)
-				).order_by("denominacion", "distrito_id")[0:25]
-
-				data = [{"id": "", "text": "------------"}]
-				id_dpto_aux = 0
-				for i in qs:
-					if id_dpto_aux != i.distrito_id:
-						data.append(
-							{
-								"text": str(i.distrito),
-								"children": [{"id": i.id, "text": str(i)}],
-							}
-						)
-					else:
-						data.append(
-							{
-								"children": [{"id": i.id, "text": str(i)}],
-							}
-						)
-					id_dpto_aux = i.distrito_id
-
-			elif action == "search_barrio":
-				data = [{"id": "", "text": "---------"}]
-				ciudad_list = None
-				if "id" in request.POST:
-					ciudad_list = [request.POST["id"] if "id" in request.POST else None]
-
-				elif "id[]" in request.POST:
-					ciudad_list = (
-						request.POST.getlist("id[]") if "id[]" in request.POST else None
-					)
-				if ciudad_list:
-					for i in Barrio.objects.filter(ciudad_id__in=ciudad_list):
-						data.append(
-							{"id": i.id, "text": str(i), "data": i.ciudad.toJSON()}
-						)
+		
 			else:
 				data["error"] = "No ha seleccionado ninguna opción"
 		except Exception as e:
