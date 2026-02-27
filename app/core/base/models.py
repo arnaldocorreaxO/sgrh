@@ -226,7 +226,7 @@ class Departamento(ModeloBase):
 class Distrito(ModeloBase):
     # ID
     departamento = models.ForeignKey(
-        Departamento, verbose_name="Departamento", on_delete=models.RESTRICT, related_name="departamentos"
+        Departamento, verbose_name="Departamento", on_delete=models.RESTRICT, related_name="departamento"
     )
     denominacion = models.CharField(verbose_name="Denominación", max_length=100)
 
@@ -252,7 +252,7 @@ class Ciudad(ModeloBase):
         Distrito,
         verbose_name="Distrito",
         on_delete=models.RESTRICT,
-        related_name="distritos",null=True, blank=True 
+        related_name="distrito",null=True, blank=True 
     )
     denominacion = models.CharField(verbose_name="Denominación", max_length=100)
 
@@ -280,7 +280,7 @@ class Barrio(ModeloBase):
         Ciudad,
         verbose_name="Ciudad",
         on_delete=models.RESTRICT,
-        related_name="ciudades",
+        related_name="ciudad",
     )
     denominacion = models.CharField(
         verbose_name="Denominación", max_length=100, unique=True
