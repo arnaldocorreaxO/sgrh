@@ -203,7 +203,7 @@ class EmpleadoPosicionUpdate(PermissionMixin, UpdateView):
     
 class EmpleadoPosicionDelete(PermissionMixin, EmpleadoScopedMixin, DeleteView):
     model = EmpleadoPosicion
-    template_name = "posicion/delete.html"
+    template_name = "empleado_posicion/delete.html"
     permission_required = "delete_empleadoposicion"
 
     @method_decorator(csrf_exempt)
