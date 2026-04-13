@@ -76,7 +76,7 @@ class CategoriaSalarialAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['vigencias'].queryset = CategoriaSalarialVigencia.objects.all().filter(activo=True)
+        # self.fields['vigencias'].queryset = CategoriaSalarialVigencia.objects.all().filter(activo=True)
 
 class CategoriaSalarialAdmin(admin.ModelAdmin):
     form = CategoriaSalarialAdminForm
