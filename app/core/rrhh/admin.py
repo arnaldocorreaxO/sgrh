@@ -92,7 +92,7 @@ class NivelAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['categoria_salarial'].queryset = CategoriaSalarial.objects.all().filter(activo=True)
+        # self.fields['categoria_salarial'].queryset = CategoriaSalarial.objects.all().filter(activo=True)
 
 class NivelAdmin(admin.ModelAdmin):
     form = NivelAdminForm
