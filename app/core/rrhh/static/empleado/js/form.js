@@ -94,34 +94,6 @@ document.addEventListener("DOMContentLoaded", function (e) {
           },
         },
       },
-
-      sexo: {
-        validators: {
-          notEmpty: { message: "El campo sexo es obligatorio" },
-          stringLength: {
-            min: 1,
-          },
-          // digits: {},
-        },
-      },
-      nacionalidad: {
-        validators: {
-          notEmpty: { message: "La nacionalidad es obligatorio" },
-          stringLength: {
-            min: 1,
-          },
-          // digits: {},
-        },
-      },
-      estado_civil: {
-        validators: {
-          notEmpty: { message: "El estado civil es obligatorio" },
-          stringLength: {
-            min: 1,
-          },
-          //   digits: {},
-        },
-      },
       email: {
         validators: {
           notEmpty: { message: "El correo electrónico es obligatorio" },
@@ -131,14 +103,6 @@ document.addEventListener("DOMContentLoaded", function (e) {
           regexp: {
             regexp: /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/i,
             message: "El formato email no es correcto",
-          },
-        },
-      },
-      ciudad: {
-        validators: {
-          notEmpty: { message: "La ciudad es obligatoria" },
-          stringLength: {
-            min: 1,
           },
         },
       },
@@ -318,13 +282,11 @@ $(document).ready(function () {
   $("#btnVerificar").click(function () {
     var vCi = $("#id_ci").val();
     // console.log(vCi);
-    $("#id_ruc").val("");
-    $("#id_nombre").val("");
-    $("#id_apellido").val("");
-    $("#id_direccion").val("");
-    $("#id_nacionalidad").val("");
-    $("#fecha_nacimiento").val("");
-    $("#id_estado_civil").val("");
+    // Limpieza previa de campos
+    $(
+      "#id_ruc, #id_nombre, #id_apellido, #id_direccion, #id_nacionalidad, #id_fecha_nacimiento, #id_estado_civil",
+    ).val("");
+
     $.ajax({
       url: "/base/persona/get_datos_persona",
       data: {
@@ -343,15 +305,11 @@ $(document).ready(function () {
   });
 
   // --- REGLA DE ORO PARA SELECT2 Y FORMVALIDATION ---
-  // Revalidar el campo cuando Select2 cambie su valor
-  $(".select2").on("select2:select", function (e) {
-    let fieldName = $(this).attr("name");
-    if (fv) {
-      fv.revalidateField(fieldName);
+  /// Revalidar automáticamente al cambiar Select2 o Inputs de archivo
+  $(".select2, input[type='file']").on("change select2:select", function () {
+    const name = $(this).attr("name");
+    if (fv && name) {
+      fv.revalidateField(name);
     }
-  });
-
-  $('input[name="ci_archivo_pdf"]').on("change", function () {
-    fv.revalidateField("ci_archivo_pdf");
   });
 });
