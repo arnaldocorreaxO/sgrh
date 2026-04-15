@@ -21,6 +21,9 @@ document.addEventListener("DOMContentLoaded", function (e) {
       }),
     },
     fields: {
+      tipo_sanguineo: {
+        validators: {},
+      },
       ci: {
         validators: {
           notEmpty: {},
@@ -115,6 +118,9 @@ document.addEventListener("DOMContentLoaded", function (e) {
       },
       ciudad: {
         validators: { notEmpty: { message: "La ciudad es obligatoria" } },
+      },
+      barrio: {
+        validators: {},
       },
       sexo: {
         validators: { notEmpty: { message: "El campo sexo es obligatorio" } },
@@ -265,6 +271,18 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
               return fechaEgreso >= fechaIngreso;
             },
+          },
+        },
+      },
+      archivo_pdf_egreso: {
+        validators: {
+          // Al NO tener "notEmpty", si el campo queda vacío, se considera válido.
+          file: {
+            extension: "pdf",
+            type: "application/pdf",
+            maxSize: 5 * 1024 * 1024, // 5MB
+            message:
+              "El archivo seleccionado debe ser un PDF y no superar los 5MB",
           },
         },
       },
