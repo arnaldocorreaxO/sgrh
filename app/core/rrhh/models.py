@@ -401,9 +401,26 @@ class Empleado(ModeloBase):
     def get_antiguedad(self):
         if self.fecha_ingreso:
             years, months, days = calculate_age_detailed(self.fecha_ingreso)
-            resultado = f"{years} años, {months} meses y {days} días"
-            # Ejemplo: "25 años, 4 meses y 12 días"
+
+            parts = []
+            if years > 0:
+                parts.append(f"{years} año" if years == 1 else f"{years} años")
+            if months > 0:
+                parts.append(f"{months} mes" if months == 1 else f"{months} meses")
+            if days > 0:
+                parts.append(f"{days} día" if days == 1 else f"{days} días")
+
+            if not parts:
+                return "0 días"
+
+            # Lógica para unir con comas y el último con una "y"
+            if len(parts) > 1:
+                resultado = ", ".join(parts[:-1]) + " y " + parts[-1]
+            else:
+                resultado = parts[0]
+
             return resultado
+
         return None
 
     @property
@@ -514,7 +531,7 @@ class Empleado(ModeloBase):
             self.fecha_egreso.strftime("%d/%m/%Y") if self.fecha_egreso else ""
         )
         item["perfil_completado"] = self.semaforo_detalle
-        item
+        item["antiguedad"] = self.get_antiguedad()
 
         return item
 
@@ -679,15 +696,25 @@ class EmpleadoPosicion(ModeloBase):
             # Calculamos la diferencia
             diff = relativedelta(fecha_fin, self.fecha_inicio)
 
-            # Construimos el texto dinámicamente
+            # Construimos el texto dinámicamente con manejo de singular/plural
             parts = []
-            if diff.years > 0:
-                parts.append(f"{diff.years} años")
-            if diff.months > 0:
-                parts.append(f"{diff.months} meses")
-            if diff.days > 0:
-                parts.append(f"{diff.days} días")
 
+            if diff.years > 0:
+                # Si diff.years es 1 usa "año", de lo contrario "años"
+                label = "año" if diff.years == 1 else "años"
+                parts.append(f"{diff.years} {label}")
+
+            if diff.months > 0:
+                # Si diff.months es 1 usa "mes", de lo contrario "meses"
+                label = "mes" if diff.months == 1 else "meses"
+                parts.append(f"{diff.months} {label}")
+
+            if diff.days > 0:
+                # Si diff.days es 1 usa "día", de lo contrario "días"
+                label = "día" if diff.days == 1 else "días"
+                parts.append(f"{diff.days} {label}")
+
+            # Unimos las partes con comas
             resultado = ", ".join(parts) if parts else "0 días"
 
             if not self.fecha_fin:
@@ -999,15 +1026,25 @@ class ExperienciaLaboral(ModeloBase):
             # Calculamos la diferencia
             diff = relativedelta(fecha_fin, self.fecha_desde)
 
-            # Construimos el texto dinámicamente
+            # Construimos el texto dinámicamente con manejo de singular/plural
             parts = []
-            if diff.years > 0:
-                parts.append(f"{diff.years} años")
-            if diff.months > 0:
-                parts.append(f"{diff.months} meses")
-            if diff.days > 0:
-                parts.append(f"{diff.days} días")
 
+            if diff.years > 0:
+                # Si diff.years es 1 usa "año", de lo contrario "años"
+                label = "año" if diff.years == 1 else "años"
+                parts.append(f"{diff.years} {label}")
+
+            if diff.months > 0:
+                # Si diff.months es 1 usa "mes", de lo contrario "meses"
+                label = "mes" if diff.months == 1 else "meses"
+                parts.append(f"{diff.months} {label}")
+
+            if diff.days > 0:
+                # Si diff.days es 1 usa "día", de lo contrario "días"
+                label = "día" if diff.days == 1 else "días"
+                parts.append(f"{diff.days} {label}")
+
+            # Unimos las partes con comas
             resultado = ", ".join(parts) if parts else "0 días"
 
             if not self.fecha_hasta:
