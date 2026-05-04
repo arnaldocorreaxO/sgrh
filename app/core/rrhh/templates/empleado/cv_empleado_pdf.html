@@ -54,6 +54,9 @@
         </li> {% endcomment %}
         <li>
           <strong>Documento de Identidad:</strong> {{ empleado.ci }}
+          {% if empleado.archivo_pdf_ci %}
+            <a href="{{ empleado.archivo_pdf_ci.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver CI</span></a>
+          {% endif %}
         </li>
         <li>
           <strong>RUC:</strong> {{ empleado.ruc|default:'Sin RUC' }}
@@ -124,13 +127,22 @@
           {% for c in empleado.capacitacion.all %}
             <li class="cap-item">
               <strong>{{ c.nombre_capacitacion }}</strong> - {{ c.institucion }} (del {{ c.fecha_inicio|date:'d/m/Y' }} al {{ c.fecha_fin|date:'d/m/Y' }})
+
               <br />
               {% if c.archivo_pdf %}
                 <a href="{{ c.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
+
                 {% comment %}
               {% else %}
                 <small>Sin archivo pdf</small>{% endcomment %}
               {% endif %}
+              <span class="badge badge-secondary">
+                Horas acreditadas:{% if c.horas_acreditadas %}
+                  {{ c.horas_acreditadas }}
+                {% else %}
+                  No especificado
+                {% endif %}
+              </span>
             </li>
           {% empty %}
             <li>No hay registros de capacitación.</li>
@@ -155,10 +167,8 @@
 
               {% if e.archivo_pdf %}
                 <a href="{{ e.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
-                {% comment %}
-              {% else %}
-                <small>Sin archivo pdf</small>{% endcomment %}
               {% endif %}
+              <span class="badge badge-secondary">{{ e.get_antiguedad }}</span>
             </li>
           {% empty %}
             <li>No hay registros de experiencia laboral.</li>
@@ -178,7 +188,7 @@
           <li class="inf-item">
             <strong>Antigüedad:</strong>
             {% if empleado.get_antiguedad %}
-              {{ empleado.get_antiguedad }}
+              <span class="badge badge-secondary">{{ empleado.get_antiguedad }}</span>
             {% else %}
               ---
             {% endif %}
@@ -224,6 +234,7 @@
               </div>
 
               <small class="text-muted">
+                Fecha de Asunción:
                 {{ e.fecha_inicio|date:'d/m/Y' }}
                 {% if e.fecha_fin %}
                   – {{ e.fecha_fin|date:'d/m/Y' }}
@@ -231,7 +242,8 @@
                   – Actualidad
                 {% endif %}
               </small>
-
+              <br />
+              <span class="badge badge-secondary">{{ e.get_antiguedad }}</span>
               <br />
 
               <small>Vínculo: {{ e.vinculo_laboral.denominacion }} | Legajo: {{ e.legajo }}</small>

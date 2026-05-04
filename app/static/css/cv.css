@@ -223,3 +223,25 @@ body {
   font-weight: bold;
   text-decoration: none;
 }
+
+.badge-info {
+  background: #17a2b8; /* Azul estándar de información */
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  /* text-transform: uppercase; */
+  display: inline-block;
+}
+
+.badge-secondary {
+  background: #6c757d; /* Gris estándar de información secundaria */
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  /* text-transform: uppercase; */
+  display: inline-block;
+}

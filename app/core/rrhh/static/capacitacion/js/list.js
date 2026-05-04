@@ -15,6 +15,7 @@ columnas.push(
   { data: "institucion__denominacion" },
   { data: "fecha_inicio" },
   { data: "fecha_fin" },
+  { data: "horas_acreditadas" },
   { data: "archivo_pdf" },
   { data: "id" },
 );
