@@ -828,8 +828,12 @@ class Capacitacion(ModeloBase):
     fecha_fin = models.DateField(
         verbose_name="Fecha de Finalización", null=True, blank=True
     )
-    horas_acreditadas = models.IntegerField(
-        verbose_name="Horas Acreditadas", null=True, blank=True
+    horas_acreditadas = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        verbose_name="Horas Acreditadas",
+        null=True,
+        blank=True,
     )
     archivo_pdf = models.FileField(
         upload_to=UploadToPath("CAPACITACION"),

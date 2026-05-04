@@ -123,6 +123,20 @@ document.addEventListener("DOMContentLoaded", function (e) {
           },
         },
       },
+      horas_acreditadas: {
+        validators: {
+          // notEmpty: {
+          //   message: "Debe indicar las horas acreditadas",
+          // },
+          regexp: {
+            // Esta expresión excluye el cero absoluto
+            // Valida números desde 0.01 hasta 999.99 o 1000
+            regexp:
+              /^(?!^0+(?:[.,]0+)?$)(?:1000(?:[.,]0+)?|[0-9]{1,3}(?:[.,][0-9]+)?)$/,
+            message: "Debe ser un número mayor a 0 y hasta 1000",
+          },
+        },
+      },
       observaciones: {
         validators: {
           stringLength: {
