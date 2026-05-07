@@ -225,21 +225,21 @@ var registros = {
             let color = s.color; // success, warning, danger
 
             return `
-                    <div class="d-flex align-items-center" style="min-width: 130px; cursor: help;" data-toggle="tooltip" data-html="true" ${tooltip}>
-                        <div class="progress flex-grow-1" style="height: 10px; background-color: #e9ecef;">
-                            <div class="progress-bar bg-${color}" 
-                                role="progressbar" 
-                                style="width: ${data.porcentaje}%" 
-                                aria-valuenow="${data.porcentaje}" 
-                                aria-valuemin="0" 
-                                aria-valuemax="100">
-                            </div>
-                        </div>
-                        <span class="ms-2 small fw-bold text-dark" style="min-width: 35px;">
-                            ${data.porcentaje}%
-                        </span>
-                    </div>
-                `;
+                  <div class="d-flex align-items-center" style="min-width: 150px; cursor: help;" data-toggle="tooltip" data-html="true" ${tooltip}>
+                      <div class="progress flex-grow-1" style="height: 18px; background-color: #e9ecef; border-radius: 4px;">
+                          <div class="progress-bar bg-${color}" 
+                              role="progressbar" 
+                              style="width: ${data.porcentaje}%; transition: width 0.6s ease;" 
+                              aria-valuenow="${data.porcentaje}" 
+                              aria-valuemin="0" 
+                              aria-valuemax="100">
+                          </div>
+                      </div>
+                      <span class="ml-2 font-weight-bold text-dark" style="min-width: 45px; font-size: 0.95rem; letter-spacing: -0.5px;">
+                          ${data.porcentaje}%
+                      </span>
+                  </div>
+              `;
           },
         },
         {
