@@ -47,23 +47,11 @@
                     data-toggle="tooltip"
                     data-html="true"
                     title="{% if progreso_usuario.faltantes %}
-                      
-                      
-                      
-                      
-                      
+                       
                       <b>Pendiente:</b><br>{{ progreso_usuario.faltantes|join:'<br>' }}
                     {% else %}
                       
-                      
-                      
-                      
-                      
                       ¡Perfil completo!
-
-
-
-
 
                     {% endif %}">
                     <div class="progress-bar" role="progressbar" style="width: {{ progreso_usuario.porcentaje }}%; 

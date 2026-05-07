@@ -103,10 +103,21 @@ class Institucion(ModeloBase):
         return f"{self.denominacion} - {self.abreviatura}"
 
     def search(term, limit=10):
-        return Institucion.objects.filter(
-            models.Q(denominacion__icontains=term)
-            | models.Q(abreviatura__icontains=term)
-        )[:limit]
+        term_str = str(term).strip() if term else ""
+
+        if not term_str:
+            return Institucion.objects.none()
+
+        words = term_str.split()
+        queryset = Institucion.objects.only("id", "denominacion", "abreviatura")
+
+        for word in words:
+            queryset = queryset.filter(
+                models.Q(denominacion__icontains=word)
+                | models.Q(abreviatura__icontains=word)
+            )
+
+        return queryset.order_by("denominacion")[:limit]
 
     def toJSON(self):
         item = model_to_dict(self)
