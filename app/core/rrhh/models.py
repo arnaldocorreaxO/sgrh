@@ -56,15 +56,28 @@ class EmpleadoQuerySet(models.QuerySet):
         return self.filter(id=empleado_consultor.id)
 
     def search(self, term, user, limit=10):
-        # print(f"EmpleadoQuerySet.search: term='{term}' user='{user.username}'")
-        # Ahora 'self' ya tiene el método 'para_usuario'
-        qs = self.para_usuario(user).filter(
-            models.Q(nombre__icontains=term)
-            | models.Q(apellido__icontains=term)
-            | models.Q(ci__icontains=term)
-            | models.Q(legajo__icontains=term)
-        )
-        return qs[:limit] if limit else qs
+        # 1. Obtenemos el QuerySet base ya filtrado por permisos
+        qs = self.para_usuario(user)
+
+        # 2. Limpiamos el término y lo dividimos en palabras
+        term_str = str(term).strip() if term else ""
+        if not term_str:
+            return qs[:limit] if limit else qs
+
+        words = term_str.split()
+
+        # 3. Aplicamos un filtro por cada palabra (Lógica Fuzzy)
+        for word in words:
+            qs = qs.filter(
+                models.Q(nombre__icontains=word)
+                | models.Q(apellido__icontains=word)
+                | models.Q(ci__icontains=word)
+                | models.Q(legajo__icontains=word)
+            )
+
+        # 4. Retornamos con el límite aplicado
+        # Usamos distinct() por seguridad si hay relaciones complejas
+        return qs.distinct()[:limit] if limit else qs.distinct()
 
 
 class EmpleadoManager(models.Manager):
