@@ -8,6 +8,7 @@ let columnas = [
   { data: "nombre" },
   { data: "apellido" },
   { data: "edad" },
+  { data: "antiguedad" },
   { data: "celular" },
   { data: "progreso_perfil" },
   { data: "id" },
@@ -190,14 +191,27 @@ var registros = {
           },
         },
         {
-          targets: [-4],
+          targets: [-5],
           class: "text-center",
+          data: "edad",
           orderable: true,
           render: function (data, type, row) {
             if (type === "sort") {
               return data.timestamp; // Ordena por fecha YYYYMMDD
             }
             return data.display; // Muestra "25 años"
+          },
+        },
+        {
+          targets: [-4],
+          class: "text-center",
+          data: "antiguedad",
+          orderable: true,
+          render: function (data, type, row) {
+            if (type === "sort") {
+              return data.timestamp; // Ordena por fecha YYYYMMDD
+            }
+            return data.display; // Muestra "3 años"
           },
         },
         {

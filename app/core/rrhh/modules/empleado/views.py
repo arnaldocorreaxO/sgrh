@@ -239,6 +239,7 @@ class EmpleadoList(PermissionMixin, BaseListView):
         # MAPEO FUNDAMENTAL
         column_mapper = {
             "edad": "fecha_nacimiento",
+            "antiguedad": "fecha_ingreso",
             "progreso_perfil": "orden_porcentaje",  # Debe ser el nombre que pusiste en data: "" en JS
         }
 

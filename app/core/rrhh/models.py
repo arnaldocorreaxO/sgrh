@@ -662,6 +662,14 @@ class Empleado(ModeloBase):
                 else ""
             ),
         }
+        # ANTIGUEDAD: Enviamos un objeto con el texto y la fecha real para ordenar
+        # (Ordenar por fecha de ingreso es lo mismo que ordenar por antigüedad)
+        item["antiguedad"] = {
+            "display": self.get_antiguedad(),
+            "timestamp": (
+                self.fecha_ingreso.strftime("%d/%m/%Y") if self.fecha_ingreso else ""
+            ),
+        }
 
         # PROGRESO: Enviamos el porcentaje para que sea el criterio de orden
         progreso_res = self.progreso_detalle
