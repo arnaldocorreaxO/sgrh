@@ -181,17 +181,26 @@ class Dependencia(ModeloBase):
     def __str__(self):
         return f"{self.codigo} - {self.denominacion} - {self.sucursal_institucion.denominacion}"
 
-    @classmethod
-    def search(cls, term, padre_id=None, limit=20):
-        # Usamos icontains para búsqueda insensible a mayúsculas
-        qs = cls.objects.filter(
-            models.Q(codigo__icontains=term) | models.Q(denominacion__icontains=term)
-        )
-        # Si se pasa un padre_id, filtramos las hijas
+    @staticmethod
+    def search(term="", padre_id=None, limit=10):
+        # 1. Iniciamos el QuerySet
+        qs = Dependencia.objects.all()
+
+        # 2. Si se pasa un padre_id (para search_dependencia_hija)
         if padre_id:
             qs = qs.filter(dependencia_padre_id=padre_id)
 
-        return qs.order_by("denominacion")[:limit]
+        # 3. Lógica Fuzzy para el término
+        term_str = str(term).strip() if term else ""
+        if term_str:
+            words = term_str.split()
+            for word in words:
+                # Filtramos por denominación o cualquier otro campo relevante
+                qs = qs.filter(
+                    Q(denominacion__icontains=word) | Q(codigo__icontains=word)
+                )
+
+        return qs.distinct()[:limit]
 
     class Meta:
         db_table = "rh_dependencia"
@@ -708,11 +717,18 @@ class DependenciaPosicion(ModeloBase):
     def __str__(self):
         return f"{self.posicion} - {self.dependencia}"
 
-    def search(term, limit=10):
-        return DependenciaPosicion.objects.filter(
-            models.Q(posicion__denominacion__icontains=term)
-            | models.Q(dependencia__denominacion__icontains=term)
-        )[:limit]
+    @staticmethod
+    def search(term="", limit=10):
+        qs = DependenciaPosicion.objects.all()
+
+        term_str = str(term).strip() if term else ""
+        if term_str:
+            words = term_str.split()
+            for word in words:
+                # Ejemplo: Buscamos en el nombre del cargo o denominación
+                qs = qs.filter(denominacion__icontains=word)
+
+        return qs.distinct()[:limit]
 
     class Meta:
         db_table = "rh_dependencia_posicion"
