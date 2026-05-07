@@ -28,26 +28,21 @@
       <div class="row">
         <div class="col-md-12">
           <div class="card {{ dshboard.card }}">
-            <div class="card-header d-flex align-items-center justify-content-between py-3" style="background-color: #007bff; border-bottom: none; border-radius: 5px 5px 0 0;">
+            <div class="card-header d-flex flex-column flex-md-row align-items-start align-items-md-center py-3" style="background-color: #007bff; border-bottom: none; border-radius: 5px 5px 0 0; gap: 15px;">
               <div class="d-flex align-items-center">
-                <img src="{{ request.user.get_image }}" class="img-circle elevation-2 mr-3" alt="User Image" style="width: 50px; height: 50px; object-fit: cover; border: 2px solid rgba(255,255,255,0.8);" />
+                <img src="{{ request.user.get_image }}" class="img-circle elevation-2 mr-3" alt="User Image" style="width: 45px; height: 45px; object-fit: cover; border: 2px solid rgba(255,255,255,0.8);" />
 
-                <h3 class="card-title" style="font-size: 1.6rem; font-weight: 700; color: white; margin: 0; letter-spacing: -0.5px;">{{ title }}</h3>
+                <h3 class="card-title" style="font-size: 1.4rem; font-weight: 700; color: white; margin: 0; letter-spacing: -0.5px;">{{ title }}</h3>
               </div>
 
               {% if progreso_usuario %}
-                <div class="ml-auto" style="min-width: 320px;">
-                  {% comment %} <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="font-weight-bold" style="font-size: 0.95rem; color: rgba(255,255,255,0.9);">Progreso del Perfil</span>
-                    <span class="badge" style="font-size: 0.8rem; padding: 4px 12px; background-color: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px;">{{ progreso_usuario.mensaje }}</span>
-                  </div> {% endcomment %}
-
+                <div class="w-100 ml-md-auto" style="max-width: 400px;">
                   <div class="progress position-relative"
-                    style="height: 26px; background-color: rgba(0,0,0,0.15); border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 4px rgba(0,0,0,0.2);"
+                    style="height: 24px; background-color: rgba(0,0,0,0.15); border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 4px rgba(0,0,0,0.2);"
                     data-toggle="tooltip"
                     data-html="true"
                     title="{% if progreso_usuario.faltantes %}
-                       
+                      
                       <b>Pendiente:</b><br>{{ progreso_usuario.faltantes|join:'<br>' }}
                     {% else %}
                       
@@ -56,10 +51,9 @@
                     {% endif %}">
                     <div class="progress-bar" role="progressbar" style="width: {{ progreso_usuario.porcentaje }}%; 
                         transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); 
-                        background: linear-gradient(180deg, #28a745 0%, #218838 100%); 
-                        border-radius: 0;" aria-valuenow="{{ progreso_usuario.porcentaje }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        background: linear-gradient(180deg, #28a745 0%, #218838 100%);" aria-valuenow="{{ progreso_usuario.porcentaje }}" aria-valuemin="0" aria-valuemax="100"></div>
 
-                    <small class="justify-content-center d-flex position-absolute w-100 font-weight-bold" style="line-height: 26px; font-size: 0.95rem; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.4); letter-spacing: 0.5px;">{{ progreso_usuario.porcentaje }}% Completado</small>
+                    <small class="justify-content-center d-flex position-absolute w-100 font-weight-bold" style="line-height: 24px; font-size: 0.85rem; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">{{ progreso_usuario.porcentaje }}% Completado</small>
                   </div>
                 </div>
               {% endif %}
