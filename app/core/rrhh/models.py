@@ -56,7 +56,7 @@ class EmpleadoQuerySet(models.QuerySet):
         return self.filter(id=empleado_consultor.id)
 
     def search(self, term, user, limit=10):
-        print(f"EmpleadoQuerySet.search: term='{term}' user='{user.username}'")
+        # print(f"EmpleadoQuerySet.search: term='{term}' user='{user.username}'")
         # Ahora 'self' ya tiene el método 'para_usuario'
         qs = self.para_usuario(user).filter(
             models.Q(nombre__icontains=term)
@@ -655,9 +655,9 @@ class Empleado(ModeloBase):
         progreso_sql = getattr(self, "orden_porcentaje", None)
 
         # DEBUG: Imprime en consola para comparar
-        print(
-            f"Empleado {self.id}: SQL={progreso_sql} | Python={progreso_res['porcentaje']}"
-        )
+        # print(
+        #     f"Empleado {self.id}: SQL={progreso_sql} | Python={progreso_res['porcentaje']}"
+        # )
 
         item["progreso_perfil"] = {
             "display": progreso_res,  # Todo el diccionario con color, mensaje, etc.

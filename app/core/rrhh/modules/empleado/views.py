@@ -267,25 +267,25 @@ class EmpleadoList(PermissionMixin, BaseListView):
             if action == "search":
                 qs = self.get_queryset()
                 order_fields = self.get_ordering()
-                print(order_fields)
+                # print(order_fields)
                 if order_fields:
                     qs = qs.order_by(*order_fields)
 
                     # --- BLOQUE DE IMPRESIÓN PARA DEBUG ---
-                print("\n" + "=" * 50)
-                print(f"ORDEN APLICADO: {order_fields}")
-                print("RESULTADOS ORDENADOS (Primeros 10):")
+                # print("\n" + "=" * 50)
+                # print(f"ORDEN APLICADO: {order_fields}")
+                # print("RESULTADOS ORDENADOS (Primeros 10):")
 
                 # Iteramos sobre una copia para no agotar el QuerySet si fuera necesario
                 # Imprimimos ID, Nombre y el campo anotado 'orden_porcentaje'
                 for emp in qs[:10]:
                     # Usamos getattr por seguridad si el campo es anotado
                     progreso = getattr(emp, "orden_porcentaje", "N/A")
-                    print(
-                        f"ID: {emp.id} | Empleado: {emp.nombre} | Progreso: {progreso}%"
-                    )
+                    # print(
+                    #     f"ID: {emp.id} | Empleado: {emp.nombre} | Progreso: {progreso}%"
+                    # )
 
-                print("=" * 50 + "\n")
+                # print("=" * 50 + "\n")
                 # ---------------------------------------
 
                 data = self.handle_search(request, queryset=qs)
@@ -841,186 +841,6 @@ class EmpleadoUpdate(PermissionMixin, UpdateView):
         context["instance"] = self.object
         context["is_self"] = self.is_self
         return context
-
-
-# class EmpleadoUpdate(PermissionMixin,UpdateView):
-# 	# class EmpleadoUpdatePerfil(PermissionMixin, UpdateView):
-# 	model = Empleado
-# 	form_class = EmpleadoForm
-# 	template_name = "empleado/create.html"
-# 	success_url = reverse_lazy("dashboard")
-
-# 	# Eliminamos la propiedad fija y la hacemos dinámica
-# 	def get_permission_required(self):
-# 		if self.request.resolver_match.url_name.endswith("_self"):
-# 			return ("rh.change_empleado_self",) # Permiso para el empleado
-# 		return ("rh.change_empleado",) # Permiso para el administrador
-
-# 	@method_decorator(csrf_exempt)
-# 	def dispatch(self, request, *args, **kwargs):
-# 		self.is_self = self.request.resolver_match.url_name.endswith("_self")
-
-# 		# Seguridad extra: Si es 'self' pero el usuario no tiene un empleado asociado
-# 		if self.is_self and not hasattr(request.user, 'empleado'):
-# 			raise Http404("Usted no tiene un perfil de empleado vinculado.")
-
-# 		return super().dispatch(request, *args, **kwargs)
-
-# 	def get_success_url(self):
-# 		return reverse_lazy("dashboard") if self.is_self else reverse_lazy("empleado_list")
-
-# 	# Obtener empleado asociado al usuario logueado
-# 	def get_empleado(self):
-# 		try:
-# 			return Empleado.objects.get(usuario=self.request.user)
-# 		except Empleado.DoesNotExist:
-# 			raise Http404("No se encontró el perfil del empleado asociado al usuario.")
-
-# 	def get_object(self, queryset=None):
-# 		try:
-# 			if self.is_self:
-# 				return Empleado.objects.get(usuario=self.request.user)
-# 			return Empleado.objects.get(pk=self.kwargs["pk"])
-# 		except Empleado.DoesNotExist:
-# 			raise Http404("No se encontró el perfil del empleado.")
-
-# 	# Validar datos únicos
-# 	def validate_data(self):
-# 		data = {"valid": True}
-# 		try:
-# 			type = self.request.POST["type"]
-# 			obj = self.request.POST["obj"].strip()
-# 			id = self.get_object().id
-# 			if type == "ci":
-# 				if Empleado.objects.filter(ci__iexact=obj).exclude(id=id):
-# 					data["valid"] = False
-# 			if type == "ruc":
-# 				if Empleado.objects.filter(ruc__iexact=obj).exclude(id=id):
-# 					data["valid"] = False
-# 			if type == "fecha_nacimiento":
-# 				data["valid"] = validar_mayor_edad(obj)
-
-# 		except:
-# 			pass
-# 		return JsonResponse(data)
-
-# 	def post(self, request, *args, **kwargs):
-# 		data = {}
-# 		action = request.POST.get("action")
-# 		try:
-# 			if action == "edit":
-# 					with transaction.atomic():
-# 						empleado = self.get_object()
-# 						usuario = empleado.usuario
-# 						# Obtener datos del formulario
-# 						activo = True if "on" in request.POST['activo'] else False
-# 						ci = isNULL(request.POST["ci"])
-# 						ruc = isNULL(request.POST["ruc"])
-# 						nombre = isNULL(request.POST["nombre"])
-# 						apellido = isNULL(request.POST["apellido"])
-# 						sucursal_id = isNULL(request.POST["sucursal"])
-# 						nacionalidad_id = isNULL(request.POST["nacionalidad"])
-# 						ciudad_id = isNULL(request.POST["ciudad"])
-# 						barrio_id = isNULL(request.POST["barrio"])
-# 						direccion = isNULL(request.POST["direccion"])
-# 						celular = isNULL(request.POST["celular"])
-# 						telefono = isNULL(request.POST["telefono"])
-# 						email = isNULL(request.POST["email"])
-# 						fecha_nacimiento = isNULL(request.POST["fecha_nacimiento"])
-# 						sexo_id = isNULL(request.POST["sexo"])
-# 						estado_civil_id = isNULL(request.POST["estado_civil"])
-# 						tipo_sanguineo_id = isNULL(request.POST["tipo_sanguineo"])
-# 						fecha_vencimiento_ci = isNULL(request.POST["fecha_vencimiento_ci"])
-# 						archivo_pdf_ci = request.FILES.get("archivo_pdf_ci")
-# 						fecha_ingreso = isNULL(request.POST["fecha_ingreso"])
-# 						archivo_pdf_ingreso = request.FILES.get("archivo_pdf_ingreso")
-# 						fecha_egreso = isNULL(request.POST["fecha_egreso"])
-# 						archivo_pdf_egreso = request.FILES.get("archivo_pdf_egreso")
-
-# 						# Actualizar datos del usuario
-# 						usuario.is_active 	= activo
-# 						usuario.first_name 	= nombre
-# 						usuario.last_name 	= apellido
-# 						usuario.dni 		= ci
-# 						usuario.username 	= usuario.dni
-# 						usuario.email 		= email
-# 						usuario.sucursal_id = sucursal_id
-
-# 						# Manejo de imagen
-# 						if "image-clear" in request.POST:
-# 							if usuario.image:
-# 								usuario.image.delete(save=False)
-# 							usuario.image = None
-# 						if "image" in request.FILES:
-# 							usuario.image = request.FILES["image"]
-
-# 						usuario.save()
-
-# 						# Asignar grupo si no está
-# 						group = Group.objects.get(pk=settings.GROUPS.get("empleado"))
-# 						# Mantener grupo existente y agregar el de empleado
-# 						usuario.groups.add(group)
-
-# 						# Actualizar datos del empleado
-# 						empleado.activo 			= activo
-# 						empleado.sucursal_id 		= sucursal_id
-# 						empleado.ci 			 	= ci
-# 						empleado.ruc 			 	= ruc
-# 						empleado.nombre 		 	= nombre
-# 						empleado.apellido 		 	= apellido
-# 						empleado.nacionalidad_id 	= nacionalidad_id
-# 						empleado.ciudad_id 		 	= ciudad_id
-# 						empleado.barrio_id 		 	= barrio_id
-# 						empleado.direccion 		 	= direccion
-# 						empleado.celular 		 	= celular
-# 						empleado.telefono 		 	= telefono
-# 						empleado.email 			 	= email
-# 						empleado.fecha_nacimiento  	= fecha_nacimiento
-# 						empleado.sexo_id 		 	= sexo_id
-# 						empleado.estado_civil_id	= estado_civil_id
-# 						empleado.tipo_sanguineo_id	= tipo_sanguineo_id
-# 						empleado.fecha_vencimiento_ci = fecha_vencimiento_ci
-# 						empleado.fecha_ingreso 		= fecha_ingreso
-# 						empleado.fecha_egreso 		= fecha_egreso
-
-
-# 						if archivo_pdf_ci:
-# 							# Si ya existía un archivo antes, lo borramos del disco
-# 							if empleado.archivo_pdf_ci:
-# 								empleado.archivo_pdf_ci.delete(save=False)
-# 							# Asignamos el nuevo
-# 							empleado.archivo_pdf_ci = archivo_pdf_ci
-
-# 						if archivo_pdf_ingreso:
-# 							if empleado.archivo_pdf_ingreso:
-# 								empleado.archivo_pdf_ingreso.delete(save=False)
-# 							empleado.archivo_pdf_ingreso = archivo_pdf_ingreso
-
-# 						if archivo_pdf_egreso:
-# 							if empleado.archivo_pdf_egreso:
-# 								empleado.archivo_pdf_egreso.delete(save=False)
-# 							empleado.archivo_pdf_egreso = archivo_pdf_egreso
-
-
-# 						empleado.save()
-# 						data["id"] = empleado.id
-
-# 			elif action == "validate_data":
-# 				return self.validate_data()
-# 			else:
-# 				data["error"] = "No ha seleccionado ninguna opción"
-# 		except Exception as e:
-# 			data["error"] = str(e)
-# 		return HttpResponse(json.dumps(data), content_type="application/json")
-
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super().get_context_data()
-# 		context["list_url"] = self.get_success_url()
-# 		context["title"] = f" Perfil de {self.object.nombre} {self.object.apellido}"
-# 		context["action"] = "edit"
-# 		context["instance"] = self.object
-# 		return context
 
 
 class EmpleadoDelete(PermissionMixin, DeleteView):
