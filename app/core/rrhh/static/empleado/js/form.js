@@ -315,7 +315,25 @@ $(document).ready(function () {
         $("#id_nombre").val(data[0].per_nombres);
         $("#id_apellido").val(data[0].per_apynom);
         $("#id_direccion").val(data[0].per_desdomi);
-        $("#id_nacionalidad").val(data[0].per_codpais).trigger("change");
+        // Asignación de nacionalidad (Select2)
+        // 1. Buscamos el valor (ID) que corresponde a ese texto
+        var textoBuscar = data[0].nac_codpais;
+
+        var idEncontrado = $("#id_nacionalidad option")
+          .filter(function () {
+            return $(this).text().trim() === textoBuscar;
+          })
+          .val();
+
+        // 2. Si lo encontró, lo asignamos y disparamos el cambio
+        if (idEncontrado) {
+          $("#id_nacionalidad").val(idEncontrado).trigger("change");
+        } else {
+          console.warn(
+            "No se encontró la nacionalidad con el texto: " + textoBuscar,
+          );
+        }
+        // Fin de asignación de nacionalidad
         $("#id_fecha_nacimiento").val(data[0].per_fchnaci).trigger("change");
         $("#id_estado_civil").val(data[0].civ_codeciv).trigger("change");
       },
