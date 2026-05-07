@@ -28,9 +28,9 @@
     <header class="cv-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
       <div class="header-info" style="flex: 1;">
         <h1 class="nombre" style="margin: 0; font-size: 1.2rem; color: #2d4154; text-transform: uppercase;">{{ empleado.nombre_apellido }}</h1>
-        <p class="cargo">{{ empleado.cargo_actual }}</p>
-        <p class="dependencia">{{ empleado.dependencia_actual }}</p>
-        <p class="sede">{{ empleado.sede_actual }}</p>
+        <p class="cargo">{{ empleado.denominacion_cargo_actual }}</p>
+        <p class="dependencia">{{ empleado.denominacion_dependencia_actual }}</p>
+        <p class="sede">{{ empleado.denominacion_sede_actual }}</p>
       </div>
 
       <div class="foto-wrapper" style="margin-left: 20px;">
@@ -223,7 +223,7 @@
       <section class="cv-section">
         {% comment %} <h2 class="section-title">Puesto Actual en la Empresa</h2> {% endcomment %}
         <ul class="trayectoria-list">
-          {% for e in empleado.empleado_posicion.all %}
+          {% for e in empleado.posicion_actual %}
             <li class="trayectoria-item">
               <div class="trayectoria-header">
                 <strong>{{ e.tipo_movimiento.denominacion }}</strong> - {{ e.dependencia_posicion }}

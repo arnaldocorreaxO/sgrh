@@ -15,13 +15,14 @@ from django.views.generic import TemplateView
 from core.base.models import Empresa, Persona
 from core.base.utils import YYYY_MM_DD
 from core.dashboard.forms import DashboardForm
+from core.rrhh.models import Empleado
 from core.security.models import Dashboard
 from core.user.models import User
 
 locale.setlocale(locale.LC_TIME, "")
 
 
-class DashboardView(LoginRequiredMixin,TemplateView):
+class DashboardView(LoginRequiredMixin, TemplateView):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         self.usuario = User.objects.filter(id=self.request.user.id).first()
@@ -39,7 +40,6 @@ class DashboardView(LoginRequiredMixin,TemplateView):
         if request.user.is_authenticated:
             request.user.set_group_session()
         return super().get(request, *args, **kwargs)
-
 
     def post(self, request, *args, **kwargs):
         data = {}
@@ -498,26 +498,35 @@ class DashboardView(LoginRequiredMixin,TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            usu_sucursal = self.usuario.sucursal.id
-        anho_actual = datetime.datetime.today().strftime("%Y")
-        context["title"] = "Panel de administración"
-        context["fecha_actual"] = datetime.datetime.today().strftime("%d/%m/%Y")
-        context["fecha_hora_actual"] = datetime.datetime.today().strftime(
-            "%d/%m/%Y %H:%M:%S"
-        )
-        context["mes_actual"] = datetime.datetime.today().strftime("%B").capitalize()
-        context["anho_actual"] = anho_actual
+        user = self.request.user
+        hoy = datetime.datetime.today()
+
+        # 1. Información básica y bienvenida
+        context["title"] = f"Bienvenido {user.get_full_name()}"
+        context["anho_actual"] = hoy.strftime("%Y")
+        context["fecha_actual"] = hoy.strftime("%d/%m/%Y")
+        context["fecha_hora_actual"] = hoy.strftime("%d/%m/%Y %H:%M:%S")
+        context["mes_actual"] = hoy.strftime("%B").capitalize()
+
+        # 2. Lógica de Usuario y Progreso
+        if user.is_authenticated:
+            # Usamos self.usuario (que asumo lo defines en dispatch o setup)
+            context["usuario"] = self.usuario
+
+            # Intentamos obtener el progreso del empleado
+            empleado = Empleado.objects.filter(usuario=user).first()
+            if empleado:
+                progreso = empleado.progreso_detalle
+                context["progreso_usuario"] = progreso
+                context["porcentaje_completado"] = progreso["porcentaje"]
+            else:
+                context["progreso_usuario"] = None
+
+        # 3. Datos de Empresa y Estadísticas
         context["empresa"] = Empresa.objects.first()
         context["personas"] = Persona.objects.exclude(activo=False).count()
-        # context["clientes"] = Cliente.objects.exclude(activo=False).count()
-        # context["prestamos"] = (
-        #     Prestamo.objects.filter(fec_aprobacion__year=anho_actual)
-        #     .exclude(activo=False)
-        #     .count()
-        # )
-        context["usuario"] = self.usuario
         context["form"] = DashboardForm()
+
         return context
 
 

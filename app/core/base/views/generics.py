@@ -3,9 +3,14 @@ from django.http import JsonResponse
 from django.db.models import Q
 import math
 
+
 class BaseListView(ListView):
-    search_fields = ["",]
-    numeric_fields = ["id", ]
+    search_fields = [
+        "",
+    ]
+    numeric_fields = [
+        "id",
+    ]
     default_order_fields = ["id"]
 
     def handle_search(self, request, queryset=None):
@@ -22,17 +27,22 @@ class BaseListView(ListView):
                 queryset = self.apply_search_filter(queryset, search)
 
             total = queryset.count()
-            paginated_qs = queryset[start:] if length == -1 else queryset[start:start + length]
+            paginated_qs = (
+                queryset[start:] if length == -1 else queryset[start : start + length]
+            )
 
             data = [obj.toJSON() for obj in paginated_qs]
 
-            return JsonResponse({
-                "data": data,
-                "page": math.ceil(start / length) + 1 if length else 1,
-                "per_page": length,
-                "recordsTotal": total,
-                "recordsFiltered": total,
-            }, safe=False)
+            return JsonResponse(
+                {
+                    "data": data,
+                    "page": math.ceil(start / length) + 1 if length else 1,
+                    "per_page": length,
+                    "recordsTotal": total,
+                    "recordsFiltered": total,
+                },
+                safe=False,
+            )
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
@@ -45,20 +55,21 @@ class BaseListView(ListView):
             dir_key = f"order[{i}][dir]"
             if col_key in request.POST:
                 col_index = request.POST[col_key]
-                field = request.POST.get(f"columns[{col_index}][data]", "").split(".")[0]
+                field = request.POST.get(f"columns[{col_index}][data]", "").split(".")[
+                    0
+                ]
                 direction = request.POST.get(dir_key, "asc")
                 ordering.append(f"-{field}" if direction == "desc" else field)
         return ordering or self.default_order_fields
 
-
     def apply_search_filter(self, queryset, search):
-        
+
         if search.isnumeric():
             q_numeric = Q()
             for field in self.numeric_fields:
                 q_numeric |= Q(**{f"{field}__exact": search})
             return queryset.filter(q_numeric)
-        
+
         q_text = Q()
         keywords = search.strip().split()
         for word in keywords:
@@ -68,4 +79,3 @@ class BaseListView(ListView):
             q_text &= q_word  # AND entre palabras, OR entre campos
 
         return queryset.filter(q_text).exclude(activo=False)
-

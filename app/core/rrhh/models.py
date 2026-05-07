@@ -1,23 +1,34 @@
 import os
-from datetime import date  # Agregado para mayor claridad en comparaciones
+from datetime import date
 
 # 1. Librerías de Terceros
 from dateutil.relativedelta import relativedelta
 
-# 2. Django Core
+# 2. Django Core (Base, Modelos y Validadores)
 from django.core.validators import FileExtensionValidator, MinLengthValidator
 from django.db import models
-from django.db.models import F
+from django.db.models import (
+    Case,
+    ExpressionWrapper,
+    Exists,
+    F,
+    FloatField,
+    IntegerField,
+    OuterRef,
+    Q,
+    Value,
+    When,
+)
 from django.forms import model_to_dict
 from django.utils import timezone
 
-# 3. Aplicaciones Locales (Core Base y Utils)
-from core.base.choices import *
-from core.base.models import Barrio, Ciudad, Moneda, Pais, RefDet, Sucursal
-from core.base.utils import calculate_age, calculate_age_detailed
+# 3. Aplicaciones Locales (Core, Base y Utils)
 from core.models import ModeloBase
 from core.user.models import User
 from core.utils import UploadToPath
+from core.base.choices import *
+from core.base.models import Barrio, Ciudad, Moneda, Pais, RefDet, Sucursal
+from core.base.utils import calculate_age, calculate_age_detailed
 
 
 # MANAGERS Y QUERYSETS PERSONALIZADOS
@@ -366,26 +377,30 @@ class Empleado(ModeloBase):
         # Ordenamos por fecha_inicio descendente (-) y tomamos el primero
         return self.empleado_posicion.all().order_by("-fecha_inicio").first()
 
+    def posicion_actual(self):
+        # Buscamos en la relación inversa 'empleado_posicion' definida en ForeignKey
+        return self.empleado_posicion.filter(cargo_puesto_actual=True)
+
     @property
-    def cargo_actual(self):
+    def denominacion_cargo_actual(self):
         # Buscamos en la relación inversa 'empleado_posicion' definida en tu ForeignKey
         posicion = self.empleado_posicion.order_by("-fecha_inicio").first()
         if posicion:
             # Retorna la denominación del cargo (tipo_movimiento o cargo según tu lógica)
             return posicion.dependencia_posicion.posicion.denominacion
-        return "Funcionario"  # Valor por defecto si no hay ninguno activo
+        return "Cargo"  # Valor por defecto si no hay ninguno activo
 
     @property
-    def dependencia_actual(self):
+    def denominacion_dependencia_actual(self):
         # Buscamos en la relación inversa 'empleado_posicion' definida en tu ForeignKey
         posicion = self.empleado_posicion.order_by("-fecha_inicio").first()
         if posicion:
             # Retorna la denominación del cargo (tipo_movimiento o cargo según tu lógica)
             return posicion.dependencia_posicion.dependencia.denominacion
-        return "Funcionario"  # Valor por defecto si no hay ninguno activo
+        return "Dependencia"  # Valor por defecto si no hay ninguno activo
 
     @property
-    def sede_actual(self):
+    def denominacion_sede_actual(self):
         # Buscamos en la relación inversa 'empleado_posicion' definida en tu ForeignKey
         posicion = self.empleado_posicion.order_by("-fecha_inicio").first()
         if posicion:
@@ -393,7 +408,7 @@ class Empleado(ModeloBase):
             return (
                 posicion.dependencia_posicion.dependencia.sucursal_institucion.denominacion
             )
-        return "Funcionario"  # Valor por defecto si no hay ninguno activo
+        return "Sede"  # Valor por defecto si no hay ninguno activo
 
     def get_edad(self):
         return calculate_age(self.fecha_nacimiento)
@@ -423,48 +438,131 @@ class Empleado(ModeloBase):
 
         return None
 
+    # 1. FUENTE ÚNICA DE VERDAD: Si cambias esto, cambia en todo el sistema
+    PROGRESO_CONFIG = [
+        {"nombre": "Foto Tipo Carnet", "campo": "usuario__image", "tipo": "null"},
+        {"nombre": "Cédula de Identidad (CI)", "campo": "ci", "tipo": "null"},
+        {"nombre": "PDF Cédula", "campo": "archivo_pdf_ci", "tipo": "empty"},
+        {"nombre": "PDF Res. Ingreso", "campo": "archivo_pdf_ingreso", "tipo": "empty"},
+        {"nombre": "Tipo Sanguíneo", "campo": "tipo_sanguineo", "tipo": "null"},
+        {
+            "nombre": "Formación Académica",
+            "campo": "formacion_academica",
+            "tipo": "rel",
+        },
+        {"nombre": "Capacitaciones", "campo": "capacitacion", "tipo": "rel"},
+        {
+            "nombre": "Experiencia Laboral",
+            "campo": "experiencia_laboral",
+            "tipo": "rel",
+        },
+    ]
+
     @property
-    def semaforo_detalle(self):
-        # return 0
-        # Definimos las secciones y su estado de carga
-        secciones = [
-            {"nombre": "Cédula de Identidad (CI)", "estado": bool(self.ci)},
-            {"nombre": "PDF Cédula", "estado": bool(self.archivo_pdf_ci)},
-            {"nombre": "PDF Res. Ingreso", "estado": bool(self.archivo_pdf_ingreso)},
-            {"nombre": "Tipo Sanguíneo", "estado": bool(self.tipo_sanguineo)},
-            {
-                "nombre": "Formación Académica",
-                "estado": self.formacion_academica.exists(),
-            },
-            {"nombre": "Capacitaciones", "estado": self.capacitacion.exists()},
-            {
-                "nombre": "Experiencia Laboral",
-                "estado": self.experiencia_laboral.exists(),
-            },
-        ]
+    def progreso_detalle(self):
+        completos = 0
+        faltantes = []
+        total = len(self.PROGRESO_CONFIG)
 
-        # Cálculos rápidos
-        faltantes = [s["nombre"] for s in secciones if not s["estado"]]
-        total = len(secciones)
-        completos = total - len(faltantes)
+        for item in self.PROGRESO_CONFIG:
+            # Lógica dinámica para validar cada campo en Python
+            es_valido = False
+            attr_path = item["campo"].split("__")
 
-        # Lógica de color del semáforo
-        if completos == total:
-            color = "success"  # Verde
-            mensaje = "Perfil Completo"
-        elif completos > 0:
-            color = "warning"  # Amarillo/Naranja
-            mensaje = f"Incompleto (Faltan {len(faltantes)})"
-        else:
-            color = "danger"  # Rojo
-            mensaje = "Perfil Vacío"
+            # Obtener el valor del campo (incluso si es relación como usuario__image)
+            obj = self
+            for part in attr_path:
+                obj = getattr(obj, part, None) if obj else None
+
+            if item["tipo"] == "null":
+                es_valido = bool(obj)
+            elif item["tipo"] == "empty":
+                es_valido = bool(obj and str(obj).strip() != "")
+            elif item["tipo"] == "rel":
+                # Accedemos a la relación de forma segura
+                rel = getattr(self, item["campo"], None)
+                # Verificamos si existe el manager y si tiene registros
+                es_valido = rel.exists() if rel and hasattr(rel, "exists") else False
+
+            if es_valido:
+                completos += 1
+            else:
+                faltantes.append(item["nombre"])
+
+        porcentaje = int((completos / total) * 100)
+        color = (
+            "success"
+            if porcentaje == 100
+            else "warning" if porcentaje > 0 else "danger"
+        )
+        mensaje = (
+            "Perfil Completo"
+            if porcentaje == 100
+            else (
+                f"Incompleto (Faltan {len(faltantes)})"
+                if porcentaje > 0
+                else "Perfil Vacío"
+            )
+        )
 
         return {
             "color": color,
             "mensaje": mensaje,
             "faltantes": faltantes,
-            "porcentaje": int((completos / total) * 100),
+            "porcentaje": porcentaje,
         }
+
+    @staticmethod
+    def get_orden_progreso_query():
+
+        query_sumatoria = Value(0)
+        config = Empleado.PROGRESO_CONFIG
+
+        for item in config:
+            campo = item["campo"]
+            tipo = item["tipo"]
+
+            if tipo == "rel":
+                # Asegúrate de importar los modelos dentro de la función
+
+                modelos = {
+                    "formacion_academica": FormacionAcademica,
+                    "capacitacion": Capacitacion,
+                    "experiencia_laboral": ExperienciaLaboral,
+                }
+                modelo = modelos.get(campo)
+                if modelo:
+                    # Usamos filter(empleado=OuterRef('pk')) o empleado_id
+                    condicion = Exists(
+                        modelo.objects.filter(empleado_id=OuterRef("pk"))
+                    )
+                else:
+                    condicion = Q(pk__isnull=True)
+
+            elif campo == "ci":
+                # Para evitar el error "expected a number", solo verificamos que no sea nulo
+                condicion = Q(ci__isnull=False)
+
+            elif "archivo" in campo or "image" in campo:
+                # Para archivos, Python mira si hay nombre, SQL mira si no es nulo y no es vacío
+                condicion = Q(**{f"{campo}__isnull": False}) & ~Q(**{f"{campo}": ""})
+
+            elif tipo == "null":
+                condicion = Q(**{f"{campo}__isnull": False})
+
+            else:  # tipo == "empty"
+                condicion = Q(**{f"{campo}__isnull": False}) & ~Q(**{f"{campo}": ""})
+
+            query_sumatoria = query_sumatoria + Case(
+                When(condicion, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+
+        return ExpressionWrapper(
+            (query_sumatoria * 100.0) / len(config),
+            output_field=FloatField(),
+        )
 
     def toJSON(self):
         # 1. Convertimos el modelo a diccionario
@@ -475,7 +573,7 @@ class Empleado(ModeloBase):
         # 2. Propiedades calculadas y personalizadas
         item["nombre_apellido"] = self.nombre_apellido
         item["nombre_apellido_legajo"] = self.nombre_apellido_legajo
-        item["edad"] = self.get_edad()
+
         item["antiguedad"] = self.get_antiguedad()
 
         # 3. Procesar Archivos (PDF e Imagen)
@@ -530,8 +628,30 @@ class Empleado(ModeloBase):
         item["fecha_egreso"] = (
             self.fecha_egreso.strftime("%d/%m/%Y") if self.fecha_egreso else ""
         )
-        item["perfil_completado"] = self.semaforo_detalle
-        item["antiguedad"] = self.get_antiguedad()
+        # EDAD: Enviamos un objeto con el texto y la fecha real para ordenar
+        # (Ordenar por fecha de nacimiento es lo mismo que ordenar por edad)
+        item["edad"] = {
+            "display": self.get_edad(),
+            "timestamp": (
+                self.fecha_nacimiento.strftime("%d/%m/%Y")
+                if self.fecha_nacimiento
+                else ""
+            ),
+        }
+
+        # PROGRESO: Enviamos el porcentaje para que sea el criterio de orden
+        progreso_res = self.progreso_detalle
+        progreso_sql = getattr(self, "orden_porcentaje", None)
+
+        # DEBUG: Imprime en consola para comparar
+        print(
+            f"Empleado {self.id}: SQL={progreso_sql} | Python={progreso_res['porcentaje']}"
+        )
+
+        item["progreso_perfil"] = {
+            "display": progreso_res,  # Todo el diccionario con color, mensaje, etc.
+            "porcentaje": progreso_sql,  # El número 0-100
+        }
 
         return item
 

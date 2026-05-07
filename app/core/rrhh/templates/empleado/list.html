@@ -2,6 +2,36 @@
 {% load static %}
 {% block head_list %}
   <script src="{% static 'empleado/js/list.js' %}"></script>
+  <style>
+    /* Forzar el mensaje de procesamiento a estar siempre visible en pantalla */
+    div.dataTables_processing {
+      position: fixed !important; /* Cambiado de absolute a fixed */
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important; /* Centrado perfecto */
+      margin: 0 !important;
+      width: 200px !important;
+      height: auto !important;
+      padding: 20px !important;
+      background-color: rgba(255, 255, 255, 0.95) !important;
+      border: 1px solid #dee2e6 !important;
+      border-radius: 10px !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+      z-index: 9999 !important; /* Por encima de todo, incluso headers */
+      display: none; /* DataTables lo controla */
+      text-align: center !important;
+    }
+    
+    /* Opcional: Oscurecer un poco el fondo de la pantalla cuando aparece el loader */
+    /* Esto requiere que el div de procesamiento se active */
+    div.dataTables_processing:visible {
+      display: block !important;
+    }
+    .dataTables_wrapper.processing .dataTable {
+      opacity: 0.4;
+      pointer-events: none; /* Evita clics dobles mientras procesa */
+    }
+  </style>
 {% endblock %}
 
 {% block content_list_before %}
@@ -21,5 +51,5 @@
   <th scope="col" class="text-nowrap">Tel. Contacto</th>
 
   <th scope="col" style="width: 1%;" class="text-center text-nowrap">Perfil</th>
-  <th scope="col" style="width: 1%;" class="text-center text-nowrap">Opciones</th>
+  <th scope="col" style="width: %;" class="text-center text-nowrap">Opciones</th>
 {% endblock %}

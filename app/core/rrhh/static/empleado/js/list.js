@@ -9,7 +9,7 @@ let columnas = [
   { data: "apellido" },
   { data: "edad" },
   { data: "celular" },
-  { data: "perfil_completado" },
+  { data: "progreso_perfil" },
   { data: "id" },
 ];
 
@@ -52,11 +52,21 @@ var registros = {
       processing: true,
       serverSide: true,
       paging: true,
+      lengthMenu: [
+        [10, 25, 50, 100, -1],
+        [10, 25, 50, 100, "Todos"],
+      ],
+      pageLength: 10,
+
       ajax: {
         url: pathname,
         type: "POST",
         data: parameters,
         headers: { "X-CSRFToken": csrftoken },
+      },
+      language: {
+        sProcessing:
+          '<div class="spinner-border text-primary" role="status"></div><br>Procesando...',
       },
       order: [
         [colApellidoIndice, "asc"],
@@ -180,26 +190,56 @@ var registros = {
           },
         },
         {
+          targets: [-4],
+          class: "text-center",
+          orderable: true,
+          render: function (data, type, row) {
+            if (type === "sort") {
+              return data.timestamp; // Ordena por fecha YYYYMMDD
+            }
+            return data.display; // Muestra "25 años"
+          },
+        },
+        {
           targets: [-2], // La posición de la nueva columna perfil_completado
           class: "text-center",
-          orderable: false,
+          data: "progreso_perfil",
           render: function (data, type, row) {
             // 'data' será el diccionario que definimos en la @property de Django
             if (!data)
               return '<span class="badge bg-secondary">Sin datos</span>';
 
+            if (type === "sort") {
+              console.log("Ordenando por porcentaje:", data.porcentaje);
+              return data.porcentaje; // Ordena por el porcentaje (0, 50, 100...)
+            }
+
+            let s = data.display;
+
             // Construimos el texto para el tooltip si hay pendientes
             let tooltip =
-              data.faltantes && data.faltantes.length > 0
-                ? 'title="Pendiente: ' + data.faltantes.join(", ") + '"'
+              s.faltantes && s.faltantes.length > 0
+                ? 'title="Pendiente: ' + s.faltantes.join(", ") + '"'
                 : 'title="Perfil completo"';
 
-            // Retornamos el badge dinámico
+            let color = s.color; // success, warning, danger
+
             return `
-      <span class="badge rounded-pill bg-${data.color}" data-toggle="tooltip" data-placement="top" ${tooltip} style="cursor:pointer;">
-        ${data.mensaje}
-      </span>
-    `;
+                    <div class="d-flex align-items-center" style="min-width: 130px; cursor: help;" data-toggle="tooltip" data-html="true" ${tooltip}>
+                        <div class="progress flex-grow-1" style="height: 10px; background-color: #e9ecef;">
+                            <div class="progress-bar bg-${color}" 
+                                role="progressbar" 
+                                style="width: ${data.porcentaje}%" 
+                                aria-valuenow="${data.porcentaje}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                        <span class="ms-2 small fw-bold text-dark" style="min-width: 35px;">
+                            ${data.porcentaje}%
+                        </span>
+                    </div>
+                `;
           },
         },
         {
@@ -213,23 +253,28 @@ var registros = {
               pathname +
               "cv/pdf/" +
               row.id +
-              '/" class="btn btn-danger btn btn-xs btn-flat" target data-toggle="tooltip" title="Ver CV PDF" target="_blank"><i class="fas fa-file-pdf"></i></a> ';
+              '/" class="btn btn-danger btn btn-flat btn-xs" data-toggle="tooltip" title="Ver CV PDF" target="_blank"><i class="fas fa-file-pdf"></i></a> ';
             buttons +=
               '<a href="' +
               pathname +
               "update/" +
               row.id +
-              '/" class="btn btn-warning btn btn-xs btn-flat" data-toggle="tooltip" title="Editar"><i class="fas fa-edit"></i></a> ';
+              '/" class="btn btn-warning btn btn-flat btn-xs" data-toggle="tooltip" title="Editar"><i class="fas fa-edit"></i></a> ';
             buttons +=
               '<a href="' +
               pathname +
               "delete/" +
               row.id +
-              '/" type="button" class="btn btn-xs btn-danger btn btn-flat" data-toggle="tooltip" title="Eliminar"><i class="fas fa-trash-alt"></i></a>';
+              '/" type="button" class="btn btn-dark btn btn-flat btn-xs" data-toggle="tooltip" title="Eliminar"><i class="fas fa-trash-alt"></i></a>';
             return buttons;
           },
         },
       ],
+      drawCallback: function (settings) {
+        $('[data-toggle="tooltip"]').tooltip({
+          html: true, // Esto permite que los <br> que pusimos en los faltantes funcionen
+        });
+      },
     });
   },
 };
