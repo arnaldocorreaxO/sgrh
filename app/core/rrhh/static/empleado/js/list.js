@@ -182,6 +182,8 @@ var registros = {
       ],
       columns: columnas, //Definimos mas arriba
       columnDefs: [
+        { targets: [0], visible: false, searchable: false }, // Ocultamos ID, que se usará para acciones pero no es relevante mostrarlo
+
         {
           targets: [2],
           class: "text-left",
