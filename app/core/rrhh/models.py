@@ -726,7 +726,10 @@ class DependenciaPosicion(ModeloBase):
             words = term_str.split()
             for word in words:
                 # Ejemplo: Buscamos en el nombre del cargo o denominación
-                qs = qs.filter(denominacion__icontains=word)
+                qs = qs.filter(
+                    Q(posicion__denominacion__icontains=word)
+                    | Q(dependencia__denominacion__icontains=word)
+                )
 
         return qs.distinct()[:limit]
 
