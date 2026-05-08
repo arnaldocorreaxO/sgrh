@@ -163,8 +163,13 @@
                 Actualidad
               {% endif %}
               <br />
-              {{ e.descripcion }}
+              {% if e.telefono_contacto %}
+                Teléfono de contacto: {{ e.telefono_contacto }}
+              {% else %}
+                Teléfono de contacto: <span style="color:#888;">No especificado</span>
+              {% endif %}
 
+              <br />
               {% if e.archivo_pdf %}
                 <a href="{{ e.archivo_pdf.url }}" target="_blank" class="pdf-link"><span class="badge badge-danger">Ver pdf</span></a>
               {% endif %}
