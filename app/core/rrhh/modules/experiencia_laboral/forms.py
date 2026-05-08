@@ -7,11 +7,13 @@ from core.rrhh.models import ExperienciaLaboral, Institucion, RefDet
 from core.base.forms import readonly_fields
 from django.core.exceptions import ValidationError
 
+
 class CargoChoiceField(forms.ModelChoiceField):
     """
     Campo personalizado que permite valores tipo 'new:XYZ'
     sin que Django los rechace antes de clean_cargo().
     """
+
     def validate(self, value):
         # Permitir valores nuevos creados por Select2
         if isinstance(value, str) and value.startswith("new:"):
@@ -22,36 +24,47 @@ class CargoChoiceField(forms.ModelChoiceField):
 from django import forms
 from django.utils.safestring import mark_safe
 
+
 class ExperienciaLaboralForm(ModelFormEmpleado):
 
     empresa = forms.CharField(
-        label="Empresa donde trabajó",
+        label="Empresa donde presta o prestó servicios",
         help_text="Si no existe en la lista, escríbala y presione Enter para crearla.",
         widget=forms.Select(
             attrs={
                 "class": "custom-select select2",
                 "style": "width: 100%",
-                "data-placeholder": "Seleccione o escriba una empresa",
+                "data-placeholder": "Puede buscar y seleccionar una empresa existente o escribir una nueva para agregarla al sistema",
             }
         ),
         required=True,
     )
 
     cargo = forms.CharField(
-        label="Cargo desempeñado",
+        label="Cargo que desempeña o desempeñó",
         help_text="Si no existe en la lista, escríbalo y presione Enter para crearlo.",
         widget=forms.Select(
             attrs={
                 "class": "custom-select select2",
                 "style": "width: 100%",
-                "data-placeholder": "Seleccione o escriba un cargo",
+                "data-placeholder": "Puede buscar y seleccionar un cargo existente o escribir uno nuevo para agregarlo al sistema",
             }
         ),
         required=True,
     )
+    telefono_contacto = forms.CharField(
+        label="Teléfono de referencia laboral (opcional)",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Ingrese el teléfono de contacto",
+            }
+        ),
+    )
 
     actividades = forms.CharField(
-        label="Actividades o tareas",
+        label="Actividades o tareas que desempeña o desempeñó en el cargo (opcional)",
         required=False,
         widget=forms.Textarea(
             attrs={
@@ -60,13 +73,13 @@ class ExperienciaLaboralForm(ModelFormEmpleado):
                 "placeholder": "Ej: Gestión de inventarios, atención al cliente, elaboración de informes...",
             }
         ),
-        help_text="Mencione brevemente sus tareas principales o deje en blanco si no desea detallar."
+        help_text="Mencione brevemente sus tareas principales o deje en blanco si no desea detallar.",
     )
     archivo_pdf = forms.FileField(
-        label="Respaldo de experiencia",
+        label="Certificado o constancia laboral en PDF (opcional)",
         required=False,
         help_text="Puede adjuntar un certificado o constancia laboral en PDF (opcional).",
-        widget=forms.ClearableFileInput(attrs={'class': 'form-control-file'})
+        widget=forms.ClearableFileInput(attrs={"class": "form-control-file"}),
     )
 
     def __init__(self, *args, **kwargs):
@@ -77,46 +90,52 @@ class ExperienciaLaboralForm(ModelFormEmpleado):
         self.fields["empresa"].widget.choices = []
         if inst and inst.empresa:
             self.initial["empresa"] = inst.empresa.pk
-            self.fields["empresa"].widget.choices = [(inst.empresa.pk, inst.empresa.denominacion)]
+            self.fields["empresa"].widget.choices = [
+                (inst.empresa.pk, inst.empresa.denominacion)
+            ]
 
         # --- Configuración de Cargo ---
         self.fields["cargo"].widget.choices = []
         if inst and inst.cargo:
             self.initial["cargo"] = inst.cargo.pk
-            self.fields["cargo"].widget.choices = [(inst.cargo.pk, inst.cargo.denominacion)]
+            self.fields["cargo"].widget.choices = [
+                (inst.cargo.pk, inst.cargo.denominacion)
+            ]
 
         # --- Archivo PDF ---
         self.fields["archivo_pdf"].required = False
         if inst and inst.archivo_pdf:
-                # Mantenemos el texto de ayuda original y agregamos el link al actual
-                self.fields["archivo_pdf"].help_text = mark_safe(
-                    f'Puede reemplazar el documento actual subiendo uno nuevo en PDF.<br>'
-                    f'<span class="text-success"><i class="fa fa-check-circle"></i> Archivo ya cargado: '
-                    f'<a href="{inst.archivo_pdf.url}" target="_blank" class="font-weight-bold">Ver documento</a></span>'
-                )
+            # Mantenemos el texto de ayuda original y agregamos el link al actual
+            self.fields["archivo_pdf"].help_text = mark_safe(
+                f"Puede reemplazar el documento actual subiendo uno nuevo en PDF.<br>"
+                f'<span class="text-success"><i class="fa fa-check-circle"></i> Archivo ya cargado: '
+                f'<a href="{inst.archivo_pdf.url}" target="_blank" class="font-weight-bold">Ver documento</a></span>'
+            )
 
     class Meta:
         model = ExperienciaLaboral
         fields = [
-            'empleado',
-            'empresa',
-            'cargo',
-            'fecha_desde',
-            'fecha_hasta',
-            'actividades',
-            'archivo_pdf',
+            "empleado",
+            "empresa",
+            "cargo",
+            "fecha_desde",
+            "fecha_hasta",
+            "telefono_contacto",
+            "actividades",
+            "archivo_pdf",
         ]
         widgets = {
-            'fecha_desde': forms.DateInput(
-                format="%Y-%m-%d",
-                attrs={'class': 'form-control', 'type': 'date'}
+            "fecha_desde": forms.DateInput(
+                format="%Y-%m-%d", attrs={"class": "form-control", "type": "date"}
             ),
-            'fecha_hasta': forms.DateInput(
-                format="%Y-%m-%d",
-                attrs={'class': 'form-control', 'type': 'date'}
+            "fecha_hasta": forms.DateInput(
+                format="%Y-%m-%d", attrs={"class": "form-control", "type": "date"}
             ),
-            'archivo_pdf': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            "archivo_pdf": forms.ClearableFileInput(
+                attrs={"class": "form-control-file"}
+            ),
         }
+
     # ---------------------------------------------------------
     # CREACIÓN DINÁMICA DE EMPRESA
     # ---------------------------------------------------------
@@ -138,7 +157,7 @@ class ExperienciaLaboralForm(ModelFormEmpleado):
                 descripcion=descripcion,
             )
             empresa.cod_referencia = f"EMPRESA_{empresa.pk}"
-            empresa.save(update_fields=['cod_referencia'])
+            empresa.save(update_fields=["cod_referencia"])
             return empresa
 
         # caso existente: viene un pk (string) desde Select2
@@ -147,49 +166,48 @@ class ExperienciaLaboralForm(ModelFormEmpleado):
             return empresa
         except RefDet.DoesNotExist:
             raise ValidationError("Escoja una empresa válida.")
-        
+
     # ---------------------------------------------------------
     # CREACIÓN DINÁMICA DE CARGO
     # ---------------------------------------------------------
     def clean_cargo(self):
-            raw = self.data.get("cargo", "")
-            print(">>> clean_cargo() recibió:", raw)
+        raw = self.data.get("cargo", "")
+        print(">>> clean_cargo() recibió:", raw)
 
-            if not raw:
-                return None
+        if not raw:
+            return None
 
-            # caso nuevo: new:XYZ
-            if raw.startswith("new:"):
-                descripcion = raw.replace("new:", "").strip()
-                print(">>> creando nuevo cargo:", descripcion)
+        # caso nuevo: new:XYZ
+        if raw.startswith("new:"):
+            descripcion = raw.replace("new:", "").strip()
+            print(">>> creando nuevo cargo:", descripcion)
 
-                cargo = RefDet.objects.create(
-                    refcab=RefCab.objects.get(cod_referencia="CARGO"),
-                    denominacion=descripcion,
-                    descripcion=descripcion,
-                )
-                cargo.cod_referencia = f"CARGO_{cargo.pk}"
-                cargo.save(update_fields=['cod_referencia'])
-                return cargo
+            cargo = RefDet.objects.create(
+                refcab=RefCab.objects.get(cod_referencia="CARGO"),
+                denominacion=descripcion,
+                descripcion=descripcion,
+            )
+            cargo.cod_referencia = f"CARGO_{cargo.pk}"
+            cargo.save(update_fields=["cod_referencia"])
+            return cargo
 
-            # caso existente: viene un pk (string) desde Select2
-            try:
-                cargo = RefDet.objects.get(pk=raw)
-                return cargo
-            except RefDet.DoesNotExist:
-                raise ValidationError("Escoja un cargo válido.")
-
+        # caso existente: viene un pk (string) desde Select2
+        try:
+            cargo = RefDet.objects.get(pk=raw)
+            return cargo
+        except RefDet.DoesNotExist:
+            raise ValidationError("Escoja un cargo válido.")
 
     # ---------------------------------------------------------
     # VALIDACIÓN PDF
     # ---------------------------------------------------------
     def clean_archivo_pdf(self):
-        archivo = self.cleaned_data.get('archivo_pdf')
+        archivo = self.cleaned_data.get("archivo_pdf")
         if archivo:
-            if not archivo.name.lower().endswith('.pdf'):
-                raise ValidationError('El archivo debe ser un PDF.')
+            if not archivo.name.lower().endswith(".pdf"):
+                raise ValidationError("El archivo debe ser un PDF.")
             if archivo.size > 5 * 1024 * 1024:
-                raise ValidationError('El archivo no debe exceder 5MB.')
+                raise ValidationError("El archivo no debe exceder 5MB.")
         return archivo
 
     # ---------------------------------------------------------
@@ -201,7 +219,7 @@ class ExperienciaLaboralForm(ModelFormEmpleado):
             if self.is_valid():
                 instance = super().save(commit=False)
 
-                if self.cleaned_data.get('archivo_pdf') is False:
+                if self.cleaned_data.get("archivo_pdf") is False:
                     instance.archivo_pdf.delete(save=False)
                     instance.archivo_pdf = None
 

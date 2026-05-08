@@ -58,6 +58,11 @@ document.addEventListener("DOMContentLoaded", function (e) {
           },
         },
       },
+      telefono_contacto: {
+        validators: {
+          stringLength: { max: 20, message: "Máximo 20 caracteres" },
+        },
+      },
       actividades: {
         validators: {
           stringLength: { max: 255, message: "Máximo 255 caracteres" },
@@ -89,5 +94,8 @@ $(document).ready(function () {
   });
   $('input[name="archivo_pdf"]').on("change", function () {
     fv.revalidateField("archivo_pdf");
+  });
+  $('input[name="telefono_contacto"]').on("input", function () {
+    fv.revalidateField("telefono_contacto");
   });
 });

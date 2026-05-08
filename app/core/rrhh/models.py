@@ -606,7 +606,9 @@ class Empleado(ModeloBase):
         # 2. Propiedades calculadas y personalizadas
         item["nombre_apellido"] = self.nombre_apellido
         item["nombre_apellido_legajo"] = self.nombre_apellido_legajo
-
+        item["telefono"] = self.telefono if self.telefono else "No especificado"
+        item["celular"] = self.celular if self.celular else "No especificado"
+        item["email"] = self.email if self.email else "No especificado"
         item["antiguedad"] = self.get_antiguedad()
 
         # 3. Procesar Archivos (PDF e Imagen)
@@ -1121,19 +1123,33 @@ class ExperienciaLaboral(ModeloBase):
     )
     cargo = models.ForeignKey(
         RefDet,
+        verbose_name="Indicar el cargo desempeñado",
         db_column="cargo_refdet_id",
         on_delete=models.RESTRICT,
         related_name="cargo_experiencia_laboral",
     )
-    fecha_desde = models.DateField(verbose_name="Fecha Desde")
-    fecha_hasta = models.DateField(verbose_name="Fecha Hasta", null=True, blank=True)
+    fecha_desde = models.DateField(
+        verbose_name="Fecha de inicio de actividades", null=True, blank=True
+    )
+    fecha_hasta = models.DateField(
+        verbose_name="Fecha de finalización de actividades", null=True, blank=True
+    )
+    telefono_contacto = models.CharField(
+        max_length=20,
+        verbose_name="Teléfono de referencia laboral (opcional)",
+        null=True,
+        blank=True,
+    )
     actividades = models.CharField(
-        max_length=255, verbose_name="Actividades", null=True, blank=True
+        max_length=255,
+        verbose_name="Actividades o tareas que desempeña o desempeñó en el cargo (opcional)",
+        null=True,
+        blank=True,
     )
     archivo_pdf = models.FileField(
         upload_to=UploadToPath("LABORAL"),
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
-        verbose_name="Archivo PDF",
+        verbose_name="Certificado o constancia laboral en PDF (opcional)",
     )
 
     class Meta:
@@ -1182,6 +1198,9 @@ class ExperienciaLaboral(ModeloBase):
         )
         item["fecha_hasta"] = (
             self.fecha_hasta.strftime("%d/%m/%Y") if self.fecha_hasta else None
+        )
+        item["telefono_contacto"] = (
+            self.telefono_contacto if self.telefono_contacto else "No especificado"
         )
 
         return item

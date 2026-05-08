@@ -5,7 +5,7 @@ $(function () {
     theme: "bootstrap4",
     language: "es",
     placeholder: "(Seleccione una empresa)",
-    // minimumInputLength: 1,
+    minimumInputLength: 1,
     tags: true,
 
     createTag: function (params) {
