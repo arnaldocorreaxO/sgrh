@@ -53,36 +53,55 @@ def ajax_cargos(request):
     return JsonResponse(results, safe=False)
 
 
-def ajax_ciudades(request):
-    q = request.GET.get("q", "")
+from django.db.models import Q, Case, When, Value, IntegerField
 
-    # Usamos select_related para traer el distrito en la misma consulta
-    # Ordenamos por distrito para facilitar la agrupación
+
+def ajax_ciudades(request):
+    q = request.GET.get("q", "").strip()
+
+    # 1. Usamos anotaciones para dar prioridad a la coincidencia por Ciudad
+    # Si el nombre de la ciudad empieza con lo que el usuario escribió, tiene prioridad máxima
     qs = (
         Ciudad.objects.select_related("distrito")
         .filter(
             Q(activo=True)
-            & (Q(distrito__denominacion__icontains=q) | Q(denominacion__icontains=q))
+            & (Q(denominacion__icontains=q) | Q(distrito__denominacion__icontains=q))
         )
-        .order_by("distrito__denominacion", "denominacion")[:25]
+        .annotate(
+            prioridad=Case(
+                When(
+                    denominacion__istartswith=q, then=Value(1)
+                ),  # Ciudad empieza con Q
+                When(denominacion__icontains=q, then=Value(2)),  # Ciudad contiene Q
+                default=Value(3),  # Distrito contiene Q
+                output_field=IntegerField(),
+            )
+        )
+        .order_by("prioridad", "denominacion", "distrito__denominacion")[:30]
     )
 
     results = []
+    # Usamos un diccionario para agrupar, pero manteniendo el orden de aparición de las ciudades
     distritos_map = {}
 
     for i in qs:
         d_id = i.distrito_id
-        d_nom = str(i.distrito)
+        d_nom = i.distrito.denominacion if i.distrito else "SIN DISTRITO"
+
+        # El texto de la ciudad (puedes incluir el distrito al lado para mayor claridad)
+        ciudad_texto = f"{i.denominacion}"
 
         if d_id not in distritos_map:
-            # Creamos el grupo del distrito
-            distrito_entry = {"text": d_nom, "children": []}
+            distrito_entry = {
+                "text": f"DISTRITO: {d_nom}",  # Encabezado del grupo
+                "children": [],
+            }
             distritos_map[d_id] = distrito_entry
             results.append(distrito_entry)
 
-        # Añadimos la ciudad al grupo correspondiente
-        distritos_map[d_id]["children"].append({"id": i.id, "text": str(i)})
+        distritos_map[d_id]["children"].append({"id": i.id, "text": ciudad_texto})
 
+    # Si no hay búsqueda, enviamos el valor por defecto
     data = [{"id": "", "text": "------------"}] + results
     return JsonResponse(data, safe=False)
 

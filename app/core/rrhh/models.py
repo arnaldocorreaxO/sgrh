@@ -982,7 +982,7 @@ class FormacionAcademica(ModeloBase):
         db_table = "rh_formacion_academica"
         verbose_name = "Formación Académica"
         verbose_name_plural = "Formaciones Académicas"
-        ordering = ["-anho_graduacion"]
+        ordering = ["-anho_graduacion", "-id"]
         permissions = [
             ("view_formacionacademica_self", "Puede ver su propia formación académica"),
             (
